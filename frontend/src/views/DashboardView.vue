@@ -1,7 +1,8 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import axios from 'axios'
-import { Plus, Flame, CheckCircle } from 'lucide-vue-next'
+import * as LucideIcons from 'lucide-vue-next'
+import { Plus } from 'lucide-vue-next'
 
 const habits = ref([])
 
@@ -26,19 +27,23 @@ const completeHabit = async (habit) => {
 
 const isModalOpen = ref(false)
 const newHabitName = ref('')
+const newHabitIcon = ref('Activity')
+const newHabitColor = ref('#6366f1')
 
 const addHabit = async () => {
   if (!newHabitName.value) return
-
   try {
     const response = await axios.post('http://127.0.0.1:8000/api/habits/', {
       name: newHabitName.value,
-      streak: 0
+      icon: newHabitIcon.value,
+      color: newHabitColor.value
     })
-
-    // Add the new habit to the list and close modal
+    
     habits.value.push(response.data)
+    
+    // Reset form and close
     newHabitName.value = ''
+    newHabitIcon.value = 'Activity'
     isModalOpen.value = false
   } catch (error) {
     console.error("Could not save habit", error)
@@ -46,7 +51,11 @@ const addHabit = async () => {
 }
 
 const getIcon = (iconName) => {
-  return LucideIcons[iconName] || LucideIcons.Activity
+  const searchName = iconName.toLowerCase();
+  const key = Object.keys(LucideIcons).find(
+    (k) => k.toLowerCase() === searchName
+  );
+  return LucideIcons[key] || LucideIcons.Activity;
 }
 
 const toggleHabit = async (habit) => {
@@ -95,18 +104,57 @@ onMounted(fetchHabits)
             }">
               <component :is="getIcon(habit.icon)" :size="32" />
             </div>
-
             <h3 class="text-xl font-extrabold tracking-tight transition-colors"
               :class="habit.is_completed_today ? 'text-slate-900' : 'text-slate-400'">
               {{ habit.name }}
             </h3>
 
             <p v-if="habit.is_completed_today"
-              class="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-500 mt-3 animate-pulse">
+              class="text-[10px] font-black uppercase tracking-[0.2em] text-green-500 mt-3 animate-pulse">
               Completed Today
             </p>
           </div>
         </div>
+      </div>
+    </div>
+
+    <div v-if="isModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" @click="isModalOpen = false"></div>
+
+      <div class="relative bg-white w-full max-w-md rounded-[2.5rem] p-10 shadow-2xl">
+        <div class="flex justify-between items-center mb-8">
+          <h2 class="text-2xl font-black text-slate-900">New Habit</h2>
+          <button @click="isModalOpen = false" class="text-slate-400 hover:text-slate-600 transition">
+            <X :size="24" />
+          </button>
+        </div>
+
+        <form @submit.prevent="addHabit" class="space-y-6">
+          <div>
+            <label class="block text-xs font-black uppercase tracking-widest text-slate-400 mb-2">Habit Name</label>
+            <input v-model="newHabitName" type="text" placeholder="e.g. Morning Run"
+              class="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-5 py-4 focus:border-indigo-500 focus:outline-none transition font-bold text-lg"
+              autofocus>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-black uppercase tracking-widest text-slate-400 mb-2">Icon Name</label>
+              <input v-model="newHabitIcon" type="text" placeholder="Flame, Heart..."
+                class="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-5 py-3 focus:border-indigo-500 focus:outline-none transition font-bold">
+            </div>
+            <div>
+              <label class="block text-xs font-black uppercase tracking-widest text-slate-400 mb-2">Color (Hex)</label>
+              <input v-model="newHabitColor" type="color"
+                class="w-full h-[52px] bg-slate-50 border-2 border-slate-100 rounded-2xl p-1 focus:border-indigo-500 focus:outline-none transition">
+            </div>
+          </div>
+
+          <button type="submit"
+            class="w-full bg-slate-900 text-white py-5 rounded-2xl font-bold text-lg hover:bg-indigo-600 transition shadow-xl shadow-slate-200 mt-4">
+            Create Habit
+          </button>
+        </form>
       </div>
     </div>
   </div>
