@@ -1,4 +1,4 @@
-# Continuum
+# Continuum (**in dev**)
 A robust habit-tracking engine designed for power users. Track daily routines, visualize long-term trends, and master your habits with ease.
 
 ## 🏗️ The Stack: Continuum Core
