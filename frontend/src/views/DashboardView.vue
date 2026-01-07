@@ -45,58 +45,69 @@ const addHabit = async () => {
   }
 }
 
+const getIcon = (iconName) => {
+  return LucideIcons[iconName] || LucideIcons.Activity
+}
+
+const toggleHabit = async (habit) => {
+  try {
+    if (habit.is_completed_today) {
+      // Logic to 'uncheck' if you want, or just return
+      return
+    }
+
+    // Call an endpoint to register today's completion
+    await axios.post(`http://127.0.0.1:8000/api/habits/${habit.id}/complete/`)
+    habit.is_completed_today = true
+  } catch (error) {
+    console.error("Action failed", error)
+  }
+}
+
 onMounted(fetchHabits)
 </script>
 
 <template>
-  <div class="min-h-screen bg-slate-50 p-6 md:p-12">
-    <div class="max-w-5xl mx-auto">
+  <div class="min-h-screen bg-slate-50 p-8">
+    <div class="max-w-6xl mx-auto">
 
-      <div class="flex justify-between items-center mb-10">
-        <h1 class="text-3xl font-black text-slate-900 tracking-tight">CONTINUUM</h1>
+      <div class="flex justify-between items-center mb-12">
+        <h1 class="text-3xl font-black text-slate-900 tracking-tighter">CONTINUUM</h1>
         <button @click="isModalOpen = true"
-          class="bg-indigo-600 text-white px-4 py-2 rounded-xl font-bold flex items-center gap-2 hover:bg-indigo-700 transition">
+          class="bg-indigo-600 text-white px-6 py-3 rounded-2xl font-bold flex items-center gap-2 hover:bg-indigo-700 transition shadow-lg shadow-indigo-100">
           <Plus :size="20" /> New Habit
         </button>
       </div>
 
-      <div v-if="habits.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div v-for="habit in habits" :key="habit.id"
-          class="bg-white border border-slate-200 p-6 rounded-3xl shadow-sm hover:shadow-md transition-all">
-          <div class="flex justify-between items-start mb-6">
-            <h3 class="text-xl font-bold text-slate-800">{{ habit.name }}</h3>
-            <Flame v-if="habit.streak > 0" class="text-orange-500" :size="24" />
-          </div>
-          <div class="flex items-center justify-between">
-            <div>
-              <p class="text-4xl font-black text-slate-900">{{ habit.streak }}</p>
-              <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Day Streak</p>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div v-for="habit in habits" :key="habit.id" @click="toggleHabit(habit)" :class="[
+          'group relative p-8 rounded-[2.5rem] transition-all duration-500 cursor-pointer border-2',
+          habit.is_completed_today
+            ? 'bg-white border-transparent shadow-xl scale-[0.98]'
+            : 'bg-slate-100/50 border-slate-200 opacity-60 hover:opacity-100 hover:bg-white'
+        ]">
+
+          <div class="flex flex-col items-center text-center">
+            <div class="mb-4 p-5 rounded-3xl transition-all duration-500" :style="{
+              backgroundColor: habit.is_completed_today ? habit.color : '#cbd5e1',
+              color: habit.is_completed_today ? 'white' : '#64748b',
+              boxShadow: habit.is_completed_today ? `0 10px 25px -5px ${habit.color}50` : 'none'
+            }">
+              <component :is="getIcon(habit.icon)" :size="32" />
             </div>
-            <button @click="completeHabit(habit)"
-              class="bg-slate-900 text-white p-4 rounded-2xl hover:bg-indigo-600 transition-colors">
-              <CheckCircle :size="24" />
-            </button>
+
+            <h3 class="text-xl font-extrabold tracking-tight transition-colors"
+              :class="habit.is_completed_today ? 'text-slate-900' : 'text-slate-400'">
+              {{ habit.name }}
+            </h3>
+
+            <p v-if="habit.is_completed_today"
+              class="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-500 mt-3 animate-pulse">
+              Completed Today
+            </p>
           </div>
         </div>
       </div>
-
-      <div v-else class="text-center py-20 bg-white rounded-3xl border-2 border-dashed border-slate-200">
-        <p class="text-slate-400 font-medium">No habits yet. Click "New Habit" to start!</p>
-      </div>
-
-      <div v-if="isModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" @click="isModalOpen = false"></div>
-        <div class="relative bg-white w-full max-w-md rounded-[2.5rem] p-10 shadow-2xl">
-          <h2 class="text-2xl font-black mb-6">New Habit</h2>
-          <input v-model="newHabitName" type="text"
-            class="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-5 py-4 mb-6" placeholder="Habit Name">
-          <div class="flex gap-3">
-            <button @click="isModalOpen = false" class="flex-1 font-bold text-slate-400">Cancel</button>
-            <button @click="addHabit" class="flex-1 bg-slate-900 text-white py-4 rounded-2xl font-bold">Create</button>
-          </div>
-        </div>
-      </div>
-
     </div>
   </div>
 </template>
