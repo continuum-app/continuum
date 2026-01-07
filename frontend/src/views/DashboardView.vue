@@ -2,51 +2,83 @@
 import { ref, onMounted } from 'vue'
 import axios from 'axios'
 import * as LucideIcons from 'lucide-vue-next'
-import { Plus } from 'lucide-vue-next'
+import { Plus, X, ChevronDown, CheckCircle2, Trophy } from 'lucide-vue-next'
 
+// --- STATE ---
 const habits = ref([])
+const isModalOpen = ref(false)
 
-// Fetch all habits from Django
+// Form Refs for New Habit
+const newHabitName = ref('')
+const newHabitType = ref('boolean')
+const newHabitIcon = ref('calendar')
+const newHabitColor = ref('#1F85DE')
+
+// --- LOGIC ---
 const fetchHabits = async () => {
-  const res = await axios.get('http://127.0.0.1:8000/api/habits/')
-  habits.value = res.data
-}
-
-// Logic to increment a streak
-const completeHabit = async (habit) => {
   try {
-    const updatedStreak = habit.streak + 1
-    await axios.patch(`http://127.0.0.1:8000/api/habits/${habit.id}/`, {
-      streak: updatedStreak
-    })
-    habit.streak = updatedStreak // Update UI immediately
+    const res = await axios.get('http://127.0.0.1:8000/api/habits/')
+    // Initialize local UI state for each habit so inputs are reactive
+    habits.value = res.data.map(h => ({
+      ...h,
+      // Sync temp_value with the today_value from Django
+      temp_value: h.today_value || 0,
+      selected_sub_id: null,
+      // Boolean check to see if it's been touched today
+      is_completed_today: h.today_value > 0,
+      is_saving: false
+    }))
   } catch (err) {
-    console.error("Update failed", err)
+    console.error("Failed to fetch habits:", err)
   }
 }
 
-const isModalOpen = ref(false)
-const newHabitName = ref('')
-const newHabitIcon = ref('Activity')
-const newHabitColor = ref('#6366f1')
-
 const addHabit = async () => {
   if (!newHabitName.value) return
+
+  // Format Icon Name to PascalCase (e.g., 'beer' -> 'Beer')
+  const formattedIcon = newHabitIcon.value.charAt(0).toUpperCase() + newHabitIcon.value.slice(1).toLowerCase()
+
   try {
-    const response = await axios.post('http://127.0.0.1:8000/api/habits/', {
+    const res = await axios.post('http://127.0.0.1:8000/api/habits/', {
       name: newHabitName.value,
-      icon: newHabitIcon.value,
+      habit_type: newHabitType.value,
+      icon: formattedIcon,
       color: newHabitColor.value
     })
-    
-    habits.value.push(response.data)
-    
-    // Reset form and close
+
+    // Add to list with necessary UI helper properties
+    habits.value.push({
+      ...res.data,
+      temp_value: 0,
+      selected_sub_id: null,
+      subcategories: [] // New habits start with no subs via API
+    })
+
+    // Reset and Close
     newHabitName.value = ''
-    newHabitIcon.value = 'Activity'
     isModalOpen.value = false
-  } catch (error) {
-    console.error("Could not save habit", error)
+  } catch (err) {
+    console.error("Error creating habit:", err)
+  }
+}
+
+const saveCompletion = async (habit) => {
+  habit.is_saving = true
+  try {
+    const payload = {
+      subcategory_id: habit.selected_sub_id,
+      value: habit.habit_type === 'boolean' ? 1 : habit.temp_value
+    }
+
+    await axios.post(`http://127.0.0.1:8000/api/habits/${habit.id}/complete/`, payload)
+
+    // This is the important part: update today_value to trigger the UI changes
+    habit.today_value = payload.value
+  } catch (err) {
+    console.error("Logging failed:", err)
+  } finally {
+    setTimeout(() => { habit.is_saving = false }, 500)
   }
 }
 
@@ -58,104 +90,195 @@ const getIcon = (iconName) => {
   return LucideIcons[key] || LucideIcons.Activity;
 }
 
-const toggleHabit = async (habit) => {
-  try {
-    if (habit.is_completed_today) {
-      // Logic to 'uncheck' if you want, or just return
-      return
-    }
-
-    // Call an endpoint to register today's completion
-    await axios.post(`http://127.0.0.1:8000/api/habits/${habit.id}/complete/`)
-    habit.is_completed_today = true
-  } catch (error) {
-    console.error("Action failed", error)
-  }
-}
-
 onMounted(fetchHabits)
 </script>
 
 <template>
-  <div class="min-h-screen bg-slate-50 p-8">
-    <div class="max-w-6xl mx-auto">
+  <div class="min-h-screen bg-[#f8fafc] p-6 md:p-12 font-sans text-slate-900">
+    <div class="max-w-7xl mx-auto">
 
-      <div class="flex justify-between items-center mb-12">
-        <h1 class="text-3xl font-black text-slate-900 tracking-tighter">CONTINUUM</h1>
+      <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-16">
+        <div>
+          <h1 class="text-4xl font-black tracking-tighter text-slate-900 uppercase italic">Continuum</h1>
+          <p class="text-slate-400 font-medium">Daily evolution, quantified.</p>
+        </div>
         <button @click="isModalOpen = true"
-          class="bg-indigo-600 text-white px-6 py-3 rounded-2xl font-bold flex items-center gap-2 hover:bg-indigo-700 transition shadow-lg shadow-indigo-100">
-          <Plus :size="20" /> New Habit
+          class="bg-slate-900 text-white px-8 py-4 rounded-2xl font-bold flex items-center gap-3 hover:bg-indigo-600 transition-all shadow-2xl shadow-slate-200 active:scale-95">
+          <Plus :size="20" stroke-width="3" /> New Habit
         </button>
-      </div>
+      </header>
 
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div v-for="habit in habits" :key="habit.id" @click="toggleHabit(habit)" :class="[
-          'group relative p-8 rounded-[2.5rem] transition-all duration-500 cursor-pointer border-2',
-          habit.is_completed_today
-            ? 'bg-white border-transparent shadow-xl scale-[0.98]'
-            : 'bg-slate-100/50 border-slate-200 opacity-60 hover:opacity-100 hover:bg-white'
-        ]">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div v-for="habit in habits" :key="habit.id" :class="[
+          'relative group p-8 rounded-[3rem] transition-all duration-500 flex flex-col justify-between overflow-hidden border',
+          habit.today_value > 0
+            ? 'bg-white border-transparent shadow-[0_30px_60px_-15px_rgba(0,0,0,0.08)]'
+            : 'bg-white border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1'
+        ]" :style="{ minHeight: '320px' }">
 
-          <div class="flex flex-col items-center text-center">
-            <div class="mb-4 p-5 rounded-3xl transition-all duration-500" :style="{
-              backgroundColor: habit.is_completed_today ? habit.color : '#cbd5e1',
-              color: habit.is_completed_today ? 'white' : '#64748b',
-              boxShadow: habit.is_completed_today ? `0 10px 25px -5px ${habit.color}50` : 'none'
+          <div class="absolute -right-8 -top-8 w-32 h-32 rounded-full blur-3xl opacity-10"
+            :style="{ backgroundColor: habit.color }"></div>
+
+          <div class="flex justify-between items-start relative z-10">
+            <div class="flex flex-col">
+              <span class="text-[10px] font-black uppercase tracking-[0.25em] mb-2 opacity-50"
+                :style="{ color: habit.color }">
+                {{ habit.habit_type }}
+              </span>
+              <h3 class="text-2xl font-black text-slate-800 leading-tight">{{ habit.name }}</h3>
+              <p v-if="habit.today_value > 0" class="text-sm font-bold mt-1" :style="{ color: habit.color }">
+                Today: {{ Number(habit.today_value).toFixed(0) }}
+              </p>
+            </div>
+            <div class="p-4 rounded-[1.5rem] transition-all duration-500" :style="{
+              backgroundColor: habit.today_value > 0 ? habit.color : `${habit.color}15`,
+              color: habit.today_value > 0 ? 'white' : habit.color
             }">
-              <component :is="getIcon(habit.icon)" :size="32" />
+              <component :is="getIcon(habit.icon)" :size="26" stroke-width="2.5" />
             </div>
-            <h3 class="text-xl font-extrabold tracking-tight transition-colors"
-              :class="habit.is_completed_today ? 'text-slate-900' : 'text-slate-400'">
-              {{ habit.name }}
-            </h3>
+          </div>
 
-            <p v-if="habit.is_completed_today"
-              class="text-[10px] font-black uppercase tracking-[0.2em] text-green-500 mt-3 animate-pulse">
-              Completed Today
-            </p>
+          <div class="relative z-10 space-y-4">
+
+            <div v-if="habit.subcategories && habit.subcategories.length > 0" class="relative">
+              <select v-model="habit.selected_sub_id"
+                class="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-3.5 text-sm font-bold text-slate-700 appearance-none outline-none focus:ring-2"
+                :style="{ '--tw-ring-color': habit.color }">
+                <option :value="null">Focus Area...</option>
+                <option v-for="sub in habit.subcategories" :key="sub.id" :value="sub.id">{{ sub.name }}</option>
+              </select>
+              <ChevronDown class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
+                :size="16" />
+            </div>
+
+            <div v-if="habit.habit_type === 'counter'" class="flex items-center gap-3">
+              <div
+                class="flex-1 flex justify-between items-center bg-slate-50 rounded-2xl p-1.5 border border-slate-100">
+                <button @click="habit.temp_value = Math.max(0, Number(habit.temp_value) - 1)"
+                  class="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-white transition text-slate-400 font-bold">
+                  -
+                </button>
+
+                <span class="font-black text-slate-800 text-lg">
+                  {{ Number(habit.temp_value).toFixed(0) }}
+                </span>
+
+                <button @click="habit.temp_value = Number(habit.temp_value) + 1"
+                  class="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-white transition text-slate-400 font-bold">
+                  +
+                </button>
+              </div>
+
+              <button @click="saveCompletion(habit)"
+                class="px-6 py-4 rounded-2xl font-bold text-white transition-all active:scale-95 flex items-center gap-2"
+                :style="{ backgroundColor: habit.color, boxShadow: `0 10px 20px -5px ${habit.color}40` }">
+                <RefreshCw v-if="habit.is_saving" :size="18" class="animate-spin" />
+                <Save v-else :size="18" />
+                {{ habit.today_value > 0 ? 'Update' : 'Log' }}
+              </button>
+            </div>
+
+            <div v-else-if="habit.habit_type === 'timer'" class="flex gap-3">
+              <div class="relative flex-1">
+                <input type="number" v-model="habit.temp_value" placeholder="0.0" step="0.1" min="0"
+                  class="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl font-bold outline-none focus:ring-2"
+                  :style="{ '--tw-ring-color': habit.color }">
+              </div>
+
+              <button @click="saveCompletion(habit)"
+                class="px-6 py-4 rounded-2xl font-bold text-white transition-all active:scale-95 flex items-center gap-2"
+                :style="{ backgroundColor: habit.color, boxShadow: `0 10px 20px -5px ${habit.color}40` }">
+                <RefreshCw v-if="habit.is_saving" :size="18" class="animate-spin" />
+                <Save v-else :size="18" />
+                {{ habit.today_value > 0 ? 'Update' : 'Log' }}
+              </button>
+            </div>
+
+            <button v-else @click="saveCompletion(habit)"
+              class="w-full py-4 rounded-2xl font-bold text-white transition-all flex items-center justify-center gap-2 active:scale-95"
+              :style="{
+                backgroundColor: habit.today_value > 0 ? '#10b981' : habit.color,
+                boxShadow: habit.today_value > 0 ? '0 15px 30px -10px #10b98160' : `0 15px 30px -10px ${habit.color}40`
+              }">
+              <CheckCircle2 v-if="habit.today_value > 0" :size="20" />
+              {{ habit.today_value > 0 ? 'Success' : 'Complete' }}
+            </button>
           </div>
         </div>
       </div>
     </div>
 
-    <div v-if="isModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" @click="isModalOpen = false"></div>
+    <Transition name="fade">
+      <div v-if="isModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-md" @click="isModalOpen = false"></div>
+        <div class="relative bg-white w-full max-w-lg rounded-[3rem] p-12 shadow-2xl overflow-hidden">
+          <div class="absolute top-0 left-0 w-full h-2 bg-indigo-500"></div>
 
-      <div class="relative bg-white w-full max-w-md rounded-[2.5rem] p-10 shadow-2xl">
-        <div class="flex justify-between items-center mb-8">
-          <h2 class="text-2xl font-black text-slate-900">New Habit</h2>
-          <button @click="isModalOpen = false" class="text-slate-400 hover:text-slate-600 transition">
-            <X :size="24" />
-          </button>
+          <div class="flex justify-between items-center mb-10">
+            <h2 class="text-3xl font-black text-slate-900">New Habit</h2>
+            <button @click="isModalOpen = false" class="text-slate-300 hover:text-slate-900 transition">
+              <X :size="32" />
+            </button>
+          </div>
+
+          <form @submit.prevent="addHabit" class="space-y-8">
+            <div class="space-y-2">
+              <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2">Objective Name</label>
+              <input v-model="newHabitName" type="text" placeholder="e.g. Daily Sprints"
+                class="w-full bg-slate-50 border-2 border-slate-50 rounded-[1.5rem] px-6 py-4 focus:bg-white focus:border-indigo-500 transition outline-none font-bold text-lg">
+            </div>
+
+            <div class="grid grid-cols-2 gap-6">
+              <div class="space-y-2">
+                <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2">Metric Type</label>
+                <select v-model="newHabitType"
+                  class="w-full bg-slate-50 border-2 border-slate-50 rounded-[1.5rem] px-6 py-4 font-bold outline-none appearance-none">
+                  <option value="boolean">Boolean</option>
+                  <option value="counter">Counter</option>
+                  <option value="timer">Timer</option>
+                </select>
+              </div>
+              <div class="space-y-2">
+                <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2">Visual Icon</label>
+                <input v-model="newHabitIcon" placeholder="e.g. Beer, Flame"
+                  class="w-full bg-slate-50 border-2 border-slate-50 rounded-[1.5rem] px-6 py-4 font-bold outline-none">
+              </div>
+            </div>
+
+            <div class="space-y-2">
+              <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2">Identity Color</label>
+              <div class="flex items-center gap-4 bg-slate-50 p-4 rounded-[1.5rem]">
+                <input v-model="newHabitColor" type="color"
+                  class="w-16 h-12 rounded-xl border-none bg-transparent cursor-pointer">
+                <span class="font-mono font-bold text-slate-400">{{ newHabitColor }}</span>
+              </div>
+            </div>
+
+            <button type="submit"
+              class="w-full bg-slate-900 text-white py-6 rounded-[2rem] font-black text-xl hover:bg-indigo-600 transition-all shadow-xl shadow-indigo-100">
+              Initiate Habit
+            </button>
+          </form>
         </div>
-
-        <form @submit.prevent="addHabit" class="space-y-6">
-          <div>
-            <label class="block text-xs font-black uppercase tracking-widest text-slate-400 mb-2">Habit Name</label>
-            <input v-model="newHabitName" type="text" placeholder="e.g. Morning Run"
-              class="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-5 py-4 focus:border-indigo-500 focus:outline-none transition font-bold text-lg"
-              autofocus>
-          </div>
-
-          <div class="grid grid-cols-2 gap-4">
-            <div>
-              <label class="block text-xs font-black uppercase tracking-widest text-slate-400 mb-2">Icon Name</label>
-              <input v-model="newHabitIcon" type="text" placeholder="Flame, Heart..."
-                class="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-5 py-3 focus:border-indigo-500 focus:outline-none transition font-bold">
-            </div>
-            <div>
-              <label class="block text-xs font-black uppercase tracking-widest text-slate-400 mb-2">Color (Hex)</label>
-              <input v-model="newHabitColor" type="color"
-                class="w-full h-[52px] bg-slate-50 border-2 border-slate-100 rounded-2xl p-1 focus:border-indigo-500 focus:outline-none transition">
-            </div>
-          </div>
-
-          <button type="submit"
-            class="w-full bg-slate-900 text-white py-5 rounded-2xl font-bold text-lg hover:bg-indigo-600 transition shadow-xl shadow-slate-200 mt-4">
-            Create Habit
-          </button>
-        </form>
       </div>
-    </div>
+    </Transition>
   </div>
 </template>
+
+<style scoped>
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+</style>

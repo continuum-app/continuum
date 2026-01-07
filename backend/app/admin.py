@@ -1,6 +1,6 @@
 from django.contrib import admin
-from .models import Habit, Completion
+from .models import Habit, Completion, Subcategory
 
-# This makes the Habit model visible in the Admin
 admin.site.register(Habit)
 admin.site.register(Completion)
+admin.site.register(Subcategory)
