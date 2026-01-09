@@ -160,7 +160,7 @@ onMounted(() => {
                 Today: {{ Number(habit.today_value).toFixed(0) }}
               </p>
             </div>
-            <div class="p-4 rounded-[1.5rem] transition-all duration-500" :style="{
+            <div class="p-4 rounded-3xl transition-all duration-500" :style="{
               backgroundColor: habit.today_value > 0 ? habit.color : `${habit.color}15`,
               color: habit.today_value > 0 ? 'white' : habit.color
             }">
@@ -260,14 +260,14 @@ onMounted(() => {
             <div class="space-y-2">
               <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2">Objective Name</label>
               <input v-model="newHabitName" type="text" placeholder="e.g. Daily Sprints" required
-                class="w-full bg-slate-50 border-2 border-slate-50 rounded-[1.5rem] px-6 py-4 focus:bg-white focus:border-indigo-500 transition outline-none font-bold text-lg">
+                class="w-full bg-slate-50 border-2 border-slate-50 rounded-3xl px-6 py-4 focus:bg-white focus:border-indigo-500 transition outline-none font-bold text-lg">
             </div>
 
             <div class="grid grid-cols-2 gap-6">
               <div class="space-y-2">
                 <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2">Metric Type</label>
                 <select v-model="newHabitType"
-                  class="w-full bg-slate-50 border-2 border-slate-50 rounded-[1.5rem] px-6 py-4 font-bold outline-none appearance-none">
+                  class="w-full bg-slate-50 border-2 border-slate-50 rounded-3xl px-6 py-4 font-bold outline-none appearance-none">
                   <option value="boolean">Boolean</option>
                   <option value="counter">Counter</option>
                   <option value="timer">Timer</option>
@@ -277,7 +277,7 @@ onMounted(() => {
               <div class="space-y-2">
                 <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2">Visual Icon</label>
                 <input v-model="newHabitIcon" placeholder="e.g. Beer, Flame"
-                  class="w-full bg-slate-50 border-2 border-slate-50 rounded-[1.5rem] px-6 py-4 font-bold outline-none">
+                  class="w-full bg-slate-50 border-2 border-slate-50 rounded-3xl px-6 py-4 font-bold outline-none">
               </div>
             </div>
 
@@ -285,7 +285,7 @@ onMounted(() => {
               <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2">Category
                 (Optional)</label>
               <select v-model="newHabitCategoryId"
-                class="w-full bg-slate-50 border-2 border-slate-50 rounded-[1.5rem] px-6 py-4 font-bold outline-none appearance-none">
+                class="w-full bg-slate-50 border-2 border-slate-50 rounded-3xl px-6 py-4 font-bold outline-none appearance-none">
                 <option :value="null">No Category</option>
                 <option v-for="cat in categories" :key="cat.id" :value="cat.id">{{ cat.name }}</option>
               </select>
@@ -293,7 +293,7 @@ onMounted(() => {
 
             <div class="space-y-2">
               <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2">Identity Color</label>
-              <div class="flex items-center gap-4 bg-slate-50 p-4 rounded-[1.5rem]">
+              <div class="flex items-center gap-4 bg-slate-50 p-4 rounded-3xl">
                 <input v-model="newHabitColor" type="color"
                   class="w-16 h-12 rounded-xl border-none bg-transparent cursor-pointer">
                 <span class="font-mono font-bold text-slate-400">{{ newHabitColor }}</span>
@@ -301,7 +301,7 @@ onMounted(() => {
             </div>
 
             <button type="submit"
-              class="w-full bg-slate-900 text-white py-6 rounded-[2rem] font-black text-xl hover:bg-indigo-600 transition-all shadow-xl shadow-indigo-100">
+              class="w-full bg-slate-900 text-white py-6 rounded-4xl font-black text-xl hover:bg-indigo-600 transition-all shadow-xl shadow-indigo-100">
               Initiate Habit
             </button>
           </form>
