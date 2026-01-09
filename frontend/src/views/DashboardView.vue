@@ -241,7 +241,7 @@ onMounted(() => {
               <div
                 class="flex justify-center items-center gap-1 bg-slate-50 rounded-2xl p-3 border border-slate-100 flex-wrap">
                 <button v-for="star in (habit.max_value || 5)" :key="star" @click="habit.temp_value = star"
-                  class="transition-all hover:scale-110 active:scale-95 flex-shrink-0"
+                  class="transition-all hover:scale-110 active:scale-95 shrink-0"
                   :class="star <= habit.temp_value ? '' : 'opacity-30'">
                   <Star
                     :size="(habit.max_value || 5) <= 5 ? 28 : (habit.max_value || 5) <= 7 ? 22 : (habit.max_value || 5) <= 8 ? 20 : 18"
