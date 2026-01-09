@@ -2,10 +2,11 @@
 import { ref, onMounted } from 'vue'
 import axios from 'axios'
 import * as LucideIcons from 'lucide-vue-next'
-import { Plus, X, ChevronDown, CheckCircle2, Trophy } from 'lucide-vue-next'
+import { Plus, X, ChevronDown, CheckCircle2, RefreshCw, Save } from 'lucide-vue-next'
 
 // --- STATE ---
 const habits = ref([])
+const categories = ref([])
 const isModalOpen = ref(false)
 
 // Form Refs for New Habit
@@ -13,8 +14,18 @@ const newHabitName = ref('')
 const newHabitType = ref('boolean')
 const newHabitIcon = ref('calendar')
 const newHabitColor = ref('#1F85DE')
+const newHabitCategoryId = ref(null)
 
 // --- LOGIC ---
+const fetchCategories = async () => {
+  try {
+    const res = await axios.get('http://127.0.0.1:8000/api/categories/')
+    categories.value = res.data
+  } catch (err) {
+    console.error("Failed to fetch categories:", err)
+  }
+}
+
 const fetchHabits = async () => {
   try {
     const res = await axios.get('http://127.0.0.1:8000/api/habits/')
@@ -23,7 +34,7 @@ const fetchHabits = async () => {
       ...h,
       // Sync temp_value with the today_value from Django
       temp_value: h.today_value || 0,
-      selected_sub_id: null,
+      selected_category_id: h.category?.id || null,
       // Boolean check to see if it's been touched today
       is_completed_today: h.today_value > 0,
       is_saving: false
@@ -40,23 +51,35 @@ const addHabit = async () => {
   const formattedIcon = newHabitIcon.value.charAt(0).toUpperCase() + newHabitIcon.value.slice(1).toLowerCase()
 
   try {
-    const res = await axios.post('http://127.0.0.1:8000/api/habits/', {
+    const payload = {
       name: newHabitName.value,
       habit_type: newHabitType.value,
       icon: formattedIcon,
       color: newHabitColor.value
-    })
+    }
+
+    // Only add category_id if one was selected
+    if (newHabitCategoryId.value) {
+      payload.category_id = newHabitCategoryId.value
+    }
+
+    const res = await axios.post('http://127.0.0.1:8000/api/habits/', payload)
 
     // Add to list with necessary UI helper properties
     habits.value.push({
       ...res.data,
       temp_value: 0,
-      selected_sub_id: null,
-      subcategories: [] // New habits start with no subs via API
+      selected_category_id: res.data.category?.id || null,
+      is_completed_today: false,
+      is_saving: false
     })
 
     // Reset and Close
     newHabitName.value = ''
+    newHabitType.value = 'boolean'
+    newHabitIcon.value = 'calendar'
+    newHabitColor.value = '#1F85DE'
+    newHabitCategoryId.value = null
     isModalOpen.value = false
   } catch (err) {
     console.error("Error creating habit:", err)
@@ -67,7 +90,7 @@ const saveCompletion = async (habit) => {
   habit.is_saving = true
   try {
     const payload = {
-      subcategory_id: habit.selected_sub_id,
+      category_id: habit.selected_category_id,
       value: habit.habit_type === 'boolean' ? 1 : habit.temp_value
     }
 
@@ -75,6 +98,7 @@ const saveCompletion = async (habit) => {
 
     // This is the important part: update today_value to trigger the UI changes
     habit.today_value = payload.value
+    habit.is_completed_today = true
   } catch (err) {
     console.error("Logging failed:", err)
   } finally {
@@ -90,7 +114,10 @@ const getIcon = (iconName) => {
   return LucideIcons[key] || LucideIcons.Activity;
 }
 
-onMounted(fetchHabits)
+onMounted(() => {
+  fetchCategories()
+  fetchHabits()
+})
 </script>
 
 <template>
@@ -126,6 +153,9 @@ onMounted(fetchHabits)
                 {{ habit.habit_type }}
               </span>
               <h3 class="text-2xl font-black text-slate-800 leading-tight">{{ habit.name }}</h3>
+              <p v-if="habit.category" class="text-xs font-semibold mt-1 text-slate-400">
+                {{ habit.category.name }}
+              </p>
               <p v-if="habit.today_value > 0" class="text-sm font-bold mt-1" :style="{ color: habit.color }">
                 Today: {{ Number(habit.today_value).toFixed(0) }}
               </p>
@@ -140,17 +170,19 @@ onMounted(fetchHabits)
 
           <div class="relative z-10 space-y-4">
 
-            <div v-if="habit.subcategories && habit.subcategories.length > 0" class="relative">
-              <select v-model="habit.selected_sub_id"
+            <!-- Category Selector (optional) -->
+            <div v-if="categories.length > 0" class="relative">
+              <select v-model="habit.selected_category_id"
                 class="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-3.5 text-sm font-bold text-slate-700 appearance-none outline-none focus:ring-2"
                 :style="{ '--tw-ring-color': habit.color }">
-                <option :value="null">Focus Area...</option>
-                <option v-for="sub in habit.subcategories" :key="sub.id" :value="sub.id">{{ sub.name }}</option>
+                <option :value="null">No Category</option>
+                <option v-for="cat in categories" :key="cat.id" :value="cat.id">{{ cat.name }}</option>
               </select>
               <ChevronDown class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
                 :size="16" />
             </div>
 
+            <!-- Counter Type -->
             <div v-if="habit.habit_type === 'counter'" class="flex items-center gap-3">
               <div
                 class="flex-1 flex justify-between items-center bg-slate-50 rounded-2xl p-1.5 border border-slate-100">
@@ -178,6 +210,7 @@ onMounted(fetchHabits)
               </button>
             </div>
 
+            <!-- Timer Type -->
             <div v-else-if="habit.habit_type === 'timer'" class="flex gap-3">
               <div class="relative flex-1">
                 <input type="number" v-model="habit.temp_value" placeholder="0.0" step="0.1" min="0"
@@ -194,6 +227,7 @@ onMounted(fetchHabits)
               </button>
             </div>
 
+            <!-- Boolean Type -->
             <button v-else @click="saveCompletion(habit)"
               class="w-full py-4 rounded-2xl font-bold text-white transition-all flex items-center justify-center gap-2 active:scale-95"
               :style="{
@@ -208,6 +242,7 @@ onMounted(fetchHabits)
       </div>
     </div>
 
+    <!-- Modal for New Habit -->
     <Transition name="fade">
       <div v-if="isModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4">
         <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-md" @click="isModalOpen = false"></div>
@@ -224,7 +259,7 @@ onMounted(fetchHabits)
           <form @submit.prevent="addHabit" class="space-y-8">
             <div class="space-y-2">
               <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2">Objective Name</label>
-              <input v-model="newHabitName" type="text" placeholder="e.g. Daily Sprints"
+              <input v-model="newHabitName" type="text" placeholder="e.g. Daily Sprints" required
                 class="w-full bg-slate-50 border-2 border-slate-50 rounded-[1.5rem] px-6 py-4 focus:bg-white focus:border-indigo-500 transition outline-none font-bold text-lg">
             </div>
 
@@ -236,6 +271,7 @@ onMounted(fetchHabits)
                   <option value="boolean">Boolean</option>
                   <option value="counter">Counter</option>
                   <option value="timer">Timer</option>
+                  <option value="rating">Rating</option>
                 </select>
               </div>
               <div class="space-y-2">
@@ -243,6 +279,16 @@ onMounted(fetchHabits)
                 <input v-model="newHabitIcon" placeholder="e.g. Beer, Flame"
                   class="w-full bg-slate-50 border-2 border-slate-50 rounded-[1.5rem] px-6 py-4 font-bold outline-none">
               </div>
+            </div>
+
+            <div v-if="categories.length > 0" class="space-y-2">
+              <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2">Category
+                (Optional)</label>
+              <select v-model="newHabitCategoryId"
+                class="w-full bg-slate-50 border-2 border-slate-50 rounded-[1.5rem] px-6 py-4 font-bold outline-none appearance-none">
+                <option :value="null">No Category</option>
+                <option v-for="cat in categories" :key="cat.id" :value="cat.id">{{ cat.name }}</option>
+              </select>
             </div>
 
             <div class="space-y-2">

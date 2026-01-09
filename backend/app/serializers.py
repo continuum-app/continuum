@@ -1,15 +1,16 @@
 from rest_framework import serializers
-from .models import Habit, Subcategory, Completion
+from .models import Habit, Category, Completion
 from datetime import date
 
 
-class SubcategorySerializer(serializers.ModelSerializer):
+class CategorySerializer(serializers.ModelSerializer):
     class Meta:
-        model = Subcategory
+        model = Category
         fields = ["id", "name"]
 
+
 class HabitSerializer(serializers.ModelSerializer):
-    subcategories = SubcategorySerializer(many=True, read_only=True)
+    category = CategorySerializer(read_only=True)
     today_value = serializers.SerializerMethodField()
 
     class Meta:
@@ -18,7 +19,7 @@ class HabitSerializer(serializers.ModelSerializer):
             "id",
             "name",
             "habit_type",
-            "subcategories",
+            "category",
             "icon",
             "color",
             "today_value",
