@@ -64,12 +64,14 @@ const addHabit = async () => {
       payload.category_id = newHabitCategoryId.value
     }
 
-    // Add max_value for rating and counter types
-    if (newHabitType.value === 'rating' || newHabitType.value === 'counter') {
+    // Add max_value for rating type
+    if (newHabitType.value === 'rating') {
       payload.max_value = newHabitMaxValue.value
     }
 
+    console.log('Sending payload:', payload)
     const res = await axios.post('http://127.0.0.1:8000/api/habits/', payload)
+    console.log('Received response:', res.data)
 
     // Add to list with necessary UI helper properties
     habits.value.push({
@@ -236,12 +238,14 @@ onMounted(() => {
 
             <!-- Rating Type (Star Rating) -->
             <div v-else-if="habit.habit_type === 'rating'" class="space-y-3">
-              <div class="flex justify-center items-center gap-2 bg-slate-50 rounded-2xl p-4 border border-slate-100">
-                <button v-for="star in habit.max_value || 5" :key="star" @click="habit.temp_value = star"
-                  class="transition-all hover:scale-110 active:scale-95"
+              <div
+                class="flex justify-center items-center gap-1 bg-slate-50 rounded-2xl p-3 border border-slate-100 flex-wrap">
+                <button v-for="star in (habit.max_value || 5)" :key="star" @click="habit.temp_value = star"
+                  class="transition-all hover:scale-110 active:scale-95 flex-shrink-0"
                   :class="star <= habit.temp_value ? '' : 'opacity-30'">
-                  <Star :size="32" :fill="star <= habit.temp_value ? habit.color : 'none'" :stroke="habit.color"
-                    stroke-width="2" />
+                  <Star
+                    :size="(habit.max_value || 5) <= 5 ? 28 : (habit.max_value || 5) <= 7 ? 22 : (habit.max_value || 5) <= 8 ? 20 : 18"
+                    :fill="star <= habit.temp_value ? habit.color : 'none'" :stroke="habit.color" stroke-width="2" />
                 </button>
               </div>
 
@@ -308,15 +312,15 @@ onMounted(() => {
               </div>
             </div>
 
-            <!-- Max Value for Rating and Counter -->
-            <div v-if="newHabitType === 'rating' || newHabitType === 'counter'" class="space-y-2">
+            <!-- Max Value for Rating -->
+            <div v-if="newHabitType === 'rating'" class="space-y-2">
               <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2">
-                {{ newHabitType === 'rating' ? 'Number of Stars' : 'Max Value' }}
+                Number of Stars
               </label>
               <input v-model.number="newHabitMaxValue" type="number" min="1" max="10" placeholder="5"
                 class="w-full bg-slate-50 border-2 border-slate-50 rounded-3xl px-6 py-4 focus:bg-white focus:border-indigo-500 transition outline-none font-bold text-lg">
               <p class="text-xs text-slate-400 ml-2">
-                {{ newHabitType === 'rating' ? 'Between 1-10 stars' : 'Optional maximum value' }}
+                Between 1-10 stars
               </p>
             </div>
 

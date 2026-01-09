@@ -10,8 +10,16 @@ class CategorySerializer(serializers.ModelSerializer):
 
 
 class HabitSerializer(serializers.ModelSerializer):
-    category = CategorySerializer(read_only=True)
+    category = CategorySerializer(read_only=True)  # Single category, not many
+    category_id = serializers.PrimaryKeyRelatedField(
+        queryset=Category.objects.all(),
+        source="category",
+        write_only=True,
+        required=False,
+        allow_null=True,
+    )
     today_value = serializers.SerializerMethodField()
+    max_value = serializers.IntegerField(required=False, allow_null=True)
 
     class Meta:
         model = Habit
@@ -20,11 +28,13 @@ class HabitSerializer(serializers.ModelSerializer):
             "name",
             "habit_type",
             "category",
+            "category_id",
             "icon",
             "color",
+            "max_value",
             "today_value",
         ]
 
     def get_today_value(self, obj):
         completion = obj.completions.filter(date=date.today()).first()
-        return completion.value if completion else 0
+        return float(completion.value) if completion else 0
