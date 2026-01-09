@@ -2,7 +2,7 @@
 import { ref, onMounted } from 'vue'
 import axios from 'axios'
 import * as LucideIcons from 'lucide-vue-next'
-import { Plus, X, ChevronDown, CheckCircle2, RefreshCw, Save } from 'lucide-vue-next'
+import { Plus, X, ChevronDown, CheckCircle2, RefreshCw, Save, Star } from 'lucide-vue-next'
 
 // --- STATE ---
 const habits = ref([])
@@ -15,6 +15,7 @@ const newHabitType = ref('boolean')
 const newHabitIcon = ref('calendar')
 const newHabitColor = ref('#1F85DE')
 const newHabitCategoryId = ref(null)
+const newHabitMaxValue = ref(5)
 
 // --- LOGIC ---
 const fetchCategories = async () => {
@@ -63,6 +64,11 @@ const addHabit = async () => {
       payload.category_id = newHabitCategoryId.value
     }
 
+    // Add max_value for rating and counter types
+    if (newHabitType.value === 'rating' || newHabitType.value === 'counter') {
+      payload.max_value = newHabitMaxValue.value
+    }
+
     const res = await axios.post('http://127.0.0.1:8000/api/habits/', payload)
 
     // Add to list with necessary UI helper properties
@@ -80,6 +86,7 @@ const addHabit = async () => {
     newHabitIcon.value = 'calendar'
     newHabitColor.value = '#1F85DE'
     newHabitCategoryId.value = null
+    newHabitMaxValue.value = 5
     isModalOpen.value = false
   } catch (err) {
     console.error("Error creating habit:", err)
@@ -227,6 +234,26 @@ onMounted(() => {
               </button>
             </div>
 
+            <!-- Rating Type (Star Rating) -->
+            <div v-else-if="habit.habit_type === 'rating'" class="space-y-3">
+              <div class="flex justify-center items-center gap-2 bg-slate-50 rounded-2xl p-4 border border-slate-100">
+                <button v-for="star in habit.max_value || 5" :key="star" @click="habit.temp_value = star"
+                  class="transition-all hover:scale-110 active:scale-95"
+                  :class="star <= habit.temp_value ? '' : 'opacity-30'">
+                  <Star :size="32" :fill="star <= habit.temp_value ? habit.color : 'none'" :stroke="habit.color"
+                    stroke-width="2" />
+                </button>
+              </div>
+
+              <button @click="saveCompletion(habit)"
+                class="w-full py-4 rounded-2xl font-bold text-white transition-all active:scale-95 flex items-center justify-center gap-2"
+                :style="{ backgroundColor: habit.color, boxShadow: `0 10px 20px -5px ${habit.color}40` }">
+                <RefreshCw v-if="habit.is_saving" :size="18" class="animate-spin" />
+                <Save v-else :size="18" />
+                {{ habit.today_value > 0 ? 'Update Rating' : 'Save Rating' }}
+              </button>
+            </div>
+
             <!-- Boolean Type -->
             <button v-else @click="saveCompletion(habit)"
               class="w-full py-4 rounded-2xl font-bold text-white transition-all flex items-center justify-center gap-2 active:scale-95"
@@ -279,6 +306,18 @@ onMounted(() => {
                 <input v-model="newHabitIcon" placeholder="e.g. Beer, Flame"
                   class="w-full bg-slate-50 border-2 border-slate-50 rounded-3xl px-6 py-4 font-bold outline-none">
               </div>
+            </div>
+
+            <!-- Max Value for Rating and Counter -->
+            <div v-if="newHabitType === 'rating' || newHabitType === 'counter'" class="space-y-2">
+              <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2">
+                {{ newHabitType === 'rating' ? 'Number of Stars' : 'Max Value' }}
+              </label>
+              <input v-model.number="newHabitMaxValue" type="number" min="1" max="10" placeholder="5"
+                class="w-full bg-slate-50 border-2 border-slate-50 rounded-3xl px-6 py-4 focus:bg-white focus:border-indigo-500 transition outline-none font-bold text-lg">
+              <p class="text-xs text-slate-400 ml-2">
+                {{ newHabitType === 'rating' ? 'Between 1-10 stars' : 'Optional maximum value' }}
+              </p>
             </div>
 
             <div v-if="categories.length > 0" class="space-y-2">
