@@ -1,8 +1,12 @@
 <script setup>
 import { ref, onMounted } from 'vue'
-import axios from 'axios'
+import { useRouter } from 'vue-router'
+import api from '../services/api'
+import authService from '../services/auth'
 import * as LucideIcons from 'lucide-vue-next'
 import { Plus, X, ChevronDown, CheckCircle2, RefreshCw, Save, Star } from 'lucide-vue-next'
+
+const router = useRouter()
 
 // --- STATE ---
 const habits = ref([])
@@ -20,7 +24,7 @@ const newHabitMaxValue = ref(5)
 // --- LOGIC ---
 const fetchCategories = async () => {
   try {
-    const res = await axios.get('http://127.0.0.1:8000/api/categories/')
+    const res = await api.get('categories/')
     categories.value = res.data
   } catch (err) {
     console.error("Failed to fetch categories:", err)
@@ -29,7 +33,7 @@ const fetchCategories = async () => {
 
 const fetchHabits = async () => {
   try {
-    const res = await axios.get('http://127.0.0.1:8000/api/habits/')
+    const res = await api.get('habits/')
     // Initialize local UI state for each habit so inputs are reactive
     habits.value = res.data.map(h => ({
       ...h,
@@ -70,7 +74,7 @@ const addHabit = async () => {
     }
 
     console.log('Sending payload:', payload)
-    const res = await axios.post('http://127.0.0.1:8000/api/habits/', payload)
+    const res = await api.post('habits/', payload)
     console.log('Received response:', res.data)
 
     // Add to list with necessary UI helper properties
@@ -111,7 +115,7 @@ const saveCompletion = async (habit) => {
       value: valueToSave
     }
 
-    await axios.post(`http://127.0.0.1:8000/api/habits/${habit.id}/complete/`, payload)
+    await api.post(`habits/${habit.id}/complete/`, payload)
 
     // Update today_value to trigger the UI changes
     habit.today_value = valueToSave
@@ -121,6 +125,11 @@ const saveCompletion = async (habit) => {
   } finally {
     setTimeout(() => { habit.is_saving = false }, 500)
   }
+}
+
+const handleLogout = () => {
+  authService.logout()
+  router.push('/login')
 }
 
 const getIcon = (iconName) => {
@@ -146,10 +155,16 @@ onMounted(() => {
           <h1 class="text-4xl font-black tracking-tighter text-slate-900 uppercase italic">Continuum</h1>
           <p class="text-slate-400 font-medium">Daily evolution, quantified.</p>
         </div>
-        <button @click="isModalOpen = true"
-          class="bg-slate-900 text-white px-8 py-4 rounded-2xl font-bold flex items-center gap-3 hover:bg-indigo-600 transition-all shadow-2xl shadow-slate-200 active:scale-95">
-          <Plus :size="20" stroke-width="3" /> New Habit
-        </button>
+        <div class="flex gap-4">
+          <button @click="isModalOpen = true"
+            class="bg-slate-900 text-white px-8 py-4 rounded-2xl font-bold flex items-center gap-3 hover:bg-indigo-600 transition-all shadow-2xl shadow-slate-200 active:scale-95">
+            <Plus :size="20" stroke-width="3" /> New Habit
+          </button>
+          <button @click="handleLogout"
+            class="bg-red-500 text-white px-8 py-4 rounded-2xl font-bold hover:bg-red-600 transition-all shadow-2xl shadow-red-200 active:scale-95">
+            Logout
+          </button>
+        </div>
       </header>
 
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -172,9 +187,6 @@ onMounted(() => {
               <h3 class="text-2xl font-black text-slate-800 leading-tight">{{ habit.name }}</h3>
               <p v-if="habit.category" class="text-xs font-semibold mt-1 text-slate-400">
                 {{ habit.category.name }}
-              </p>
-              <p v-if="habit.today_value > 0" class="text-sm font-bold mt-1" :style="{ color: habit.color }">
-                Today: {{ Number(habit.today_value).toFixed(0) }}
               </p>
             </div>
             <div class="p-4 rounded-3xl transition-all duration-500" :style="{

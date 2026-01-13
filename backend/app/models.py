@@ -1,9 +1,15 @@
 from django.db import models
 from django.utils import timezone
+from django.contrib.auth.models import User
 
 
 class Category(models.Model):
     name = models.CharField(max_length=128)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="categories")
+
+    class Meta:
+        verbose_name_plural = "Categories"
+        ordering = ["name"]
 
     def __str__(self):
         return f"{self.name}"
@@ -36,10 +42,14 @@ class Habit(models.Model):
         on_delete=models.SET_NULL,
         related_name="habits",
     )
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="habits")
 
     icon = models.CharField(max_length=50, default="calendar")
     color = models.CharField(max_length=20, default="#1F85DE")
     max_value = models.IntegerField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["name"]
 
     def __str__(self):
         return self.name
@@ -58,6 +68,7 @@ class Completion(models.Model):
     class Meta:
         # Ensure only one completion per habit per date
         unique_together = ["habit", "date"]
+        ordering = ["-date"]
 
     def __str__(self):
         return f"{self.habit.name} - {self.date}"

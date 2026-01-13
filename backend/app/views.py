@@ -1,19 +1,36 @@
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
 from .serializers import HabitSerializer, CategorySerializer
 from datetime import date
 from .models import Habit, Completion, Category
 
 
 class CategoryViewSet(viewsets.ModelViewSet):
-    queryset = Category.objects.all()
     serializer_class = CategorySerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        # Only return categories for the authenticated user
+        return Category.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        # Automatically set the user when creating a category
+        serializer.save(user=self.request.user)
 
 
 class HabitViewSet(viewsets.ModelViewSet):
-    queryset = Habit.objects.all()
     serializer_class = HabitSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        # Only return habits for the authenticated user
+        return Habit.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        # Automatically set the user when creating a habit
+        serializer.save(user=self.request.user)
 
     @action(detail=True, methods=["post"])
     def complete(self, request, pk=None):
@@ -25,7 +42,8 @@ class HabitViewSet(viewsets.ModelViewSet):
         category_obj = None
         if category_id:
             try:
-                category_obj = Category.objects.get(id=category_id)
+                # Ensure the category belongs to the authenticated user
+                category_obj = Category.objects.get(id=category_id, user=request.user)
             except Category.DoesNotExist:
                 return Response({"error": "category not found"}, status=404)
 
