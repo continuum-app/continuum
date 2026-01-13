@@ -98,16 +98,24 @@ const addHabit = async () => {
 const saveCompletion = async (habit) => {
   habit.is_saving = true
   try {
+    // For boolean types, toggle between 0 and 1
+    let valueToSave
+    if (habit.habit_type === 'boolean') {
+      valueToSave = habit.today_value > 0 ? 0 : 1
+    } else {
+      valueToSave = habit.temp_value
+    }
+
     const payload = {
       category_id: habit.selected_category_id,
-      value: habit.habit_type === 'boolean' ? 1 : habit.temp_value
+      value: valueToSave
     }
 
     await axios.post(`http://127.0.0.1:8000/api/habits/${habit.id}/complete/`, payload)
 
-    // This is the important part: update today_value to trigger the UI changes
-    habit.today_value = payload.value
-    habit.is_completed_today = true
+    // Update today_value to trigger the UI changes
+    habit.today_value = valueToSave
+    habit.is_completed_today = valueToSave > 0
   } catch (err) {
     console.error("Logging failed:", err)
   } finally {
@@ -238,24 +246,16 @@ onMounted(() => {
 
             <!-- Rating Type (Star Rating) -->
             <div v-else-if="habit.habit_type === 'rating'" class="space-y-3">
-              <div
-                class="flex justify-center items-center gap-1 bg-slate-50 rounded-2xl p-3 border border-slate-100 flex-wrap">
-                <button v-for="star in (habit.max_value || 5)" :key="star" @click="habit.temp_value = star"
+              <div class="flex justify-center items-center gap-0.5 bg-slate-50 rounded-2xl p-3 border border-slate-100">
+                <button v-for="star in (habit.max_value || 5)" :key="star"
+                  @click="habit.temp_value = star; saveCompletion(habit)"
                   class="transition-all hover:scale-110 active:scale-95 shrink-0"
-                  :class="star <= habit.temp_value ? '' : 'opacity-30'">
+                  :class="star <= habit.temp_value ? '' : 'opacity-30'" style="padding: 0 !important;">
                   <Star
-                    :size="(habit.max_value || 5) <= 5 ? 28 : (habit.max_value || 5) <= 7 ? 22 : (habit.max_value || 5) <= 8 ? 20 : 18"
+                    :size="(habit.max_value || 5) <= 5 ? 28 : (habit.max_value || 5) <= 6 ? 24 : (habit.max_value || 5) <= 8 ? 20 : 16"
                     :fill="star <= habit.temp_value ? habit.color : 'none'" :stroke="habit.color" stroke-width="2" />
                 </button>
               </div>
-
-              <button @click="saveCompletion(habit)"
-                class="w-full py-4 rounded-2xl font-bold text-white transition-all active:scale-95 flex items-center justify-center gap-2"
-                :style="{ backgroundColor: habit.color, boxShadow: `0 10px 20px -5px ${habit.color}40` }">
-                <RefreshCw v-if="habit.is_saving" :size="18" class="animate-spin" />
-                <Save v-else :size="18" />
-                {{ habit.today_value > 0 ? 'Update Rating' : 'Save Rating' }}
-              </button>
             </div>
 
             <!-- Boolean Type -->
@@ -266,7 +266,7 @@ onMounted(() => {
                 boxShadow: habit.today_value > 0 ? '0 15px 30px -10px #10b98160' : `0 15px 30px -10px ${habit.color}40`
               }">
               <CheckCircle2 v-if="habit.today_value > 0" :size="20" />
-              {{ habit.today_value > 0 ? 'Success' : 'Complete' }}
+              {{ habit.today_value > 0 ? 'Completed' : 'Mark Complete' }}
             </button>
           </div>
         </div>
