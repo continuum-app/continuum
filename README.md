@@ -71,13 +71,13 @@ This approach ensures a clean contract between layers and enables independent ev
 
 ## Roadmap / Upcoming Features
 
-- Frontend visual and UX refinements  
-- Dark theme support  
-- Token-based authentication and SSO  
-- Data export capabilities  
-- Weekly statistics summaries  
-- Yearly retrospective analytics  
-- Multi-language support (i18n)
+- Frontend visual and UX refinements
+- Dark theme support
+- Token-based authentication and SSO
+- Data export capabilities
+- Weekly statistics summaries
+- Yearly retrospective analytics
+- Multi-language support
 
 ---
 

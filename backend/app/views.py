@@ -10,10 +10,12 @@ from .models import Habit, Completion, Category
 class CategoryViewSet(viewsets.ModelViewSet):
     serializer_class = CategorySerializer
     permission_classes = [IsAuthenticated]
+    # Add queryset attribute for the router
+    queryset = Category.objects.all()
 
     def get_queryset(self):
         # Only return categories for the authenticated user
-        return Category.objects.filter(user=self.request.user)
+        return self.queryset.filter(user=self.request.user)
 
     def perform_create(self, serializer):
         # Automatically set the user when creating a category
@@ -23,10 +25,12 @@ class CategoryViewSet(viewsets.ModelViewSet):
 class HabitViewSet(viewsets.ModelViewSet):
     serializer_class = HabitSerializer
     permission_classes = [IsAuthenticated]
+    # Add queryset attribute for the router
+    queryset = Habit.objects.all()
 
     def get_queryset(self):
         # Only return habits for the authenticated user
-        return Habit.objects.filter(user=self.request.user)
+        return self.queryset.filter(user=self.request.user)
 
     def perform_create(self, serializer):
         # Automatically set the user when creating a habit

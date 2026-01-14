@@ -1,3 +1,4 @@
+// src/services/auth.js
 import axios from 'axios'
 
 const API_URL = 'http://127.0.0.1:8000/api/auth/'
@@ -9,9 +10,17 @@ class AuthService {
             password
         })
 
-        if (response.data.access_token) {
-            localStorage.setItem('access_token', response.data.access_token)
-            localStorage.setItem('refresh_token', response.data.refresh_token)
+        console.log('Login response:', response.data)
+
+        // dj-rest-auth returns: { access, refresh, user }
+        // or { access_token, refresh_token, user }
+        // Handle both formats
+        const accessToken = response.data.access || response.data.access_token
+        const refreshToken = response.data.refresh || response.data.refresh_token
+
+        if (accessToken) {
+            localStorage.setItem('access_token', accessToken)
+            localStorage.setItem('refresh_token', refreshToken)
             localStorage.setItem('user', JSON.stringify(response.data.user))
         }
 
@@ -25,11 +34,27 @@ class AuthService {
     }
 
     async register(email, password1, password2) {
-        return axios.post(API_URL + 'registration/', {
+        const response = await axios.post(API_URL + 'registration/', {
             email,
             password1,
             password2
         })
+
+        console.log('Registration response:', response.data)
+
+        // Handle tokens if they're returned on registration
+        const accessToken = response.data.access || response.data.access_token
+        const refreshToken = response.data.refresh || response.data.refresh_token
+
+        if (accessToken) {
+            localStorage.setItem('access_token', accessToken)
+            localStorage.setItem('refresh_token', refreshToken)
+            if (response.data.user) {
+                localStorage.setItem('user', JSON.stringify(response.data.user))
+            }
+        }
+
+        return response.data
     }
 
     getCurrentUser() {
@@ -58,9 +83,10 @@ class AuthService {
 
         if (response.data.access) {
             localStorage.setItem('access_token', response.data.access)
+            return response.data.access
         }
 
-        return response.data.access
+        return null
     }
 }
 
