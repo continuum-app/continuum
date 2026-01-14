@@ -150,17 +150,17 @@ onMounted(() => {
         <div class="flex gap-4">
           <!-- Dark Mode Toggle -->
           <button @click="toggleDarkMode"
-            class="bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-white px-6 py-4 rounded-2xl font-bold flex items-center gap-3 hover:bg-slate-300 dark:hover:bg-slate-600 transition-all shadow-lg active:scale-95">
+            class="bg-indigo-600 dark:bg-slate-700 text-white px-6 py-4 rounded-2xl font-bold flex items-center gap-3 hover:bg-indigo-700 dark:hover:bg-slate-600 transition-all shadow-lg active:scale-95">
             <Moon v-if="!isDark" :size="20" stroke-width="2.5" />
             <Sun v-else :size="20" stroke-width="2.5" />
           </button>
 
           <button @click="isModalOpen = true"
-            class="bg-slate-900 dark:bg-indigo-600 text-white px-8 py-4 rounded-2xl font-bold flex items-center gap-3 hover:bg-indigo-600 dark:hover:bg-indigo-500 transition-all shadow-2xl shadow-slate-200 dark:shadow-none active:scale-95">
+            class="bg-indigo-600 dark:bg-indigo-600 text-white px-8 py-4 rounded-2xl font-bold flex items-center gap-3 hover:bg-indigo-700 dark:hover:bg-indigo-500 transition-all shadow-lg active:scale-95">
             <Plus :size="20" stroke-width="3" /> New Habit
           </button>
           <button @click="handleLogout"
-            class="bg-red-500 dark:bg-red-600 text-white px-8 py-4 rounded-2xl font-bold hover:bg-red-600 dark:hover:bg-red-500 transition-all shadow-2xl shadow-red-200 dark:shadow-none active:scale-95">
+            class="bg-red-600 dark:bg-red-600 text-white px-8 py-4 rounded-2xl font-bold hover:bg-red-700 dark:hover:bg-red-500 transition-all shadow-lg active:scale-95">
             Logout
           </button>
         </div>
