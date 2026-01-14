@@ -138,7 +138,7 @@ onMounted(() => {
 
 <template>
   <div
-    class="min-h-screen bg-[#f8fafc] dark:bg-slate-900 p-6 md:p-12 font-sans text-slate-900 dark:text-slate-100 transition-colors duration-300">
+    class="bg-[#f8fafc] dark:bg-slate-900 p-6 md:p-12 font-sans text-slate-900 dark:text-slate-100 transition-colors duration-300">
     <div class="max-w-7xl mx-auto">
 
       <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-16">
@@ -148,19 +148,19 @@ onMounted(() => {
           <p class="text-slate-400 dark:text-slate-500 font-medium">Daily evolution, quantified.</p>
         </div>
         <div class="flex gap-4">
-          <!-- Dark Mode Toggle -->
           <button @click="toggleDarkMode"
-            class="bg-indigo-600 dark:bg-slate-700 text-white px-6 py-4 rounded-2xl font-bold flex items-center gap-3 hover:bg-indigo-700 dark:hover:bg-slate-600 transition-all shadow-lg active:scale-95">
+            class="bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-yellow-400 px-6 py-4 rounded-2xl font-bold flex items-center gap-3 hover:bg-slate-300 dark:hover:bg-slate-600 transition-all shadow-md shadow-gray-400 dark:shadow-gray-300/20 active:scale-95 dark:border-slate-500 dark:hover:border-yellow-500/50">
             <Moon v-if="!isDark" :size="20" stroke-width="2.5" />
             <Sun v-else :size="20" stroke-width="2.5" />
           </button>
 
           <button @click="isModalOpen = true"
-            class="bg-indigo-600 dark:bg-indigo-600 text-white px-8 py-4 rounded-2xl font-bold flex items-center gap-3 hover:bg-indigo-700 dark:hover:bg-indigo-500 transition-all shadow-lg active:scale-95">
+            class="bg-indigo-500 dark:bg-indigo-500 text-slate-800 px-8 py-4 rounded-2xl font-bold flex items-center gap-3 hover:bg-indigo-600 dark:hover:bg-indigo-400 transition-all shadow-md shadow-indigo-200 dark:shadow-indigo-900/20 active:scale-95 dark:border-slate-500 dark:hover:border-slate-800">
             <Plus :size="20" stroke-width="3" /> New Habit
           </button>
+
           <button @click="handleLogout"
-            class="bg-red-600 dark:bg-red-600 text-white px-8 py-4 rounded-2xl font-bold hover:bg-red-700 dark:hover:bg-red-500 transition-all shadow-lg active:scale-95">
+            class="bg-red-600 dark:bg-red-800 text-slate-800 px-8 py-4 rounded-2xl font-bold hover:bg-red-700 dark:hover:bg-red-600 transition-all shadow-md shadow-red-200 dark:shadow-red-900/20 active:scale-95 dark:border-slate-500 dark:hover:border-slate-800">
             Logout
           </button>
         </div>
@@ -168,7 +168,7 @@ onMounted(() => {
 
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         <div v-for="habit in habits" :key="habit.id" :class="[
-          'relative group p-8 rounded-[3rem] transition-all duration-500 flex flex-col justify-between overflow-hidden border',
+          'relative group p-8 rounded-[3rem] transition-all duration-300 flex flex-col justify-between overflow-hidden border',
           habit.today_value > 0
             ? 'bg-white dark:bg-slate-800 border-transparent shadow-[0_30px_60px_-15px_rgba(0,0,0,0.08)] dark:shadow-[0_30px_60px_-15px_rgba(0,0,0,0.3)]'
             : 'bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700 shadow-sm hover:shadow-xl dark:hover:shadow-slate-950/50 hover:-translate-y-1'
@@ -188,7 +188,7 @@ onMounted(() => {
                 {{ habit.category.name }}
               </p>
             </div>
-            <div class="p-4 rounded-3xl transition-all duration-500" :style="{
+            <div class="p-4 rounded-3xl transition-all duration-300" :style="{
               backgroundColor: habit.today_value > 0 ? habit.color : `${habit.color}15`,
               color: habit.today_value > 0 ? 'white' : habit.color
             }">
@@ -230,8 +230,12 @@ onMounted(() => {
               </div>
 
               <button @click="saveCompletion(habit)"
-                class="px-6 py-4 rounded-2xl font-bold text-white transition-all active:scale-95 flex items-center gap-2"
-                :style="{ backgroundColor: habit.color, boxShadow: `0 10px 20px -5px ${habit.color}40` }">
+                class="px-6 py-4 rounded-2xl font-bold text-slate-800 transition-all active:scale-95 flex items-center gap-2 border border-white/10"
+                :style="{
+                  backgroundColor: habit.color,
+                  boxShadow: isDark ? `0 10px 20px -5px ${habit.color}60` : `0 10px 20px -5px ${habit.color}40`,
+                  filter: isDark ? 'saturate(1.2) brightness(1.1)' : 'none'
+                }">
                 <RefreshCw v-if="habit.is_saving" :size="18" class="animate-spin" />
                 <Save v-else :size="18" />
                 {{ habit.today_value > 0 ? 'Update' : 'Log' }}
@@ -247,7 +251,7 @@ onMounted(() => {
               </div>
 
               <button @click="saveCompletion(habit)"
-                class="px-6 py-4 rounded-2xl font-bold text-white transition-all active:scale-95 flex items-center gap-2"
+                class="px-6 py-4 rounded-2xl font-bold text-slate-800 transition-all active:scale-95 flex items-center gap-2"
                 :style="{ backgroundColor: habit.color, boxShadow: `0 10px 20px -5px ${habit.color}40` }">
                 <RefreshCw v-if="habit.is_saving" :size="18" class="animate-spin" />
                 <Save v-else :size="18" />
@@ -272,10 +276,13 @@ onMounted(() => {
 
             <!-- Boolean Type -->
             <button v-else @click="saveCompletion(habit)"
-              class="w-full py-4 rounded-2xl font-bold text-white transition-all flex items-center justify-center gap-2 active:scale-95"
+              class="w-full py-4 rounded-2xl font-bold text-white transition-all flex items-center justify-center gap-2 active:scale-95 border border-white/10"
               :style="{
                 backgroundColor: habit.today_value > 0 ? '#10b981' : habit.color,
-                boxShadow: habit.today_value > 0 ? '0 15px 30px -10px #10b98160' : `0 15px 30px -10px ${habit.color}40`
+                boxShadow: habit.today_value > 0
+                  ? (isDark ? '0 15px 30px -10px #10b98180' : '0 15px 30px -10px #10b98160')
+                  : (isDark ? `0 15px 30px -10px ${habit.color}80` : `0 15px 30px -10px ${habit.color}40`),
+                filter: isDark ? 'saturate(1.2) brightness(1.1)' : 'none'
               }">
               <CheckCircle2 v-if="habit.today_value > 0" :size="20" />
               {{ habit.today_value > 0 ? 'Completed' : 'Mark Complete' }}
