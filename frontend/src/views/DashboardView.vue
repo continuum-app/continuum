@@ -155,12 +155,12 @@ onMounted(() => {
           </button>
 
           <button @click="isModalOpen = true"
-            class="bg-indigo-500 dark:bg-indigo-500 text-slate-800 px-8 py-4 rounded-2xl font-bold flex items-center gap-3 hover:bg-indigo-600 dark:hover:bg-indigo-400 transition-all shadow-md shadow-indigo-200 dark:shadow-indigo-900/20 active:scale-95 dark:border-slate-500 dark:hover:border-slate-800">
+            class="bg-indigo-500 dark:bg-indigo-500 text-slate-800 px-8 py-4 rounded-2xl font-bold flex items-center gap-3 hover:bg-indigo-600 dark:hover:bg-indigo-400 transition-all shadow-md shadow-indigo-200 dark:shadow-indigo-900/20 active:scale-95 dark:hover:border-slate-800">
             <Plus :size="20" stroke-width="3" /> New Habit
           </button>
 
           <button @click="handleLogout"
-            class="bg-red-600 dark:bg-red-800 text-slate-800 px-8 py-4 rounded-2xl font-bold hover:bg-red-700 dark:hover:bg-red-600 transition-all shadow-md shadow-red-200 dark:shadow-red-900/20 active:scale-95 dark:border-slate-500 dark:hover:border-slate-800">
+            class="bg-red-600 dark:bg-red-800 text-slate-800 px-8 py-4 rounded-2xl font-bold hover:bg-red-700 dark:hover:bg-red-600 transition-all shadow-md shadow-red-200 dark:shadow-red-900/20 active:scale-95 dark:hover:border-slate-800">
             Logout
           </button>
         </div>

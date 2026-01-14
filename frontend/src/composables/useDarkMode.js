@@ -14,7 +14,6 @@ export function useDarkMode() {
             // Check system preference
             isDark.value = window.matchMedia('(prefers-color-scheme: dark)').matches
         }
-
         applyDarkMode()
     }
 
