@@ -6,10 +6,11 @@ from django.contrib.auth.models import User
 class Category(models.Model):
     name = models.CharField(max_length=128)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="categories")
+    order = models.IntegerField(default=0)  # Add this line
 
     class Meta:
         verbose_name_plural = "Categories"
-        ordering = ["name"]
+        ordering = ["order", "name"]  # Add this
 
     def __str__(self):
         return f"{self.name}"

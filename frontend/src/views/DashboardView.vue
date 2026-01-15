@@ -1,11 +1,11 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '../services/api'
 import authService from '../services/auth'
 import { useDarkMode } from '../composables/useDarkMode'
 import * as LucideIcons from 'lucide-vue-next'
-import { Plus, X, ChevronDown, CheckCircle2, RefreshCw, Save, Star, Moon, Sun } from 'lucide-vue-next'
+import { Plus, X, ChevronDown, CheckCircle2, RefreshCw, Save, Star, Moon, Sun, GripVertical } from 'lucide-vue-next'
 
 const router = useRouter()
 const { isDark, toggleDarkMode } = useDarkMode()
@@ -14,6 +14,9 @@ const { isDark, toggleDarkMode } = useDarkMode()
 const habits = ref([])
 const categories = ref([])
 const isModalOpen = ref(false)
+const draggedCategoryId = ref(null)
+const dragOverCategoryId = ref(null)
+const categoryOrder = ref([]) // Array of category IDs in order
 
 // Form Refs for New Habit
 const newHabitName = ref('')
@@ -23,11 +26,89 @@ const newHabitColor = ref('#1F85DE')
 const newHabitCategoryId = ref(null)
 const newHabitMaxValue = ref(5)
 
+// --- COMPUTED ---
+const groupedHabits = computed(() => {
+  const groups = []
+
+  // Create a map of categories by ID for quick lookup
+  const categoryMap = new Map()
+  categories.value.forEach(cat => {
+    categoryMap.set(cat.id, cat)
+  })
+
+  // Check if uncategorized habits exist
+  const uncategorized = habits.value.filter(h => !h.category)
+  const hasUncategorized = uncategorized.length > 0
+
+  // Build ordered list based on categoryOrder
+  let orderedCategoryIds
+  if (categoryOrder.value.length > 0) {
+    // Use existing order
+    orderedCategoryIds = categoryOrder.value
+  } else {
+    // Create default order: uncategorized first (if exists), then categories
+    orderedCategoryIds = hasUncategorized
+      ? ['uncategorized', ...categories.value.map(c => c.id)]
+      : categories.value.map(c => c.id)
+  }
+
+  // Add groups in order (including uncategorized)
+  orderedCategoryIds.forEach(id => {
+    if (id === 'uncategorized') {
+      if (hasUncategorized) {
+        groups.push({
+          id: 'uncategorized',
+          name: 'Uncategorized',
+          habits: uncategorized
+        })
+      }
+    } else {
+      const cat = categoryMap.get(id)
+      if (cat) {
+        const categoryHabits = habits.value.filter(h => h.category?.id === cat.id)
+        if (categoryHabits.length > 0) {
+          groups.push({
+            id: cat.id,
+            name: cat.name,
+            habits: categoryHabits
+          })
+        }
+      }
+    }
+  })
+
+  return groups
+})
+
 // --- LOGIC ---
 const fetchCategories = async () => {
   try {
     const res = await api.get('categories/')
     categories.value = res.data
+
+    // Sort by order field
+    categories.value.sort((a, b) => (a.order || 0) - (b.order || 0))
+
+    // Try to load saved order from localStorage
+    const savedOrder = localStorage.getItem('categoryOrder')
+    if (savedOrder) {
+      try {
+        categoryOrder.value = JSON.parse(savedOrder)
+        return
+      } catch (e) {
+        console.error('Failed to parse saved order:', e)
+      }
+    }
+
+    // No saved order, create default based on database order
+    categoryOrder.value = categories.value.map(c => c.id)
+
+    // Add uncategorized at the end if there are uncategorized habits
+    // Note: We can't check habits.value here if habits aren't loaded yet
+    // So we always add it and let groupedHabits computed filter it out if empty
+    if (!categoryOrder.value.includes('uncategorized')) {
+      categoryOrder.value.push('uncategorized')
+    }
   } catch (err) {
     console.error("Failed to fetch categories:", err)
   }
@@ -39,12 +120,31 @@ const fetchHabits = async () => {
     habits.value = res.data.map(h => ({
       ...h,
       temp_value: h.today_value || 0,
-      selected_category_id: h.category?.id || null,
       is_completed_today: h.today_value > 0,
       is_saving: false
     }))
   } catch (err) {
     console.error("Failed to fetch habits:", err)
+  }
+}
+
+const saveLayoutToServer = async () => {
+  try {
+    // Save the full order to localStorage (including uncategorized)
+    localStorage.setItem('categoryOrder', JSON.stringify(categoryOrder.value))
+
+    // Filter out 'uncategorized' and only send real category IDs to server
+    const layoutData = categoryOrder.value
+      .filter(id => id !== 'uncategorized')
+      .map((id, index) => ({
+        id,
+        order: index
+      }))
+
+    await api.post('categories/update_layout/', { layout: layoutData })
+    console.log('Layout saved to server')
+  } catch (err) {
+    console.error('Failed to save layout:', err)
   }
 }
 
@@ -74,7 +174,6 @@ const addHabit = async () => {
     habits.value.push({
       ...res.data,
       temp_value: 0,
-      selected_category_id: res.data.category?.id || null,
       is_completed_today: false,
       is_saving: false
     })
@@ -102,7 +201,6 @@ const saveCompletion = async (habit) => {
     }
 
     const payload = {
-      category_id: habit.selected_category_id,
       value: valueToSave
     }
 
@@ -122,6 +220,81 @@ const handleLogout = () => {
   router.push('/login')
 }
 
+// Drag handlers
+const handleDragStart = (e, categoryId) => {
+  draggedCategoryId.value = categoryId
+  e.dataTransfer.effectAllowed = 'move'
+  e.dataTransfer.setData('text/html', e.target.innerHTML)
+  e.target.style.opacity = '0.4'
+}
+
+const handleDragEnd = (e) => {
+  e.target.style.opacity = '1'
+  draggedCategoryId.value = null
+  dragOverCategoryId.value = null
+}
+
+const handleDragOver = (e, categoryId) => {
+  e.preventDefault()
+  e.dataTransfer.dropEffect = 'move'
+  dragOverCategoryId.value = categoryId
+  return false
+}
+
+const handleDragEnter = (e, categoryId) => {
+  e.preventDefault()
+  dragOverCategoryId.value = categoryId
+}
+
+const handleDragLeave = (e) => {
+  dragOverCategoryId.value = null
+}
+
+const handleDrop = (e, targetCategoryId) => {
+  e.stopPropagation()
+  e.preventDefault()
+
+  if (!draggedCategoryId.value || draggedCategoryId.value === targetCategoryId) {
+    dragOverCategoryId.value = null
+    return
+  }
+
+  const newOrder = [...categoryOrder.value]
+  const draggedIndex = newOrder.indexOf(draggedCategoryId.value)
+  const targetIndex = newOrder.indexOf(targetCategoryId)
+
+  if (draggedIndex !== -1 && targetIndex !== -1) {
+    // Special case: only 2 groups and dragging last onto first
+    if (newOrder.length === 2 && draggedIndex === 1 && targetIndex === 0) {
+      // Swap them - dragged goes first
+      newOrder.splice(draggedIndex, 1)
+      newOrder.splice(0, 0, draggedCategoryId.value)
+    } else {
+      // Normal case: always insert AFTER the target
+      // Remove dragged item
+      newOrder.splice(draggedIndex, 1)
+
+      // Calculate adjusted target index after removal
+      let adjustedTargetIndex = targetIndex
+      if (draggedIndex < targetIndex) {
+        adjustedTargetIndex = targetIndex - 1
+      }
+
+      // Always insert AFTER the target
+      const insertIndex = adjustedTargetIndex + 1
+
+      // Insert at calculated position
+      newOrder.splice(insertIndex, 0, draggedCategoryId.value)
+    }
+
+    categoryOrder.value = newOrder
+    saveLayoutToServer()
+  }
+
+  dragOverCategoryId.value = null
+  return false
+}
+
 const getIcon = (iconName) => {
   const searchName = iconName.toLowerCase();
   const key = Object.keys(LucideIcons).find(
@@ -138,7 +311,7 @@ onMounted(() => {
 
 <template>
   <div
-    class="bg-[#f8fafc] dark:bg-slate-900 p-6 md:p-12 font-sans text-slate-900 dark:text-slate-100 transition-colors duration-300">
+    class="min-h-screen bg-[#f8fafc] dark:bg-slate-900 p-6 md:p-12 font-sans text-slate-900 dark:text-slate-100 transition-colors duration-300">
     <div class="max-w-7xl mx-auto">
 
       <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-16">
@@ -148,145 +321,149 @@ onMounted(() => {
           <p class="text-slate-400 dark:text-slate-500 font-medium">Daily evolution, quantified.</p>
         </div>
         <div class="flex gap-4">
+          <!-- Dark Mode Toggle -->
           <button @click="toggleDarkMode"
-            class="bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-yellow-400 px-6 py-4 rounded-2xl font-bold flex items-center gap-3 hover:bg-slate-300 dark:hover:bg-slate-600 transition-all shadow-md shadow-gray-400 dark:shadow-gray-300/20 active:scale-95 dark:border-slate-500 dark:hover:border-yellow-500/50">
+            class="bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-yellow-400 px-6 py-4 rounded-2xl font-bold flex items-center gap-3 hover:bg-slate-300 dark:hover:bg-slate-600 transition-all shadow-md active:scale-95">
             <Moon v-if="!isDark" :size="20" stroke-width="2.5" />
             <Sun v-else :size="20" stroke-width="2.5" />
           </button>
 
           <button @click="isModalOpen = true"
-            class="bg-indigo-500 dark:bg-indigo-500 text-slate-800 px-8 py-4 rounded-2xl font-bold flex items-center gap-3 hover:bg-indigo-600 dark:hover:bg-indigo-400 transition-all shadow-md shadow-indigo-200 dark:shadow-indigo-900/20 active:scale-95 dark:hover:border-slate-800">
+            class="bg-indigo-500 text-white px-8 py-4 rounded-2xl font-bold flex items-center gap-3 hover:bg-indigo-600 transition-all shadow-md active:scale-95">
             <Plus :size="20" stroke-width="3" /> New Habit
           </button>
 
           <button @click="handleLogout"
-            class="bg-red-600 dark:bg-red-800 text-slate-800 px-8 py-4 rounded-2xl font-bold hover:bg-red-700 dark:hover:bg-red-600 transition-all shadow-md shadow-red-200 dark:shadow-red-900/20 active:scale-95 dark:hover:border-slate-800">
+            class="bg-red-600 text-white px-8 py-4 rounded-2xl font-bold hover:bg-red-700 transition-all shadow-md active:scale-95">
             Logout
           </button>
         </div>
       </header>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        <div v-for="habit in habits" :key="habit.id" :class="[
-          'relative group p-8 rounded-[3rem] transition-all duration-300 flex flex-col justify-between overflow-hidden border',
-          habit.today_value > 0
-            ? 'bg-white dark:bg-slate-800 border-transparent shadow-[0_30px_60px_-15px_rgba(0,0,0,0.08)] dark:shadow-[0_30px_60px_-15px_rgba(0,0,0,0.3)]'
-            : 'bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700 shadow-sm hover:shadow-xl dark:hover:shadow-slate-950/50 hover:-translate-y-1'
-        ]" :style="{ minHeight: '320px' }">
-
-          <div class="absolute -right-8 -top-8 w-32 h-32 rounded-full blur-3xl opacity-10 dark:opacity-20"
-            :style="{ backgroundColor: habit.color }"></div>
-
-          <div class="flex justify-between items-start relative z-10">
-            <div class="flex flex-col">
-              <span class="text-[10px] font-black uppercase tracking-[0.25em] mb-2 opacity-50"
-                :style="{ color: habit.color }">
-                {{ habit.habit_type }}
-              </span>
-              <h3 class="text-2xl font-black text-slate-800 dark:text-white leading-tight">{{ habit.name }}</h3>
-              <p v-if="habit.category" class="text-xs font-semibold mt-1 text-slate-400 dark:text-slate-500">
-                {{ habit.category.name }}
-              </p>
+      <!-- Grouped Habits by Category -->
+      <div class="space-y-12">
+        <div v-for="group in groupedHabits" :key="group.id" :draggable=true
+          @dragstart="(e) => handleDragStart(e, group.id)" @dragend="handleDragEnd"
+          @dragover="(e) => handleDragOver(e, group.id)" @dragenter="(e) => handleDragEnter(e, group.id)"
+          @dragleave="handleDragLeave" @drop="(e) => handleDrop(e, group.id)" :class="[
+            'category-group transition-all duration-200',
+            dragOverCategoryId === group.id ? 'border-4 border-indigo-500 border-dashed rounded-3xl p-4' : ''
+          ]">
+          <!-- Category Header -->
+          <div class="flex items-center gap-3 mb-6 cursor-move select-none">
+            <GripVertical class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+              :size="24" />
+            <h2 class="text-2xl font-black text-slate-800 dark:text-white uppercase tracking-tight">
+              {{ group.name }}
+            </h2>
+            <div class="flex-1 h-1 bg-linear-to-r from-slate-200 dark:from-slate-700 to-transparent rounded-full">
             </div>
-            <div class="p-4 rounded-3xl transition-all duration-300" :style="{
-              backgroundColor: habit.today_value > 0 ? habit.color : `${habit.color}15`,
-              color: habit.today_value > 0 ? 'white' : habit.color
-            }">
-              <component :is="getIcon(habit.icon)" :size="26" stroke-width="2.5" />
-            </div>
+            <span class="text-sm font-bold text-slate-400 dark:text-slate-500">
+              {{ group.habits.length }} {{ group.habits.length === 1 ? 'habit' : 'habits' }}
+            </span>
           </div>
 
-          <div class="relative z-10 space-y-4">
+          <!-- Habits Grid -->
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div v-for="habit in group.habits" :key="habit.id" :class="[
+              'relative p-8 rounded-[3rem] transition-all duration-300 flex flex-col justify-between overflow-hidden border',
+              habit.today_value > 0
+                ? 'bg-white dark:bg-slate-800 border-transparent shadow-[0_20px_40px_-10px_rgba(0,0,0,0.08)] dark:shadow-[0_20px_40px_-10px_rgba(0,0,0,0.3)]'
+                : 'bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700 shadow-sm hover:shadow-lg dark:hover:shadow-slate-950/50 hover:-translate-y-1'
+            ]" :style="{ minHeight: '280px' }">
 
-            <!-- Category Selector -->
-            <div v-if="categories.length > 0" class="relative">
-              <select v-model="habit.selected_category_id"
-                class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-100 dark:border-slate-600 rounded-2xl px-5 py-3.5 text-sm font-bold text-slate-700 dark:text-slate-200 appearance-none outline-none focus:ring-2"
-                :style="{ '--tw-ring-color': habit.color }">
-                <option :value="null">No Category</option>
-                <option v-for="cat in categories" :key="cat.id" :value="cat.id">{{ cat.name }}</option>
-              </select>
-              <ChevronDown class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
-                :size="16" />
-            </div>
+              <div class="absolute -right-8 -top-8 w-32 h-32 rounded-full blur-3xl opacity-10 dark:opacity-20"
+                :style="{ backgroundColor: habit.color }"></div>
 
-            <!-- Counter Type -->
-            <div v-if="habit.habit_type === 'counter'" class="flex items-center gap-3">
-              <div
-                class="flex-1 flex justify-between items-center bg-slate-50 dark:bg-slate-700 rounded-2xl p-1.5 border border-slate-100 dark:border-slate-600">
-                <button @click="habit.temp_value = Math.max(0, Number(habit.temp_value) - 1)"
-                  class="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-white dark:hover:bg-slate-600 transition text-slate-400 dark:text-slate-300 font-bold">
-                  -
-                </button>
-
-                <span class="font-black text-slate-800 dark:text-white text-lg">
-                  {{ Number(habit.temp_value).toFixed(0) }}
-                </span>
-
-                <button @click="habit.temp_value = Number(habit.temp_value) + 1"
-                  class="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-white dark:hover:bg-slate-600 transition text-slate-400 dark:text-slate-300 font-bold">
-                  +
-                </button>
-              </div>
-
-              <button @click="saveCompletion(habit)"
-                class="px-6 py-4 rounded-2xl font-bold text-slate-800 transition-all active:scale-95 flex items-center gap-2 border border-white/10"
-                :style="{
-                  backgroundColor: habit.color,
-                  boxShadow: isDark ? `0 10px 20px -5px ${habit.color}60` : `0 10px 20px -5px ${habit.color}40`,
-                  filter: isDark ? 'saturate(1.2) brightness(1.1)' : 'none'
+              <div class="flex justify-between items-start relative z-10">
+                <div class="flex flex-col">
+                  <span class="text-[10px] font-black uppercase tracking-[0.25em] mb-2 opacity-50"
+                    :style="{ color: habit.color }">
+                    {{ habit.habit_type }}
+                  </span>
+                  <h3 class="text-2xl font-black text-slate-800 dark:text-white leading-tight">{{ habit.name }}</h3>
+                </div>
+                <div class="p-4 rounded-3xl transition-all duration-300" :style="{
+                  backgroundColor: habit.today_value > 0 ? habit.color : `${habit.color}15`,
+                  color: habit.today_value > 0 ? 'white' : habit.color
                 }">
-                <RefreshCw v-if="habit.is_saving" :size="18" class="animate-spin" />
-                <Save v-else :size="18" />
-                {{ habit.today_value > 0 ? 'Update' : 'Log' }}
-              </button>
-            </div>
-
-            <!-- Timer Type -->
-            <div v-else-if="habit.habit_type === 'timer'" class="flex gap-3">
-              <div class="relative flex-1">
-                <input type="number" v-model="habit.temp_value" placeholder="0.0" step="0.1" min="0"
-                  class="w-full p-4 bg-slate-50 dark:bg-slate-700 border border-slate-100 dark:border-slate-600 rounded-2xl font-bold outline-none focus:ring-2 text-slate-900 dark:text-white"
-                  :style="{ '--tw-ring-color': habit.color }">
+                  <component :is="getIcon(habit.icon)" :size="26" stroke-width="2.5" />
+                </div>
               </div>
 
-              <button @click="saveCompletion(habit)"
-                class="px-6 py-4 rounded-2xl font-bold text-slate-800 transition-all active:scale-95 flex items-center gap-2"
-                :style="{ backgroundColor: habit.color, boxShadow: `0 10px 20px -5px ${habit.color}40` }">
-                <RefreshCw v-if="habit.is_saving" :size="18" class="animate-spin" />
-                <Save v-else :size="18" />
-                {{ habit.today_value > 0 ? 'Update' : 'Log' }}
-              </button>
-            </div>
+              <div class="relative z-10 space-y-4">
 
-            <!-- Rating Type -->
-            <div v-else-if="habit.habit_type === 'rating'" class="space-y-3">
-              <div
-                class="flex justify-center items-center gap-0.5 bg-slate-50 dark:bg-slate-700 rounded-2xl p-3 border border-slate-100 dark:border-slate-600">
-                <button v-for="star in (habit.max_value || 5)" :key="star"
-                  @click="habit.temp_value = star; saveCompletion(habit)"
-                  class="transition-all hover:scale-110 active:scale-95 shrink-0"
-                  :class="star <= habit.temp_value ? '' : 'opacity-30'" style="padding: 0 !important;">
-                  <Star
-                    :size="(habit.max_value || 5) <= 5 ? 28 : (habit.max_value || 5) <= 6 ? 24 : (habit.max_value || 5) <= 8 ? 20 : 16"
-                    :fill="star <= habit.temp_value ? habit.color : 'none'" :stroke="habit.color" stroke-width="2" />
+                <!-- Counter Type -->
+                <div v-if="habit.habit_type === 'counter'" class="flex items-center gap-3">
+                  <div
+                    class="flex-1 flex justify-between items-center bg-slate-50 dark:bg-slate-700 rounded-2xl p-1.5 border border-slate-100 dark:border-slate-600">
+                    <button @click="habit.temp_value = Math.max(0, Number(habit.temp_value) - 1)"
+                      class="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-white dark:hover:bg-slate-600 transition text-slate-400 dark:text-slate-300 font-bold">
+                      -
+                    </button>
+
+                    <span class="font-black text-slate-800 dark:text-white text-lg">
+                      {{ Number(habit.temp_value).toFixed(0) }}
+                    </span>
+
+                    <button @click="habit.temp_value = Number(habit.temp_value) + 1"
+                      class="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-white dark:hover:bg-slate-600 transition text-slate-400 dark:text-slate-300 font-bold">
+                      +
+                    </button>
+                  </div>
+
+                  <button @click="saveCompletion(habit)"
+                    class="px-6 py-4 rounded-2xl font-bold text-white transition-all active:scale-95 flex items-center gap-2"
+                    :style="{ backgroundColor: habit.color, boxShadow: `0 10px 20px -5px ${habit.color}40` }">
+                    <RefreshCw v-if="habit.is_saving" :size="18" class="animate-spin" />
+                    <Save v-else :size="18" />
+                  </button>
+                </div>
+
+                <!-- Timer Type -->
+                <div v-else-if="habit.habit_type === 'timer'" class="flex gap-3">
+                  <div class="relative flex-1">
+                    <input type="number" v-model="habit.temp_value" placeholder="0.0" step="0.1" min="0"
+                      class="w-full p-4 bg-slate-50 dark:bg-slate-700 border border-slate-100 dark:border-slate-600 rounded-2xl font-bold outline-none focus:ring-2 text-slate-900 dark:text-white"
+                      :style="{ '--tw-ring-color': habit.color }">
+                  </div>
+
+                  <button @click="saveCompletion(habit)"
+                    class="px-6 py-4 rounded-2xl font-bold text-white transition-all active:scale-95 flex items-center gap-2"
+                    :style="{ backgroundColor: habit.color, boxShadow: `0 10px 20px -5px ${habit.color}40` }">
+                    <RefreshCw v-if="habit.is_saving" :size="18" class="animate-spin" />
+                    <Save v-else :size="18" />
+                  </button>
+                </div>
+
+                <!-- Rating Type -->
+                <div v-else-if="habit.habit_type === 'rating'" class="space-y-3">
+                  <div
+                    class="flex justify-center items-center gap-0.5 bg-slate-50 dark:bg-slate-700 rounded-2xl p-3 border border-slate-100 dark:border-slate-600">
+                    <button v-for="star in (habit.max_value || 5)" :key="star"
+                      @click="habit.temp_value = star; saveCompletion(habit)"
+                      class="transition-all hover:scale-110 active:scale-95 shrink-0"
+                      :class="star <= habit.temp_value ? '' : 'opacity-30'" style="padding: 0 !important;">
+                      <Star
+                        :size="(habit.max_value || 5) <= 5 ? 28 : (habit.max_value || 5) <= 6 ? 24 : (habit.max_value || 5) <= 8 ? 20 : 16"
+                        :fill="star <= habit.temp_value ? habit.color : 'none'" :stroke="habit.color"
+                        stroke-width="2" />
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Boolean Type -->
+                <button v-else @click="saveCompletion(habit)"
+                  class="w-full py-4 rounded-2xl font-bold text-white transition-all flex items-center justify-center gap-2 active:scale-95"
+                  :style="{
+                    backgroundColor: habit.today_value > 0 ? '#10b981' : habit.color,
+                    boxShadow: habit.today_value > 0 ? '0 15px 30px -10px #10b98160' : `0 15px 30px -10px ${habit.color}40`
+                  }">
+                  <CheckCircle2 v-if="habit.today_value > 0" :size="20" />
+                  {{ habit.today_value > 0 ? 'Completed' : 'Mark Complete' }}
                 </button>
               </div>
             </div>
-
-            <!-- Boolean Type -->
-            <button v-else @click="saveCompletion(habit)"
-              class="w-full py-4 rounded-2xl font-bold text-white transition-all flex items-center justify-center gap-2 active:scale-95 border border-white/10"
-              :style="{
-                backgroundColor: habit.today_value > 0 ? '#10b981' : habit.color,
-                boxShadow: habit.today_value > 0
-                  ? (isDark ? '0 15px 30px -10px #10b98180' : '0 15px 30px -10px #10b98160')
-                  : (isDark ? `0 15px 30px -10px ${habit.color}80` : `0 15px 30px -10px ${habit.color}40`),
-                filter: isDark ? 'saturate(1.2) brightness(1.1)' : 'none'
-              }">
-              <CheckCircle2 v-if="habit.today_value > 0" :size="20" />
-              {{ habit.today_value > 0 ? 'Completed' : 'Mark Complete' }}
-            </button>
           </div>
         </div>
       </div>
@@ -344,12 +521,11 @@ onMounted(() => {
               </p>
             </div>
 
-            <div v-if="categories.length > 0" class="space-y-2">
-              <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2">Category
-                (Optional)</label>
+            <div class="space-y-2">
+              <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2">Category</label>
               <select v-model="newHabitCategoryId"
                 class="w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-50 dark:border-slate-700 rounded-3xl px-6 py-4 font-bold outline-none appearance-none text-slate-900 dark:text-white">
-                <option :value="null">No Category</option>
+                <option :value="null">Uncategorized</option>
                 <option v-for="cat in categories" :key="cat.id" :value="cat.id">{{ cat.name }}</option>
               </select>
             </div>
@@ -364,7 +540,7 @@ onMounted(() => {
             </div>
 
             <button type="submit"
-              class="w-full bg-slate-900 dark:bg-indigo-600 text-white py-6 rounded-4xl font-black text-xl hover:bg-indigo-600 dark:hover:bg-indigo-500 transition-all shadow-xl shadow-indigo-100 dark:shadow-none">
+              class="w-full bg-indigo-600 text-white py-6 rounded-4xl font-black text-xl hover:bg-indigo-700 transition-all shadow-xl">
               Initiate Habit
             </button>
           </form>
@@ -389,5 +565,9 @@ input[type="number"]::-webkit-inner-spin-button,
 input[type="number"]::-webkit-outer-spin-button {
   -webkit-appearance: none;
   margin: 0;
+}
+
+.category-group {
+  user-select: none;
 }
 </style>

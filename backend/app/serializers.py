@@ -6,8 +6,7 @@ from datetime import date
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
-        fields = ["id", "name"]
-        # user field is set automatically in the view, so we don't include it here
+        fields = ["id", "name", "order"]  # Add order to fields
 
 
 class HabitSerializer(serializers.ModelSerializer):

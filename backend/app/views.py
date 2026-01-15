@@ -10,16 +10,28 @@ from .models import Habit, Completion, Category
 class CategoryViewSet(viewsets.ModelViewSet):
     serializer_class = CategorySerializer
     permission_classes = [IsAuthenticated]
-    # Add queryset attribute for the router
     queryset = Category.objects.all()
 
     def get_queryset(self):
-        # Only return categories for the authenticated user
-        return self.queryset.filter(user=self.request.user)
+        return self.queryset.filter(user=self.request.user).order_by("order", "name")
 
     def perform_create(self, serializer):
-        # Automatically set the user when creating a category
         serializer.save(user=self.request.user)
+
+    @action(detail=False, methods=["post"])
+    def update_layout(self, request):
+        """Update the order of categories"""
+        layout_data = request.data.get("layout", [])
+
+        for item in layout_data:
+            try:
+                category = Category.objects.get(id=item["id"], user=request.user)
+                category.order = item.get("order", 0)
+                category.save()
+            except Category.DoesNotExist:
+                pass
+
+        return Response({"status": "layout updated"})
 
 
 class HabitViewSet(viewsets.ModelViewSet):
