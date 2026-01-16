@@ -743,7 +743,11 @@ onMounted(() => {
           class="bg-white dark:bg-slate-800 rounded-[3rem] p-8 shadow-lg border border-slate-100 dark:border-slate-700">
           <h3 class="text-xl font-black text-slate-900 dark:text-white mb-6 uppercase tracking-tight">Boolean Habits
           </h3>
-          <div class="h-80">
+          <div class="h-80 flex items-center justify-center"
+            v-if="!graphData.boolean || graphData.boolean.length === 0">
+            <p class="text-slate-400 dark:text-slate-500 font-medium text-lg">No data for this date & time range</p>
+          </div>
+          <div class="h-80" v-else>
             <canvas id="chart-boolean"></canvas>
           </div>
         </div>
@@ -753,7 +757,11 @@ onMounted(() => {
           class="bg-white dark:bg-slate-800 rounded-[3rem] p-8 shadow-lg border border-slate-100 dark:border-slate-700">
           <h3 class="text-xl font-black text-slate-900 dark:text-white mb-6 uppercase tracking-tight">Counter Habits
           </h3>
-          <div class="h-80">
+          <div class="h-80 flex items-center justify-center"
+            v-if="!graphData.counter || graphData.counter.length === 0">
+            <p class="text-slate-400 dark:text-slate-500 font-medium text-lg">No data for this date & time range</p>
+          </div>
+          <div class="h-80" v-else>
             <canvas id="chart-counter"></canvas>
           </div>
         </div>
@@ -762,7 +770,10 @@ onMounted(() => {
         <div
           class="bg-white dark:bg-slate-800 rounded-[3rem] p-8 shadow-lg border border-slate-100 dark:border-slate-700">
           <h3 class="text-xl font-black text-slate-900 dark:text-white mb-6 uppercase tracking-tight">Timer Habits</h3>
-          <div class="h-80">
+          <div class="h-80 flex items-center justify-center" v-if="!graphData.timer || graphData.timer.length === 0">
+            <p class="text-slate-400 dark:text-slate-500 font-medium text-lg">No data for this date & time range</p>
+          </div>
+          <div class="h-80" v-else>
             <canvas id="chart-timer"></canvas>
           </div>
         </div>
@@ -771,7 +782,10 @@ onMounted(() => {
         <div
           class="bg-white dark:bg-slate-800 rounded-[3rem] p-8 shadow-lg border border-slate-100 dark:border-slate-700">
           <h3 class="text-xl font-black text-slate-900 dark:text-white mb-6 uppercase tracking-tight">Rating Habits</h3>
-          <div class="h-80">
+          <div class="h-80 flex items-center justify-center" v-if="!graphData.rating || graphData.rating.length === 0">
+            <p class="text-slate-400 dark:text-slate-500 font-medium text-lg">No data for this date & time range</p>
+          </div>
+          <div class="h-80" v-else>
             <canvas id="chart-rating"></canvas>
           </div>
         </div>
