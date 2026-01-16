@@ -1,11 +1,16 @@
 <script setup>
-import { ref, onMounted, computed, nextTick } from 'vue'
+import { ref, onMounted, computed, nextTick, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '../services/api'
 import authService from '../services/auth'
 import { useDarkMode } from '../composables/useDarkMode'
 import * as LucideIcons from 'lucide-vue-next'
 import { Plus, X, ChevronDown, CheckCircle2, RefreshCw, Save, Star, Moon, Sun, GripVertical, BarChart3, FileText, Download, Calendar } from 'lucide-vue-next'
+import { Chart, registerables } from 'chart.js'
+import 'chartjs-adapter-date-fns'
+
+// Register Chart.js components
+Chart.register(...registerables)
 
 const router = useRouter()
 const { isDark, toggleDarkMode } = useDarkMode()
@@ -26,6 +31,22 @@ const newHabitIcon = ref('calendar')
 const newHabitColor = ref('#1F85DE')
 const newHabitCategoryId = ref(null)
 const newHabitMaxValue = ref(5)
+
+// Graph state
+const graphStartDate = ref('')
+const graphEndDate = ref('')
+const chartInstances = ref({
+  boolean: null,
+  counter: null,
+  timer: null,
+  rating: null
+})
+const graphData = ref({
+  boolean: [],
+  counter: [],
+  timer: [],
+  rating: []
+})
 
 // --- COMPUTED ---
 const groupedHabits = computed(() => {
@@ -304,9 +325,180 @@ const getIcon = (iconName) => {
   return LucideIcons[key] || LucideIcons.Activity;
 }
 
+// Initialize date range
+const initializeDateRange = () => {
+  const today = new Date()
+  const thirtyDaysAgo = new Date(today)
+  thirtyDaysAgo.setDate(today.getDate() - 30)
+
+  graphEndDate.value = today.toISOString().split('T')[0]
+  graphStartDate.value = thirtyDaysAgo.toISOString().split('T')[0]
+}
+
+// Fetch graph data from API
+const fetchGraphData = async () => {
+  if (!graphStartDate.value || !graphEndDate.value) return
+
+  try {
+    const response = await api.get('habits/graph_data/', {
+      params: {
+        start_date: graphStartDate.value,
+        end_date: graphEndDate.value
+      }
+    })
+
+    graphData.value = response.data
+    await nextTick()
+    renderCharts()
+  } catch (err) {
+    console.error('Failed to fetch graph data:', err)
+  }
+}
+
+// Render all charts
+const renderCharts = () => {
+  const habitTypes = ['boolean', 'counter', 'timer', 'rating']
+
+  habitTypes.forEach(type => {
+    const canvasId = `chart-${type}`
+    const canvas = document.getElementById(canvasId)
+
+    if (!canvas) return
+
+    // Destroy existing chart
+    if (chartInstances.value[type]) {
+      chartInstances.value[type].destroy()
+    }
+
+    const ctx = canvas.getContext('2d')
+    const data = graphData.value[type] || []
+
+    if (data.length === 0) return
+
+    // Prepare datasets - one per habit
+    const datasets = data.map(habitData => ({
+      label: habitData.habit_name,
+      data: habitData.data.map(d => ({ x: d.date, y: d.value })),
+      borderColor: habitData.color,
+      backgroundColor: habitData.color + '20',
+      tension: 0.3,
+      fill: type === 'boolean' ? false : true,
+      pointRadius: 4,
+      pointHoverRadius: 6
+    }))
+
+    chartInstances.value[type] = new Chart(ctx, {
+      type: 'line',
+      data: { datasets },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: {
+          mode: 'index',
+          intersect: false,
+        },
+        plugins: {
+          legend: {
+            display: true,
+            position: 'top',
+            labels: {
+              color: isDark.value ? '#cbd5e1' : '#334155',
+              font: {
+                family: 'system-ui',
+                weight: 'bold'
+              },
+              padding: 15,
+              usePointStyle: true,
+              pointStyle: 'circle'
+            }
+          },
+          tooltip: {
+            backgroundColor: isDark.value ? '#1e293b' : '#ffffff',
+            titleColor: isDark.value ? '#f1f5f9' : '#0f172a',
+            bodyColor: isDark.value ? '#cbd5e1' : '#475569',
+            borderColor: isDark.value ? '#334155' : '#e2e8f0',
+            borderWidth: 1,
+            padding: 12,
+            displayColors: true,
+            callbacks: {
+              label: function (context) {
+                let label = context.dataset.label || '';
+                if (label) {
+                  label += ': ';
+                }
+                if (context.parsed.y !== null) {
+                  label += context.parsed.y;
+                }
+                return label;
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            type: 'time',
+            time: {
+              unit: 'day',
+              displayFormats: {
+                day: 'MMM d'
+              }
+            },
+            grid: {
+              color: isDark.value ? '#334155' : '#e2e8f0'
+            },
+            ticks: {
+              color: isDark.value ? '#94a3b8' : '#64748b',
+              font: {
+                weight: '600'
+              }
+            }
+          },
+          y: {
+            beginAtZero: true,
+            grid: {
+              color: isDark.value ? '#334155' : '#e2e8f0'
+            },
+            ticks: {
+              color: isDark.value ? '#94a3b8' : '#64748b',
+              font: {
+                weight: '600'
+              }
+            }
+          }
+        }
+      }
+    })
+  })
+}
+
+// Watch for date changes
+watch([graphStartDate, graphEndDate], () => {
+  if (activeTab.value === 'graph') {
+    fetchGraphData()
+  }
+})
+
+// Watch for dark mode changes to update charts
+watch(isDark, () => {
+  if (activeTab.value === 'graph') {
+    renderCharts()
+  }
+})
+
+// Watch for tab changes
+watch(activeTab, (newTab) => {
+  if (newTab === 'graph') {
+    if (!graphStartDate.value || !graphEndDate.value) {
+      initializeDateRange()
+    }
+    fetchGraphData()
+  }
+})
+
 onMounted(() => {
   fetchCategories()
   fetchHabits()
+  initializeDateRange()
 })
 </script>
 
@@ -528,10 +720,60 @@ onMounted(() => {
 
       <!-- Graph Tab -->
       <div v-show="activeTab === 'graph'" class="space-y-6">
+        <!-- Date Range Selector -->
         <div
-          class="bg-white dark:bg-slate-800 rounded-[3rem] p-12 shadow-lg border border-slate-100 dark:border-slate-700">
-          <h2 class="text-3xl font-black text-slate-900 dark:text-white mb-4">Graph View</h2>
-          <p class="text-slate-500 dark:text-slate-400">Visual charts and graphs will appear here.</p>
+          class="bg-white dark:bg-slate-800 rounded-[3rem] p-8 shadow-lg border border-slate-100 dark:border-slate-700">
+          <h2 class="text-2xl font-black text-slate-900 dark:text-white mb-6">Date Range</h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="space-y-2">
+              <label class="text-xs font-black uppercase tracking-widest text-slate-400 ml-2">Start Date</label>
+              <input v-model="graphStartDate" type="date"
+                class="w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-50 dark:border-slate-700 rounded-2xl px-6 py-4 focus:bg-white dark:focus:bg-slate-600 focus:border-indigo-500 transition outline-none font-bold text-slate-900 dark:text-white" />
+            </div>
+            <div class="space-y-2">
+              <label class="text-xs font-black uppercase tracking-widest text-slate-400 ml-2">End Date</label>
+              <input v-model="graphEndDate" type="date"
+                class="w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-50 dark:border-slate-700 rounded-2xl px-6 py-4 focus:bg-white dark:focus:bg-slate-600 focus:border-indigo-500 transition outline-none font-bold text-slate-900 dark:text-white" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Boolean Habits Chart -->
+        <div
+          class="bg-white dark:bg-slate-800 rounded-[3rem] p-8 shadow-lg border border-slate-100 dark:border-slate-700">
+          <h3 class="text-xl font-black text-slate-900 dark:text-white mb-6 uppercase tracking-tight">Boolean Habits
+          </h3>
+          <div class="h-80">
+            <canvas id="chart-boolean"></canvas>
+          </div>
+        </div>
+
+        <!-- Counter Habits Chart -->
+        <div
+          class="bg-white dark:bg-slate-800 rounded-[3rem] p-8 shadow-lg border border-slate-100 dark:border-slate-700">
+          <h3 class="text-xl font-black text-slate-900 dark:text-white mb-6 uppercase tracking-tight">Counter Habits
+          </h3>
+          <div class="h-80">
+            <canvas id="chart-counter"></canvas>
+          </div>
+        </div>
+
+        <!-- Timer Habits Chart -->
+        <div
+          class="bg-white dark:bg-slate-800 rounded-[3rem] p-8 shadow-lg border border-slate-100 dark:border-slate-700">
+          <h3 class="text-xl font-black text-slate-900 dark:text-white mb-6 uppercase tracking-tight">Timer Habits</h3>
+          <div class="h-80">
+            <canvas id="chart-timer"></canvas>
+          </div>
+        </div>
+
+        <!-- Rating Habits Chart -->
+        <div
+          class="bg-white dark:bg-slate-800 rounded-[3rem] p-8 shadow-lg border border-slate-100 dark:border-slate-700">
+          <h3 class="text-xl font-black text-slate-900 dark:text-white mb-6 uppercase tracking-tight">Rating Habits</h3>
+          <div class="h-80">
+            <canvas id="chart-rating"></canvas>
+          </div>
         </div>
       </div>
 
