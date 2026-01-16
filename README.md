@@ -70,7 +70,6 @@ This approach ensures a clean contract between layers and enables independent ev
 ---
 
 ## Roadmap / Upcoming Features
-
 - Frontend visual and UX refinements
 - Token-based authentication and SSO
 - Data export capabilities

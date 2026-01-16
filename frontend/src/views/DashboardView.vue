@@ -5,7 +5,7 @@ import api from '../services/api'
 import authService from '../services/auth'
 import { useDarkMode } from '../composables/useDarkMode'
 import * as LucideIcons from 'lucide-vue-next'
-import { Plus, X, ChevronDown, CheckCircle2, RefreshCw, Save, Star, Moon, Sun, GripVertical } from 'lucide-vue-next'
+import { Plus, X, ChevronDown, CheckCircle2, RefreshCw, Save, Star, Moon, Sun, GripVertical, BarChart3, FileText, Download, Calendar } from 'lucide-vue-next'
 
 const router = useRouter()
 const { isDark, toggleDarkMode } = useDarkMode()
@@ -17,6 +17,7 @@ const isModalOpen = ref(false)
 const draggedCategoryId = ref(null)
 const dragOverCategoryId = ref(null)
 const categoryOrder = ref([]) // Array of category IDs in order
+const activeTab = ref('tracking') // New: active tab state
 
 // Form Refs for New Habit
 const newHabitName = ref('')
@@ -314,7 +315,7 @@ onMounted(() => {
     class="min-h-screen bg-[#f8fafc] dark:bg-slate-900 p-6 md:p-12 font-sans text-slate-900 dark:text-slate-100 transition-colors duration-300">
     <div class="max-w-7xl mx-auto">
 
-      <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-16">
+      <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
         <div>
           <h1 class="text-4xl font-black tracking-tighter text-slate-900 dark:text-white uppercase italic">Continuum
           </h1>
@@ -340,8 +341,56 @@ onMounted(() => {
         </div>
       </header>
 
-      <!-- Grouped Habits by Category -->
-      <div class="space-y-12">
+      <!-- Tabs Navigation -->
+      <div class="mb-12">
+        <div
+          class="flex gap-2 p-2 bg-white dark:bg-slate-800 rounded-3xl shadow-md border border-slate-100 dark:border-slate-700">
+          <button @click="activeTab = 'tracking'" :class="[
+            'flex-1 flex items-center justify-center gap-2 px-6 py-4 rounded-2xl font-bold transition-all',
+            activeTab === 'tracking'
+              ? 'bg-indigo-500 text-white shadow-lg'
+              : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700'
+          ]">
+            <Calendar :size="20" stroke-width="2.5" />
+            <span>Tracking</span>
+          </button>
+
+          <button @click="activeTab = 'summary'" :class="[
+            'flex-1 flex items-center justify-center gap-2 px-6 py-4 rounded-2xl font-bold transition-all',
+            activeTab === 'summary'
+              ? 'bg-indigo-500 text-white shadow-lg'
+              : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700'
+          ]">
+            <FileText :size="20" stroke-width="2.5" />
+            <span>Summary</span>
+          </button>
+
+          <button @click="activeTab = 'graph'" :class="[
+            'flex-1 flex items-center justify-center gap-2 px-6 py-4 rounded-2xl font-bold transition-all',
+            activeTab === 'graph'
+              ? 'bg-indigo-500 text-white shadow-lg'
+              : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700'
+          ]">
+            <BarChart3 :size="20" stroke-width="2.5" />
+            <span>Graph</span>
+          </button>
+
+          <button @click="activeTab = 'export'" :class="[
+            'flex-1 flex items-center justify-center gap-2 px-6 py-4 rounded-2xl font-bold transition-all',
+            activeTab === 'export'
+              ? 'bg-indigo-500 text-white shadow-lg'
+              : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700'
+          ]">
+            <Download :size="20" stroke-width="2.5" />
+            <span>Export</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Tab Content -->
+
+      <!-- Tracking Tab -->
+      <div v-show="activeTab === 'tracking'" class="space-y-12">
         <div v-for="group in groupedHabits" :key="group.id" :draggable=true
           @dragstart="(e) => handleDragStart(e, group.id)" @dragend="handleDragEnd"
           @dragover="(e) => handleDragOver(e, group.id)" @dragenter="(e) => handleDragEnter(e, group.id)"
@@ -465,6 +514,33 @@ onMounted(() => {
               </div>
             </div>
           </div>
+        </div>
+      </div>
+
+      <!-- Summary Tab -->
+      <div v-show="activeTab === 'summary'" class="space-y-6">
+        <div
+          class="bg-white dark:bg-slate-800 rounded-[3rem] p-12 shadow-lg border border-slate-100 dark:border-slate-700">
+          <h2 class="text-3xl font-black text-slate-900 dark:text-white mb-4">Summary View</h2>
+          <p class="text-slate-500 dark:text-slate-400">Retrospective analysis of your habits will appear here.</p>
+        </div>
+      </div>
+
+      <!-- Graph Tab -->
+      <div v-show="activeTab === 'graph'" class="space-y-6">
+        <div
+          class="bg-white dark:bg-slate-800 rounded-[3rem] p-12 shadow-lg border border-slate-100 dark:border-slate-700">
+          <h2 class="text-3xl font-black text-slate-900 dark:text-white mb-4">Graph View</h2>
+          <p class="text-slate-500 dark:text-slate-400">Visual charts and graphs will appear here.</p>
+        </div>
+      </div>
+
+      <!-- Export Tab -->
+      <div v-show="activeTab === 'export'" class="space-y-6">
+        <div
+          class="bg-white dark:bg-slate-800 rounded-[3rem] p-12 shadow-lg border border-slate-100 dark:border-slate-700">
+          <h2 class="text-3xl font-black text-slate-900 dark:text-white mb-4">Export Data</h2>
+          <p class="text-slate-500 dark:text-slate-400">Export options will appear here.</p>
         </div>
       </div>
     </div>
