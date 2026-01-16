@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import LoginView from '../views/LoginView.vue'
 import RegisterView from '../views/RegisterView.vue'
 import DashboardView from '../views/DashboardView.vue'
+import AdminSettings from '../views/AdminSettings.vue'
 import authService from '../services/auth'
 
 const router = createRouter({
@@ -23,6 +24,12 @@ const router = createRouter({
       path: '/dashboard',
       name: 'dashboard',
       component: DashboardView,
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/admin-settings',
+      name: 'admin-settings',
+      component: AdminSettings,
       meta: { requiresAuth: true }
     },
     {

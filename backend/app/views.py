@@ -2,6 +2,7 @@ from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.views import APIView
 from .serializers import HabitSerializer, CategorySerializer
 from datetime import date, datetime
 from .models import Habit, Completion, Category
@@ -134,3 +135,92 @@ class HabitViewSet(viewsets.ModelViewSet):
                 result[habit.habit_type].append(habit_data)
 
         return Response(result)
+
+    @action(detail=False, methods=["get"])
+    def export_csv(self, request):
+        """
+        Export habit completion data as CSV for a date range.
+        Format: First column is habit name, subsequent columns are dates (one per day).
+        Each row contains the values for that habit on each day.
+        """
+        start_date_str = request.query_params.get("start_date")
+        end_date_str = request.query_params.get("end_date")
+
+        if not start_date_str or not end_date_str:
+            return Response(
+                {"error": "start_date and end_date are required"}, status=400
+            )
+
+        try:
+            start_date = datetime.strptime(start_date_str, "%Y-%m-%d").date()
+            end_date = datetime.strptime(end_date_str, "%Y-%m-%d").date()
+        except ValueError:
+            return Response(
+                {"error": "Invalid date format. Use YYYY-MM-DD"}, status=400
+            )
+
+        # Get all habits for the user
+        habits = self.get_queryset().order_by("name")
+
+        # Generate list of all dates in range
+        from datetime import timedelta
+
+        date_list = []
+        current_date = start_date
+        while current_date <= end_date:
+            date_list.append(current_date)
+            current_date += timedelta(days=1)
+
+        # Build CSV content
+        import csv
+        from io import StringIO
+
+        output = StringIO()
+        writer = csv.writer(output)
+
+        # Write header row (Habit Name, Date1, Date2, ...)
+        header = ["Habit Name"] + [d.strftime("%Y-%m-%d") for d in date_list]
+        writer.writerow(header)
+
+        # Write data rows
+        for habit in habits:
+            # Get all completions for this habit in the date range
+            completions = Completion.objects.filter(
+                habit=habit, date__gte=start_date, date__lte=end_date
+            ).order_by("date")
+
+            # Create a dictionary for quick lookup
+            completion_dict = {c.date: float(c.value) for c in completions}
+
+            # Build row: habit name followed by values for each date
+            row = [habit.name]
+            for date_item in date_list:
+                value = completion_dict.get(date_item, "")
+                row.append(value)
+
+            writer.writerow(row)
+
+        csv_content = output.getvalue()
+        output.close()
+
+        return Response({"csv_content": csv_content})
+
+
+class UserInfoView(APIView):
+    """
+    Get current user information
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        return Response(
+            {
+                "id": user.id,
+                "username": user.username,
+                "email": user.email,
+                "first_name": user.first_name,
+                "last_name": user.last_name,
+            }
+        )
