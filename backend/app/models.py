@@ -6,11 +6,11 @@ from django.contrib.auth.models import User
 class Category(models.Model):
     name = models.CharField(max_length=128)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="categories")
-    order = models.IntegerField(default=0)  # Add this line
+    order = models.IntegerField(default=0)
 
     class Meta:
         verbose_name_plural = "Categories"
-        ordering = ["order", "name"]  # Add this
+        ordering = ["order", "name"]
 
     def __str__(self):
         return f"{self.name}"
@@ -18,19 +18,10 @@ class Category(models.Model):
 
 class Habit(models.Model):
     TYPE_CHOICES = [
-        ("boolean", "Yes/No"),  # Yes or no type of habits, a card toggle
-        (
-            "counter",
-            "Counter",
-        ),  # A counter habit, there is a - and + on the card to adjust the value
-        (
-            "timer",
-            "Time Duration",
-        ),  # A timer habit, the user can enter a decimal value to indicate time mostly, but can be used for other type of data
-        (
-            "rating",
-            "Rating",
-        ),  # A star-rating habit card, the max amount of star is determined by the habit's max_value field.
+        ("boolean", "Yes/No"),
+        ("counter", "Counter"),
+        ("timer", "Time Duration"),
+        ("rating", "Rating"),
     ]
     name = models.CharField(max_length=100)
     habit_type = models.CharField(
@@ -67,9 +58,52 @@ class Completion(models.Model):
     )
 
     class Meta:
-        # Ensure only one completion per habit per date
         unique_together = ["habit", "date"]
         ordering = ["-date"]
 
     def __str__(self):
         return f"{self.habit.name} - {self.date}"
+
+
+class SiteSettings(models.Model):
+    """
+    Site-wide settings that can only be modified by admin users.
+    This uses a singleton pattern - only one instance should exist.
+    """
+
+    # Registration settings
+    allow_registration = models.BooleanField(
+        default=True, help_text="Allow new users to register on the site"
+    )
+
+    # Metadata
+    updated_at = models.DateTimeField(auto_now=True)
+    updated_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="settings_updates",
+    )
+
+    class Meta:
+        verbose_name = "Site Settings"
+        verbose_name_plural = "Site Settings"
+
+    def __str__(self):
+        return "Site Settings"
+
+    @classmethod
+    def get_settings(cls):
+        """Get or create the singleton settings instance"""
+        settings, created = cls.objects.get_or_create(pk=1)
+        return settings
+
+    def save(self, *args, **kwargs):
+        # Ensure only one instance exists (singleton pattern)
+        self.pk = 1
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        # Prevent deletion of settings
+        pass

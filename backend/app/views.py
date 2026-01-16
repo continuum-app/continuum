@@ -1,11 +1,11 @@
-from rest_framework import viewsets
+from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.views import APIView
-from .serializers import HabitSerializer, CategorySerializer
+from .serializers import HabitSerializer, CategorySerializer, SiteSettingsSerializer
 from datetime import date, datetime
-from .models import Habit, Completion, Category
+from .models import Habit, Completion, Category, SiteSettings
 from django.db.models import Q
 
 
@@ -222,5 +222,85 @@ class UserInfoView(APIView):
                 "email": user.email,
                 "first_name": user.first_name,
                 "last_name": user.last_name,
+                "is_staff": user.is_staff,
+                "is_superuser": user.is_superuser,
             }
         )
+
+
+class SiteSettingsViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet for site-wide settings. Only admin users can modify settings.
+    All authenticated users can view settings (to check if registration is allowed).
+    """
+
+    serializer_class = SiteSettingsSerializer
+    queryset = SiteSettings.objects.all()
+
+    def get_permissions(self):
+        """
+        Allow all authenticated users to view settings,
+        but only admin users can modify them.
+        check_registration is public (no auth required).
+        """
+        if self.action == "check_registration":
+            # Public endpoint - no authentication required
+            permission_classes = []
+        elif self.action in ["list", "retrieve"]:
+            permission_classes = [IsAuthenticated]
+        else:
+            permission_classes = [IsAdminUser]
+        return [permission() for permission in permission_classes]
+
+    def get_queryset(self):
+        """Always return the singleton settings instance"""
+        return SiteSettings.objects.all()
+
+    def list(self, request):
+        """
+        Return the singleton settings instance for GET
+        Handle updates for PATCH on list endpoint
+        """
+        if request.method == "PATCH":
+            # Check if user is admin
+            if not (request.user.is_staff or request.user.is_superuser):
+                return Response(
+                    {"detail": "You do not have permission to perform this action."},
+                    status=status.HTTP_403_FORBIDDEN,
+                )
+
+            settings = SiteSettings.get_settings()
+            serializer = self.get_serializer(settings, data=request.data, partial=True)
+
+            if serializer.is_valid():
+                serializer.save(updated_by=request.user)
+                return Response(serializer.data)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        # GET request
+        settings = SiteSettings.get_settings()
+        serializer = self.get_serializer(settings)
+        return Response(serializer.data)
+
+    def retrieve(self, request, pk=None):
+        """Retrieve the singleton settings instance"""
+        settings = SiteSettings.get_settings()
+        serializer = self.get_serializer(settings)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=["post"])
+    def update_settings(self, request):
+        """Update the settings via custom action"""
+        settings = SiteSettings.get_settings()
+        serializer = self.get_serializer(settings, data=request.data, partial=True)
+
+        if serializer.is_valid():
+            serializer.save(updated_by=request.user)
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=["get"], permission_classes=[])
+    def check_registration(self, request):
+        """Public endpoint to check if registration is allowed - no authentication required"""
+        settings = SiteSettings.get_settings()
+        return Response({"allow_registration": settings.allow_registration})

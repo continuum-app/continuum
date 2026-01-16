@@ -1,16 +1,16 @@
 from rest_framework import serializers
-from .models import Habit, Category, Completion
+from .models import Habit, Category, Completion, SiteSettings
 from datetime import date
 
 
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
-        fields = ["id", "name", "order"]  # Add order to fields
+        fields = ["id", "name", "order"]
 
 
 class HabitSerializer(serializers.ModelSerializer):
-    category = CategorySerializer(read_only=True)  # Single category, not many
+    category = CategorySerializer(read_only=True)
     category_id = serializers.PrimaryKeyRelatedField(
         queryset=Category.objects.all(),
         source="category",
@@ -34,14 +34,19 @@ class HabitSerializer(serializers.ModelSerializer):
             "max_value",
             "today_value",
         ]
-        # user field is set automatically in the view, so we don't include it here
 
     def get_today_value(self, obj):
         completion = obj.completions.filter(date=date.today()).first()
         return float(completion.value) if completion else 0
 
     def validate_category_id(self, value):
-        # Ensure the category belongs to the current user
         if value and value.user != self.context["request"].user:
             raise serializers.ValidationError("You can only use your own categories")
         return value
+
+
+class SiteSettingsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SiteSettings
+        fields = ["id", "allow_registration", "updated_at", "updated_by"]
+        read_only_fields = ["id", "updated_at", "updated_by"]
