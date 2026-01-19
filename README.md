@@ -76,22 +76,20 @@ Focused on **speed, clarity, and interaction quality**.
 ---
 
 ## 🔄 Data Flow
-
-```
-Django API / Admin
-        ↓
-   JSON Serialization
-        ↓
-     Axios Requests
-        ↓
-   Vue Reactive State
+```mermaid
+graph TD
+    A[Django API & Admin] -->|JSON Serialization| B(REST Endpoint)
+    B -->|Axios Requests| C(Vue.js Frontend)
+    C -->|Reactivity System| D[Reactive State]
+    
+    style A fill:#092e20,color:#fff
+    style D fill:#42b883,color:#fff
 ```
 
 This ensures:
 - Clear boundaries between layers  
 - Predictable data movement  
 - Independent frontend/backend evolution  
-
 ---
 
 ## ✨ Features
