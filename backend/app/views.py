@@ -205,6 +205,30 @@ class HabitViewSet(viewsets.ModelViewSet):
 
         return Response({"csv_content": csv_content})
 
+    @action(detail=False, methods=["get"])
+    def date_range(self, request):
+        """
+        Get the minimum and maximum dates for all completions for the user's habits.
+        Returns the date range of all available data.
+        """
+        # Get all habits for the user
+        habits = self.get_queryset()
+
+        # Get all completions for these habits
+        completions = Completion.objects.filter(habit__in=habits).order_by("date")
+
+        if not completions.exists():
+            return Response(
+                {"start_date": None, "end_date": None, "message": "No data available"}
+            )
+
+        min_date = completions.first().date
+        max_date = completions.last().date
+
+        return Response(
+            {"start_date": min_date.isoformat(), "end_date": max_date.isoformat()}
+        )
+
 
 class UserInfoView(APIView):
     """
