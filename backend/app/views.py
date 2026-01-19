@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.views import APIView
 from .serializers import HabitSerializer, CategorySerializer, SiteSettingsSerializer
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from .models import Habit, Completion, Category, SiteSettings
 from django.db.models import Q
 
@@ -228,6 +228,125 @@ class HabitViewSet(viewsets.ModelViewSet):
         return Response(
             {"start_date": min_date.isoformat(), "end_date": max_date.isoformat()}
         )
+
+    @action(detail=False, methods=["get"])
+    def summary(self, request):
+        """
+        Get summary statistics for habits over a date range (default: last 7 days).
+        Returns metrics grouped by habit type.
+        """
+        start_date_str = request.query_params.get("start_date")
+        end_date_str = request.query_params.get("end_date")
+
+        if not start_date_str or not end_date_str:
+            return Response(
+                {"error": "start_date and end_date are required"}, status=400
+            )
+
+        try:
+            start_date = datetime.strptime(start_date_str, "%Y-%m-%d").date()
+            end_date = datetime.strptime(end_date_str, "%Y-%m-%d").date()
+        except ValueError:
+            return Response(
+                {"error": "Invalid date format. Use YYYY-MM-DD"}, status=400
+            )
+
+        # Get all habits for the user
+        habits = self.get_queryset()
+
+        # Calculate number of days in range
+        days_in_range = (end_date - start_date).days
+
+        # Structure: { habit_type: [{ habit_name, color, metrics }] }
+        result = {"boolean": [], "counter": [], "timer": [], "rating": []}
+
+        for habit in habits:
+            # Get completions for this habit in the date range
+            completions = Completion.objects.filter(
+                habit=habit, date__gte=start_date, date__lte=end_date
+            )
+
+            completion_count = completions.count()
+
+            if completion_count == 0:
+                continue
+
+            # Calculate metrics based on habit type
+            if habit.habit_type == "boolean":
+                # For boolean: completion rate
+                metrics = {
+                    "total_completions": completion_count,
+                    "completion_rate": round(
+                        (completion_count / days_in_range) * 100, 1
+                    ),
+                    "days_in_range": days_in_range,
+                    "streak": self._calculate_streak(habit, start_date, end_date),
+                }
+            elif habit.habit_type == "counter":
+                # For counter: total, average, max
+                values = [float(c.value) for c in completions]
+                metrics = {
+                    "total": sum(values),
+                    "average": round(sum(values) / days_in_range, 1),
+                    "max": max(values),
+                    "days_tracked": completion_count,
+                    "days_in_range": days_in_range,
+                }
+            elif habit.habit_type == "timer":
+                # For timer: total hours, average, max session
+                values = [float(c.value) for c in completions]
+                metrics = {
+                    "total_hours": round(sum(values), 1),
+                    "average_hours": round(sum(values) / len(values), 1),
+                    "max_session": round(max(values), 1),
+                    "days_tracked": completion_count,
+                    "days_in_range": days_in_range,
+                }
+            elif habit.habit_type == "rating":
+                # For rating: average, distribution
+                values = [float(c.value) for c in completions]
+                metrics = {
+                    "average": round(sum(values) / len(values), 1),
+                    "max": int(max(values)),
+                    "min": int(min(values)),
+                    "days_tracked": completion_count,
+                    "days_in_range": days_in_range,
+                    "max_value": habit.max_value,
+                }
+
+            result[habit.habit_type].append(
+                {
+                    "habit_id": habit.id,
+                    "habit_name": habit.name,
+                    "color": habit.color,
+                    "icon": habit.icon,
+                    "metrics": metrics,
+                }
+            )
+
+        return Response(result)
+
+    def _calculate_streak(self, habit, start_date, end_date):
+        """Calculate current streak for a habit ending on end_date"""
+        current_date = start_date
+        streak = 0
+        max_streak = 0
+        while True:
+            completion = Completion.objects.filter(
+                habit=habit, date=current_date
+            ).first()
+
+            if completion:
+                streak += 1
+                max_streak = max(max_streak, streak)
+            else:
+                streak = 0
+
+            current_date = current_date + timedelta(days=1)
+            if current_date > end_date:
+                break
+
+        return max_streak
 
 
 class UserInfoView(APIView):

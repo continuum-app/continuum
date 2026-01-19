@@ -58,6 +58,15 @@ const exportStartDate = ref('')
 const exportEndDate = ref('')
 const isExporting = ref(false)
 
+// Summary state
+const summaryData = ref({
+  boolean: [],
+  counter: [],
+  timer: [],
+  rating: []
+})
+const isFetchingSummary = ref(false)
+
 // Computed property for dynamic years
 const quickSelectYears = computed(() => {
   const currentYear = new Date().getFullYear()
@@ -430,6 +439,29 @@ const setAllExportDataRange = async () => {
   }
 }
 
+// Fetch summary data for last 7 days
+const fetchSummaryData = async () => {
+  isFetchingSummary.value = true
+  try {
+    const today = new Date()
+    const sevenDaysAgo = new Date(today)
+    sevenDaysAgo.setDate(today.getDate() - 7)
+
+    const response = await api.get('habits/summary/', {
+      params: {
+        start_date: sevenDaysAgo.toISOString().split('T')[0],
+        end_date: today.toISOString().split('T')[0]
+      }
+    })
+
+    summaryData.value = response.data
+  } catch (err) {
+    console.error('Failed to fetch summary data:', err)
+  } finally {
+    isFetchingSummary.value = false
+  }
+}
+
 // Export data to CSV
 const exportToCSV = async () => {
   if (!exportStartDate.value || !exportEndDate.value) {
@@ -627,6 +659,8 @@ watch(activeTab, (newTab) => {
       initializeDateRange()
     }
     fetchGraphData()
+  } else if (newTab === 'summary') {
+    fetchSummaryData()
   }
 })
 
@@ -872,10 +906,227 @@ onMounted(() => {
 
       <!-- Summary Tab -->
       <div v-show="activeTab === 'summary'" class="space-y-6">
-        <div
-          class="bg-white dark:bg-slate-800 rounded-[3rem] p-12 shadow-lg border border-slate-100 dark:border-slate-700">
-          <h2 class="text-3xl font-black text-slate-900 dark:text-white mb-4">Summary View</h2>
-          <p class="text-slate-500 dark:text-slate-400">Retrospective analysis of your habits will appear here.</p>
+        <!-- Header -->
+        <div class="bg-linear-to-r from-indigo-500 to-purple-600 rounded-[3rem] p-12 shadow-xl">
+          <h2 class="text-3xl font-black text-white mb-2">Last 7 Days Summary</h2>
+          <p class="text-indigo-100 font-medium">Your habit performance at a glance</p>
+        </div>
+
+        <!-- Loading State -->
+        <div v-if="isFetchingSummary" class="flex items-center justify-center py-20">
+          <RefreshCw :size="40" class="animate-spin text-indigo-500" />
+        </div>
+
+        <!-- Summary Content -->
+        <div v-else class="space-y-6">
+          <!-- Boolean Habits -->
+          <div v-if="summaryData.boolean.length > 0">
+            <h3
+              class="text-2xl font-black text-slate-900 dark:text-white mb-4 uppercase tracking-tight flex items-center gap-3">
+              <div class="w-2 h-8 bg-blue-500 rounded-full"></div>
+              Boolean Habits
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div v-for="habit in summaryData.boolean" :key="habit.habit_id"
+                class="bg-white dark:bg-slate-800 rounded-4xl p-6 shadow-lg border border-slate-100 dark:border-slate-700 hover:shadow-xl transition-all">
+                <div class="flex items-center gap-3 mb-4">
+                  <div class="p-3 rounded-2xl" :style="{ backgroundColor: habit.color + '20' }">
+                    <component :is="getIcon(habit.icon)" :size="24" :style="{ color: habit.color }"
+                      stroke-width="2.5" />
+                  </div>
+                  <h4 class="font-black text-slate-900 dark:text-white text-lg">{{ habit.habit_name }}</h4>
+                </div>
+
+                <div class="space-y-3">
+                  <div class="flex justify-between items-center">
+                    <span class="text-slate-500 dark:text-slate-400 text-sm font-bold">Completion Rate</span>
+                    <span class="text-2xl font-black" :style="{ color: habit.color }">
+                      {{ habit.metrics.completion_rate }}%
+                    </span>
+                  </div>
+
+                  <div class="h-2 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
+                    <div class="h-full rounded-full transition-all" :style="{
+                      width: habit.metrics.completion_rate + '%',
+                      backgroundColor: habit.color
+                    }"></div>
+                  </div>
+
+                  <div class="grid grid-cols-2 gap-3 pt-2">
+                    <div class="text-center p-3 bg-slate-50 dark:bg-slate-700 rounded-xl">
+                      <div class="text-2xl font-black text-slate-900 dark:text-white">
+                        {{ habit.metrics.total_completions }}
+                      </div>
+                      <div class="text-xs font-bold text-slate-400 uppercase tracking-wide">Completed</div>
+                    </div>
+                    <div class="text-center p-3 bg-slate-50 dark:bg-slate-700 rounded-xl">
+                      <div class="text-2xl font-black text-slate-900 dark:text-white">
+                        {{ habit.metrics.streak }}
+                      </div>
+                      <div class="text-xs font-bold text-slate-400 uppercase tracking-wide">Day Streak</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Counter Habits -->
+          <div v-if="summaryData.counter.length > 0">
+            <h3
+              class="text-2xl font-black text-slate-900 dark:text-white mb-4 uppercase tracking-tight flex items-center gap-3">
+              <div class="w-2 h-8 bg-green-500 rounded-full"></div>
+              Counter Habits
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div v-for="habit in summaryData.counter" :key="habit.habit_id"
+                class="bg-white dark:bg-slate-800 rounded-4xl p-6 shadow-lg border border-slate-100 dark:border-slate-700 hover:shadow-xl transition-all">
+                <div class="flex items-center gap-3 mb-4">
+                  <div class="p-3 rounded-2xl" :style="{ backgroundColor: habit.color + '20' }">
+                    <component :is="getIcon(habit.icon)" :size="24" :style="{ color: habit.color }"
+                      stroke-width="2.5" />
+                  </div>
+                  <h4 class="font-black text-slate-900 dark:text-white text-lg">{{ habit.habit_name }}</h4>
+                </div>
+
+                <div class="space-y-3">
+                  <div class="text-center p-4 rounded-2xl" :style="{ backgroundColor: habit.color + '10' }">
+                    <div class="text-4xl font-black" :style="{ color: habit.color }">
+                      {{ habit.metrics.total }}
+                    </div>
+                    <div class="text-xs font-bold text-slate-400 uppercase tracking-wide mt-1">Total Count</div>
+                  </div>
+
+                  <div class="grid grid-cols-2 gap-3">
+                    <div class="text-center p-3 bg-slate-50 dark:bg-slate-700 rounded-xl">
+                      <div class="text-xl font-black text-slate-900 dark:text-white">
+                        {{ habit.metrics.average }}
+                      </div>
+                      <div class="text-xs font-bold text-slate-400 uppercase tracking-wide">Avg/Day</div>
+                    </div>
+                    <div class="text-center p-3 bg-slate-50 dark:bg-slate-700 rounded-xl">
+                      <div class="text-xl font-black text-slate-900 dark:text-white">
+                        {{ habit.metrics.max }}
+                      </div>
+                      <div class="text-xs font-bold text-slate-400 uppercase tracking-wide">Best Day</div>
+                    </div>
+                  </div>
+
+                  <div class="text-center text-xs text-slate-400 font-bold">
+                    Tracked {{ habit.metrics.days_tracked }}/{{ habit.metrics.days_in_range }} days
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Timer Habits -->
+          <div v-if="summaryData.timer.length > 0">
+            <h3
+              class="text-2xl font-black text-slate-900 dark:text-white mb-4 uppercase tracking-tight flex items-center gap-3">
+              <div class="w-2 h-8 bg-orange-500 rounded-full"></div>
+              Timer Habits
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div v-for="habit in summaryData.timer" :key="habit.habit_id"
+                class="bg-white dark:bg-slate-800 rounded-4xl p-6 shadow-lg border border-slate-100 dark:border-slate-700 hover:shadow-xl transition-all">
+                <div class="flex items-center gap-3 mb-4">
+                  <div class="p-3 rounded-2xl" :style="{ backgroundColor: habit.color + '20' }">
+                    <component :is="getIcon(habit.icon)" :size="24" :style="{ color: habit.color }"
+                      stroke-width="2.5" />
+                  </div>
+                  <h4 class="font-black text-slate-900 dark:text-white text-lg">{{ habit.habit_name }}</h4>
+                </div>
+
+                <div class="space-y-3">
+                  <div class="text-center p-4 rounded-2xl" :style="{ backgroundColor: habit.color + '10' }">
+                    <div class="text-4xl font-black" :style="{ color: habit.color }">
+                      {{ habit.metrics.total_hours }}h
+                    </div>
+                    <div class="text-xs font-bold text-slate-400 uppercase tracking-wide mt-1">Total Hours</div>
+                  </div>
+
+                  <div class="grid grid-cols-2 gap-3">
+                    <div class="text-center p-3 bg-slate-50 dark:bg-slate-700 rounded-xl">
+                      <div class="text-xl font-black text-slate-900 dark:text-white">
+                        {{ habit.metrics.average_hours }}h
+                      </div>
+                      <div class="text-xs font-bold text-slate-400 uppercase tracking-wide">Avg/Day</div>
+                    </div>
+                    <div class="text-center p-3 bg-slate-50 dark:bg-slate-700 rounded-xl">
+                      <div class="text-xl font-black text-slate-900 dark:text-white">
+                        {{ habit.metrics.max_session }}h
+                      </div>
+                      <div class="text-xs font-bold text-slate-400 uppercase tracking-wide">Longest</div>
+                    </div>
+                  </div>
+
+                  <div class="text-center text-xs text-slate-400 font-bold">
+                    Tracked {{ habit.metrics.days_tracked }}/{{ habit.metrics.days_in_range }} days
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Rating Habits -->
+          <div v-if="summaryData.rating.length > 0">
+            <h3
+              class="text-2xl font-black text-slate-900 dark:text-white mb-4 uppercase tracking-tight flex items-center gap-3">
+              <div class="w-2 h-8 bg-yellow-500 rounded-full"></div>
+              Rating Habits
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div v-for="habit in summaryData.rating" :key="habit.habit_id"
+                class="bg-white dark:bg-slate-800 rounded-4xl p-6 shadow-lg border border-slate-100 dark:border-slate-700 hover:shadow-xl transition-all">
+                <div class="flex items-center gap-3 mb-4">
+                  <div class="p-3 rounded-2xl" :style="{ backgroundColor: habit.color + '20' }">
+                    <component :is="getIcon(habit.icon)" :size="24" :style="{ color: habit.color }"
+                      stroke-width="2.5" />
+                  </div>
+                  <h4 class="font-black text-slate-900 dark:text-white text-lg">{{ habit.habit_name }}</h4>
+                </div>
+
+                <div class="space-y-3">
+                  <div class="text-center p-4 rounded-2xl" :style="{ backgroundColor: habit.color + '10' }">
+                    <div class="text-4xl font-black" :style="{ color: habit.color }">
+                      {{ habit.metrics.average }}/{{ habit.metrics.max_value }}
+                    </div>
+                    <div class="text-xs font-bold text-slate-400 uppercase tracking-wide mt-1">Average Rating</div>
+                  </div>
+
+                  <div class="grid grid-cols-2 gap-3">
+                    <div class="text-center p-3 bg-slate-50 dark:bg-slate-700 rounded-xl">
+                      <div class="text-xl font-black text-green-600 dark:text-green-400">
+                        {{ habit.metrics.max }}★
+                      </div>
+                      <div class="text-xs font-bold text-slate-400 uppercase tracking-wide">Best</div>
+                    </div>
+                    <div class="text-center p-3 bg-slate-50 dark:bg-slate-700 rounded-xl">
+                      <div class="text-xl font-black text-red-600 dark:text-red-400">
+                        {{ habit.metrics.min }}★
+                      </div>
+                      <div class="text-xs font-bold text-slate-400 uppercase tracking-wide">Lowest</div>
+                    </div>
+                  </div>
+
+                  <div class="text-center text-xs text-slate-400 font-bold">
+                    Tracked {{ habit.metrics.days_tracked }}/{{ habit.metrics.days_in_range }} days
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Empty State -->
+          <div
+            v-if="summaryData.boolean.length === 0 && summaryData.counter.length === 0 && summaryData.timer.length === 0 && summaryData.rating.length === 0"
+            class="bg-white dark:bg-slate-800 rounded-[3rem] p-16 shadow-lg border border-slate-100 dark:border-slate-700 text-center">
+            <div class="text-6xl mb-4">📊</div>
+            <h3 class="text-2xl font-black text-slate-900 dark:text-white mb-2">No Data Yet</h3>
+            <p class="text-slate-500 dark:text-slate-400">Start tracking your habits to see your weekly summary here!
+            </p>
+          </div>
         </div>
       </div>
 

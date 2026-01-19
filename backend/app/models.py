@@ -53,9 +53,6 @@ class Completion(models.Model):
     )
     date = models.DateField(default=timezone.now)
     value = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
-    category = models.ForeignKey(
-        Category, null=True, blank=True, on_delete=models.SET_NULL
-    )
 
     class Meta:
         unique_together = ["habit", "date"]
