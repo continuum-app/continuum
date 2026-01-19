@@ -1,11 +1,12 @@
 <script setup>
-import { ref, onMounted, computed, nextTick, watch } from 'vue'
+import { ref, onMounted, computed, nextTick, watch, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '../services/api'
 import authService from '../services/auth'
 import { useDarkMode } from '../composables/useDarkMode'
+import { useLanguage } from '../composables/useLanguage'
 import * as LucideIcons from 'lucide-vue-next'
-import { Plus, X, ChevronDown, CheckCircle2, RefreshCw, Save, Star, Moon, Sun, GripVertical, BarChart3, FileText, Download, Calendar, Settings } from 'lucide-vue-next'
+import { Plus, X, ChevronDown, CheckCircle2, RefreshCw, Save, Star, Moon, Sun, GripVertical, BarChart3, FileText, Download, Calendar, Settings, Globe, Check } from 'lucide-vue-next'
 import { Chart, registerables } from 'chart.js'
 import 'chartjs-adapter-date-fns'
 
@@ -14,6 +15,10 @@ Chart.register(...registerables)
 
 const router = useRouter()
 const { isDark, toggleDarkMode } = useDarkMode()
+const { currentLanguage, setLanguage, languages, currentLanguageInfo, t } = useLanguage()
+
+// Language dropdown state
+const isLanguageDropdownOpen = ref(false)
 
 // --- STATE ---
 const habits = ref([])
@@ -261,7 +266,30 @@ const goToAdminSettings = () => {
   router.push('/admin-settings')
 }
 
-// Drag handlers
+const selectLanguage = (langCode) => {
+  setLanguage(langCode)
+  isLanguageDropdownOpen.value = false
+}
+
+// Close dropdown when clicking outside
+const closeLanguageDropdown = (event) => {
+  if (!event.target.closest('.language-dropdown-container')) {
+    isLanguageDropdownOpen.value = false
+  }
+}
+
+onMounted(() => {
+  fetchCategories()
+  fetchHabits()
+  initializeDateRange()
+
+  // Add click outside listener
+  document.addEventListener('click', closeLanguageDropdown)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('click', closeLanguageDropdown)
+})
 const handleDragStart = (e, categoryId) => {
   draggedCategoryId.value = categoryId
   e.dataTransfer.effectAllowed = 'move'
@@ -578,11 +606,37 @@ onMounted(() => {
 
       <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
         <div>
-          <h1 class="text-4xl font-black tracking-tighter text-slate-900 dark:text-white uppercase italic">Continuum
+          <h1 class="text-4xl font-black tracking-tighter text-slate-900 dark:text-white uppercase italic">
+            {{ t('appName') }}
           </h1>
-          <p class="text-slate-400 dark:text-slate-500 font-medium">Daily evolution, quantified.</p>
+          <p class="text-slate-400 dark:text-slate-500 font-medium">{{ t('tagline') }}</p>
         </div>
         <div class="flex gap-4">
+          <!-- Language Selector -->
+          <div class="relative language-dropdown-container">
+            <button @click="isLanguageDropdownOpen = !isLanguageDropdownOpen"
+              class="bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 px-6 py-4 rounded-2xl font-bold flex items-center gap-3 hover:bg-slate-300 dark:hover:bg-slate-600 transition-all shadow-md active:scale-95">
+              <Globe :size="20" stroke-width="2.5" />
+              <span class="text-xl">{{ currentLanguageInfo.flag }}</span>
+              <ChevronDown :size="16" stroke-width="2.5" :class="{ 'rotate-180': isLanguageDropdownOpen }"
+                class="transition-transform" />
+            </button>
+
+            <!-- Language Dropdown -->
+            <Transition name="dropdown">
+              <div v-if="isLanguageDropdownOpen"
+                class="absolute top-full mt-2 right-0 bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 py-2 min-w-50 z-50">
+                <button v-for="lang in languages" :key="lang.code" @click="selectLanguage(lang.code)"
+                  class="w-full px-4 py-3 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors flex items-center gap-3 text-left">
+                  <span class="text-xl">{{ lang.flag }}</span>
+                  <span class="font-bold text-slate-900 dark:text-white">{{ lang.name }}</span>
+                  <Check v-if="currentLanguage === lang.code" :size="16"
+                    class="ml-auto text-indigo-600 dark:text-indigo-400" stroke-width="3" />
+                </button>
+              </div>
+            </Transition>
+          </div>
+
           <!-- Dark Mode Toggle -->
           <button @click="toggleDarkMode"
             class="bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-yellow-400 px-6 py-4 rounded-2xl font-bold flex items-center gap-3 hover:bg-slate-300 dark:hover:bg-slate-600 transition-all shadow-md active:scale-95">
@@ -592,12 +646,12 @@ onMounted(() => {
 
           <button @click="isModalOpen = true"
             class="bg-indigo-500 text-white px-8 py-4 rounded-2xl font-bold flex items-center gap-3 hover:bg-indigo-600 transition-all shadow-md active:scale-95">
-            <Plus :size="20" stroke-width="3" /> New Habit
+            <Plus :size="20" stroke-width="3" /> {{ t('newHabit') }}
           </button>
 
           <button @click="handleLogout"
             class="bg-red-600 text-white px-8 py-4 rounded-2xl font-bold hover:bg-red-700 transition-all shadow-md active:scale-95">
-            Logout
+            {{ t('logout') }}
           </button>
         </div>
       </header>
@@ -1031,6 +1085,24 @@ onMounted(() => {
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
+}
+
+.dropdown-enter-active {
+  transition: all 0.2s ease;
+}
+
+.dropdown-leave-active {
+  transition: all 0.15s ease;
+}
+
+.dropdown-enter-from {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+
+.dropdown-leave-to {
+  opacity: 0;
+  transform: translateY(-5px);
 }
 
 input[type="number"]::-webkit-inner-spin-button,
