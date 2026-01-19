@@ -76,7 +76,7 @@ Focused on **speed, clarity, and interaction quality**.
 ---
 
 ## 🔄 Data Flow
-
+```mermaid
 graph TD
     A[Django API & Admin] -->|JSON Serialization| B(REST Endpoint)
     B -->|Axios Requests| C(Vue.js Frontend)
@@ -89,7 +89,7 @@ This ensures:
 - Clear boundaries between layers  
 - Predictable data movement  
 - Independent frontend/backend evolution  
-
+```
 ---
 
 ## ✨ Features
