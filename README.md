@@ -84,12 +84,12 @@ graph TD
     
     style A fill:#092e20,color:#fff
     style D fill:#42b883,color:#fff
+```
 
 This ensures:
 - Clear boundaries between layers  
 - Predictable data movement  
 - Independent frontend/backend evolution  
-```
 ---
 
 ## ✨ Features
