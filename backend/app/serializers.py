@@ -36,7 +36,9 @@ class HabitSerializer(serializers.ModelSerializer):
         ]
 
     def get_today_value(self, obj):
-        completion = obj.completions.filter(date=date.today()).first()
+        # Get the date from context (passed by the viewset)
+        target_date = self.context.get("date", date.today())
+        completion = obj.completions.filter(date=target_date).first()
         return float(completion.value) if completion else 0
 
     def validate_category_id(self, value):

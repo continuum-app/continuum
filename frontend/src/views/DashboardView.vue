@@ -29,6 +29,10 @@ const dragOverCategoryId = ref(null)
 const categoryOrder = ref([]) // Array of category IDs in order
 const activeTab = ref('tracking') // New: active tab state
 
+// Date navigation for tracking
+const currentTrackingDate = ref(new Date())
+const isLoadingHabits = ref(false)
+
 // Form Refs for New Habit
 const newHabitName = ref('')
 const newHabitType = ref('boolean')
@@ -75,6 +79,53 @@ const quickSelectYears = computed(() => {
     currentYear - 1,
     currentYear - 2
   ]
+})
+
+// Computed property for formatted tracking date
+const formattedTrackingDate = computed(() => {
+  const date = currentTrackingDate.value
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const trackingDay = new Date(date)
+  trackingDay.setHours(0, 0, 0, 0)
+
+  if (trackingDay.getTime() === today.getTime()) {
+    return 'Today'
+  }
+
+  const yesterday = new Date(today)
+  yesterday.setDate(yesterday.getDate() - 1)
+  if (trackingDay.getTime() === yesterday.getTime()) {
+    return 'Yesterday'
+  }
+
+  const tomorrow = new Date(today)
+  tomorrow.setDate(tomorrow.getDate() + 1)
+  if (trackingDay.getTime() === tomorrow.getTime()) {
+    return 'Tomorrow'
+  }
+
+  return date.toLocaleDateString('en-US', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  })
+})
+
+// Check if we can navigate to next day (can't go into future)
+const canGoToNextDay = computed(() => {
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const trackingDay = new Date(currentTrackingDate.value)
+  trackingDay.setHours(0, 0, 0, 0)
+  return trackingDay.getTime() < today.getTime()
+})
+
+// Get tracking date in YYYY-MM-DD format
+const trackingDateString = computed(() => {
+  const date = currentTrackingDate.value
+  return date.toISOString().split('T')[0]
 })
 
 // --- COMPUTED ---
@@ -165,9 +216,13 @@ const fetchCategories = async () => {
   }
 }
 
-const fetchHabits = async () => {
+const fetchHabits = async (date = null) => {
+  isLoadingHabits.value = true
   try {
-    const res = await api.get('habits/')
+    const dateParam = date || trackingDateString.value
+    const res = await api.get('habits/', {
+      params: { date: dateParam }
+    })
     habits.value = res.data.map(h => ({
       ...h,
       temp_value: h.today_value || 0,
@@ -176,6 +231,8 @@ const fetchHabits = async () => {
     }))
   } catch (err) {
     console.error("Failed to fetch habits:", err)
+  } finally {
+    isLoadingHabits.value = false
   }
 }
 
@@ -252,7 +309,8 @@ const saveCompletion = async (habit) => {
     }
 
     const payload = {
-      value: valueToSave
+      value: valueToSave,
+      date: trackingDateString.value
     }
 
     await api.post(`habits/${habit.id}/complete/`, payload)
@@ -278,6 +336,27 @@ const goToAdminSettings = () => {
 const selectLanguage = (langCode) => {
   setLanguage(langCode)
   isLanguageDropdownOpen.value = false
+}
+
+// Date navigation functions
+const goToPreviousDay = () => {
+  const newDate = new Date(currentTrackingDate.value)
+  newDate.setDate(newDate.getDate() - 1)
+  currentTrackingDate.value = newDate
+  fetchHabits(trackingDateString.value)
+}
+
+const goToNextDay = () => {
+  if (!canGoToNextDay.value) return
+  const newDate = new Date(currentTrackingDate.value)
+  newDate.setDate(newDate.getDate() + 1)
+  currentTrackingDate.value = newDate
+  fetchHabits(trackingDateString.value)
+}
+
+const goToToday = () => {
+  currentTrackingDate.value = new Date()
+  fetchHabits(trackingDateString.value)
 }
 
 // Close dropdown when clicking outside
@@ -777,8 +856,52 @@ onMounted(() => {
       <!-- Tab Content -->
 
       <!-- Tracking Tab -->
-      <div v-show="activeTab === 'tracking'" class="space-y-12">
-        <div v-for="group in groupedHabits" :key="group.id" :draggable=true
+      <div v-show="activeTab === 'tracking'" class="space-y-8">
+        <!-- Date Navigation -->
+        <div
+          class="bg-white dark:bg-slate-800 rounded-[3rem] p-6 shadow-lg border border-slate-100 dark:border-slate-700">
+          <div class="flex items-center justify-between">
+            <!-- Previous Day Button -->
+            <button @click="goToPreviousDay"
+              class="p-4 rounded-2xl bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 transition-all active:scale-95">
+              <ChevronDown :size="24" class="rotate-90 text-slate-700 dark:text-slate-300" stroke-width="2.5" />
+            </button>
+
+            <!-- Current Date Display -->
+            <div class="flex-1 text-center px-6">
+              <div class="text-3xl font-black text-slate-900 dark:text-white mb-1">
+                {{ formattedTrackingDate }}
+              </div>
+              <div class="text-sm text-slate-400 dark:text-slate-500 font-bold">
+                {{ trackingDateString }}
+              </div>
+              <!-- Today Button (only show if not on today) -->
+              <button v-if="formattedTrackingDate !== 'Today'" @click="goToToday"
+                class="mt-2 px-4 py-2 bg-indigo-600 text-white rounded-xl font-bold text-sm hover:bg-indigo-700 transition-all active:scale-95">
+                Go to Today
+              </button>
+            </div>
+
+            <!-- Next Day Button -->
+            <button @click="goToNextDay" :disabled="!canGoToNextDay" :class="[
+              'p-4 rounded-2xl transition-all active:scale-95',
+              canGoToNextDay
+                ? 'bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600'
+                : 'bg-slate-50 dark:bg-slate-800 opacity-30 cursor-not-allowed'
+            ]">
+              <ChevronDown :size="24" class="-rotate-90"
+                :class="canGoToNextDay ? 'text-slate-700 dark:text-slate-300' : 'text-slate-400'" stroke-width="2.5" />
+            </button>
+          </div>
+        </div>
+
+        <!-- Loading State -->
+        <div v-if="isLoadingHabits" class="flex items-center justify-center py-20">
+          <RefreshCw :size="40" class="animate-spin text-indigo-500" />
+        </div>
+
+        <!-- Habit Groups -->
+        <div v-else v-for="group in groupedHabits" :key="group.id" :draggable=true
           @dragstart="(e) => handleDragStart(e, group.id)" @dragend="handleDragEnd"
           @dragover="(e) => handleDragOver(e, group.id)" @dragenter="(e) => handleDragEnter(e, group.id)"
           @dragleave="handleDragLeave" @drop="(e) => handleDrop(e, group.id)" :class="[

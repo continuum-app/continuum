@@ -46,6 +46,20 @@ class HabitViewSet(viewsets.ModelViewSet):
         # Only return habits for the authenticated user
         return self.queryset.filter(user=self.request.user)
 
+    def get_serializer_context(self):
+        """Pass the requested date to the serializer"""
+        context = super().get_serializer_context()
+        # Get date from query params, default to today
+        date_str = self.request.query_params.get("date")
+        if date_str:
+            try:
+                context["date"] = datetime.strptime(date_str, "%Y-%m-%d").date()
+            except ValueError:
+                context["date"] = date.today()
+        else:
+            context["date"] = date.today()
+        return context
+
     def perform_create(self, serializer):
         # Automatically set the user when creating a habit
         serializer.save(user=self.request.user)
@@ -53,23 +67,27 @@ class HabitViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=["post"])
     def complete(self, request, pk=None):
         habit = self.get_object()
-        category_id = request.data.get("category_id")
         val = request.data.get("value", 1)  # Default to 1 for booleans
+        completion_date_str = request.data.get("date")  # Get date from request
 
-        # Find the category object if an ID was provided
-        category_obj = None
-        if category_id:
+        # Parse date or use today
+        if completion_date_str:
             try:
-                # Ensure the category belongs to the authenticated user
-                category_obj = Category.objects.get(id=category_id, user=request.user)
-            except Category.DoesNotExist:
-                return Response({"error": "category not found"}, status=404)
+                completion_date = datetime.strptime(
+                    completion_date_str, "%Y-%m-%d"
+                ).date()
+            except ValueError:
+                return Response(
+                    {"error": "Invalid date format. Use YYYY-MM-DD"}, status=400
+                )
+        else:
+            completion_date = date.today()
 
-        # Update or create completion for today
+        # Update or create completion for the specified date
         completion, created = Completion.objects.update_or_create(
             habit=habit,
-            date=date.today(),
-            defaults={"value": val, "category": category_obj},
+            date=completion_date,
+            defaults={"value": val},
         )
 
         return Response(
