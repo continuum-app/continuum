@@ -1057,7 +1057,13 @@ onMounted(() => {
                     <component :is="getIcon(habit.icon)" :size="24" :style="{ color: habit.color }"
                       stroke-width="2.5" />
                   </div>
-                  <h4 class="font-black text-slate-900 dark:text-white text-lg">{{ habit.habit_name }}</h4>
+                  <div class="flex-1">
+                    <h4 class="font-black text-slate-900 dark:text-white text-lg">{{ habit.habit_name }}</h4>
+                    <p v-if="habit.category_name"
+                      class="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wide">
+                      {{ habit.category_name }}
+                    </p>
+                  </div>
                 </div>
 
                 <div class="space-y-3">
@@ -1109,7 +1115,13 @@ onMounted(() => {
                     <component :is="getIcon(habit.icon)" :size="24" :style="{ color: habit.color }"
                       stroke-width="2.5" />
                   </div>
-                  <h4 class="font-black text-slate-900 dark:text-white text-lg">{{ habit.habit_name }}</h4>
+                  <div class="flex-1">
+                    <h4 class="font-black text-slate-900 dark:text-white text-lg">{{ habit.habit_name }}</h4>
+                    <p v-if="habit.category_name"
+                      class="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wide">
+                      {{ habit.category_name }}
+                    </p>
+                  </div>
                 </div>
 
                 <div class="space-y-3">
@@ -1158,7 +1170,13 @@ onMounted(() => {
                     <component :is="getIcon(habit.icon)" :size="24" :style="{ color: habit.color }"
                       stroke-width="2.5" />
                   </div>
-                  <h4 class="font-black text-slate-900 dark:text-white text-lg">{{ habit.habit_name }}</h4>
+                  <div class="flex-1">
+                    <h4 class="font-black text-slate-900 dark:text-white text-lg">{{ habit.habit_name }}</h4>
+                    <p v-if="habit.category_name"
+                      class="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wide">
+                      {{ habit.category_name }}
+                    </p>
+                  </div>
                 </div>
 
                 <div class="space-y-3">
@@ -1207,7 +1225,13 @@ onMounted(() => {
                     <component :is="getIcon(habit.icon)" :size="24" :style="{ color: habit.color }"
                       stroke-width="2.5" />
                   </div>
-                  <h4 class="font-black text-slate-900 dark:text-white text-lg">{{ habit.habit_name }}</h4>
+                  <div class="flex-1">
+                    <h4 class="font-black text-slate-900 dark:text-white text-lg">{{ habit.habit_name }}</h4>
+                    <p v-if="habit.category_name"
+                      class="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wide">
+                      {{ habit.category_name }}
+                    </p>
+                  </div>
                 </div>
 
                 <div class="space-y-3">

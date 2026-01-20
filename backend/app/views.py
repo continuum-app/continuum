@@ -336,6 +336,7 @@ class HabitViewSet(viewsets.ModelViewSet):
                 {
                     "habit_id": habit.id,
                     "habit_name": habit.name,
+                    "category_name": habit.category.name if habit.category else None,
                     "color": habit.color,
                     "icon": habit.icon,
                     "metrics": metrics,
