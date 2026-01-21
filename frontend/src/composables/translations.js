@@ -60,7 +60,61 @@ export const translations = {
     
     // Summary
     summaryView: 'Summary View',
-    retrospectiveAnalysis: 'Retrospective analysis of your habits will appear here.'
+    retrospectiveAnalysis: 'Retrospective analysis of your habits will appear here.',
+
+    // Profile
+    profile: 'Profile',
+    accountInformation: 'Account Information',
+    username: 'Username',
+    email: 'Email',
+    currentPassword: 'Current Password',
+    newPassword: 'New Password',
+    confirmNewPassword: 'Confirm New Password',
+    updateProfile: 'Update Profile',
+    profileUpdated: 'Profile updated successfully',
+    passwordUpdated: 'Password updated successfully',
+    categoryManagement: 'Category Management',
+    addCategory: 'Add Category',
+    categoryName: 'Category Name',
+    editCategory: 'Edit Category',
+    deleteCategory: 'Delete Category',
+    saving: 'Saving...',
+    deleting: 'Deleting...',
+
+    // Insights
+    insights: 'Insights',
+    habitInsights: 'Habit Insights',
+    discoverCorrelations: 'Discover which habits you tend to do together',
+    loading: 'Loading...',
+    noInsightsYet: 'No insights available yet',
+    computeCorrelations: 'Habit correlations will appear here once computed',
+
+    // Habit Management
+    editHabit: 'Edit Habit',
+    deleteHabit: 'Delete Habit',
+    habitUnit: 'Unit',
+    maxValue: 'Max Value',
+
+    // Date Navigation
+    today: 'Today',
+    previous: 'Previous',
+    next: 'Next',
+
+    // View Options
+    cardView: 'Card View',
+    rowView: 'Row View',
+
+    // Empty States
+    noHabitsYet: 'No habits yet',
+    startTracking: 'Start tracking by creating your first habit',
+
+    // Validation
+    required: 'Required',
+    invalidEmail: 'Invalid email',
+    passwordMismatch: 'Passwords do not match',
+
+    // Units
+    unitPlaceholder: 'e.g., km, hours, pages',
   },
   
   fr: {
@@ -107,7 +161,7 @@ export const translations = {
     endDate: 'Date de Fin',
     booleanHabits: 'Habitudes Booléennes',
     counterHabits: 'Habitudes Compteur',
-    valueHabits: 'Habitudes Minuteur',
+    valueHabits: 'Habitudes Valeur',
     ratingHabits: 'Habitudes Évaluation',
     noData: 'Aucune donnée pour cette plage de dates',
     
@@ -124,6 +178,60 @@ export const translations = {
     
     // Summary
     summaryView: 'Vue Résumé',
-    retrospectiveAnalysis: 'L\'analyse rétrospective de vos habitudes apparaîtra ici.'
+    retrospectiveAnalysis: 'L\'analyse rétrospective de vos habitudes apparaîtra ici.',
+
+    // Profile
+    profile: 'Profil',
+    accountInformation: 'Informations du Compte',
+    username: 'Nom d\'utilisateur',
+    email: 'Email',
+    currentPassword: 'Mot de passe actuel',
+    newPassword: 'Nouveau mot de passe',
+    confirmNewPassword: 'Confirmer le nouveau mot de passe',
+    updateProfile: 'Mettre à jour le profil',
+    profileUpdated: 'Profil mis à jour avec succès',
+    passwordUpdated: 'Mot de passe mis à jour avec succès',
+    categoryManagement: 'Gestion des Catégories',
+    addCategory: 'Ajouter une Catégorie',
+    categoryName: 'Nom de la Catégorie',
+    editCategory: 'Modifier la Catégorie',
+    deleteCategory: 'Supprimer la Catégorie',
+    saving: 'Enregistrement...',
+    deleting: 'Suppression...',
+
+    // Insights
+    insights: 'Analyses',
+    habitInsights: 'Analyses des Habitudes',
+    discoverCorrelations: 'Découvrez quelles habitudes vous faites ensemble',
+    loading: 'Chargement...',
+    noInsightsYet: 'Aucune analyse disponible',
+    computeCorrelations: 'Les corrélations d\'habitudes apparaîtront ici une fois calculées',
+
+    // Habit Management
+    editHabit: 'Modifier l\'Habitude',
+    deleteHabit: 'Supprimer l\'Habitude',
+    habitUnit: 'Unité',
+    maxValue: 'Valeur Max',
+
+    // Date Navigation
+    today: 'Aujourd\'hui',
+    previous: 'Précédent',
+    next: 'Suivant',
+
+    // View Options
+    cardView: 'Vue Carte',
+    rowView: 'Vue Ligne',
+
+    // Empty States
+    noHabitsYet: 'Aucune habitude',
+    startTracking: 'Commencez le suivi en créant votre première habitude',
+
+    // Validation
+    required: 'Requis',
+    invalidEmail: 'Email invalide',
+    passwordMismatch: 'Les mots de passe ne correspondent pas',
+
+    // Units
+    unitPlaceholder: 'ex: km, heures, pages',
   }
 }

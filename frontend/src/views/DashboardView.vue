@@ -117,7 +117,7 @@ const formattedTrackingDate = computed(() => {
   trackingDay.setHours(0, 0, 0, 0)
 
   if (trackingDay.getTime() === today.getTime()) {
-    return 'Today'
+    return t('today')
   }
 
   const yesterday = new Date(today)
@@ -205,7 +205,7 @@ const groupedHabits = computed(() => {
       if (hasUncategorized) {
         groups.push({
           id: 'uncategorized',
-          name: 'Uncategorized',
+          name: t('uncategorized'),
           habits: uncategorized
         })
         console.log('  ✓ Added uncategorized group with', uncategorized.length, 'habits')
@@ -1136,7 +1136,7 @@ const getStrengthLabel = (strength) => {
               : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700'
           ]">
             <Calendar :size="20" stroke-width="2.5" />
-            <span>Tracking</span>
+            <span>{{ t('tracking') }}</span>
           </button>
 
           <button @click="activeTab = 'summary'" :class="[
@@ -1146,7 +1146,7 @@ const getStrengthLabel = (strength) => {
               : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700'
           ]">
             <FileText :size="20" stroke-width="2.5" />
-            <span>Summary</span>
+            <span>{{ t('summary') }}</span>
           </button>
 
           <button @click="activeTab = 'graph'" :class="[
@@ -1156,7 +1156,7 @@ const getStrengthLabel = (strength) => {
               : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700'
           ]">
             <BarChart3 :size="20" stroke-width="2.5" />
-            <span>Graph</span>
+            <span>{{ t('graph') }}</span>
           </button>
 
           <button @click="activeTab = 'profile'" :class="[
@@ -1166,7 +1166,7 @@ const getStrengthLabel = (strength) => {
               : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700'
           ]">
             <User :size="20" stroke-width="2.5" />
-            <span>Profile</span>
+            <span>{{ t('profile') }}</span>
           </button>
         </div>
       </div>
@@ -1227,7 +1227,7 @@ const getStrengthLabel = (strength) => {
                     ? 'bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-sm'
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
                 ]">
-                  Cards
+                  {{ t('cardView') }}
                 </button>
                 <button @click="isCardView = false" :class="[
                   'px-3 py-1.5 rounded-md font-bold transition-all text-xs',
@@ -1235,7 +1235,7 @@ const getStrengthLabel = (strength) => {
                     ? 'bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-sm'
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
                 ]">
-                  Rows
+                  {{ t('rowView') }}
                 </button>
               </div>
             </div>
@@ -1252,9 +1252,9 @@ const getStrengthLabel = (strength) => {
             </button>
 
             <!-- Today Button (only show if not on today) -->
-            <button v-if="formattedTrackingDate !== 'Today'" @click="goToToday"
+            <button v-if="formattedTrackingDate !== t('today')" @click="goToToday"
               class="shrink-0 px-3 py-2 bg-indigo-600 text-white rounded-xl font-bold text-xs md:text-sm hover:bg-indigo-700 transition-all active:scale-95 whitespace-nowrap self-center">
-              Today
+              {{ t('today') }}
             </button>
           </div>
         </div>
@@ -1282,7 +1282,7 @@ const getStrengthLabel = (strength) => {
             <div class="flex-1 h-1 bg-linear-to-r from-slate-200 dark:from-slate-700 to-transparent rounded-full">
             </div>
             <span class="text-sm font-bold text-slate-400 dark:text-slate-500">
-              {{ group.habits.length }} {{ group.habits.length === 1 ? 'habit' : 'habits' }}
+              {{ group.habits.length }} {{ group.habits.length === 1 ? t('habit') : t('habits') }}
             </span>
           </div>
 
@@ -1365,7 +1365,7 @@ const getStrengthLabel = (strength) => {
                     class="flex justify-center items-center gap-0.5 bg-slate-50 dark:bg-slate-700 rounded-2xl p-3 border border-slate-100 dark:border-slate-600">
                     <button v-for="star in (habit.max_value || 5)" :key="star"
                       @click="habit.temp_value = star; saveCompletion(habit)"
-                      class="transition-all hover:scale-110 active:scale-95 shrink-0"
+                      class="transition-all hover:scale-120 active:scale-95 shrink-0"
                       :class="star <= habit.temp_value ? '' : 'opacity-30'" style="padding: 0 !important;">
                       <Star
                         :size="(habit.max_value || 5) <= 5 ? 28 : (habit.max_value || 5) <= 6 ? 24 : (habit.max_value || 5) <= 8 ? 20 : 16"
@@ -1383,7 +1383,7 @@ const getStrengthLabel = (strength) => {
                     boxShadow: habit.today_value > 0 ? '0 15px 30px -10px #10b98160' : `0 15px 30px -10px ${habit.color}40`
                   }">
                   <CheckCircle2 v-if="habit.today_value > 0" :size="20" />
-                  {{ habit.today_value > 0 ? 'Completed' : 'Mark Complete' }}
+                  {{ habit.today_value > 0 ? t('completed') : t('markComplete') }}
                 </button>
               </div>
             </div>
@@ -1451,12 +1451,12 @@ const getStrengthLabel = (strength) => {
                 </div>
 
                 <!-- Rating Stars -->
-                <div v-else-if="habit.habit_type === 'rating'" class="flex items-center gap-0.5">
+                <div v-else-if="habit.habit_type === 'rating'" class="flex items-center gap-1">
                   <button v-for="star in (habit.max_value || 5)" :key="star"
                     @click="habit.temp_value = star; saveCompletion(habit)"
-                    class="transition-all hover:scale-110 active:scale-95"
+                    class="transition-all hover:scale-120 active:scale-95"
                     :class="star <= habit.temp_value ? '' : 'opacity-30'">
-                    <Star :size="16" :fill="star <= habit.temp_value ? habit.color : 'none'" :stroke="habit.color"
+                    <Star :size="26" :fill="star <= habit.temp_value ? habit.color : 'none'" :stroke="habit.color"
                       stroke-width="2" />
                   </button>
                 </div>
@@ -1468,7 +1468,7 @@ const getStrengthLabel = (strength) => {
                     ? 'bg-green-500 hover:bg-green-600'
                     : 'hover:opacity-80'
                 ]" :style="!habit.today_value ? { backgroundColor: habit.color } : {}">
-                  {{ habit.today_value > 0 ? 'Done' : 'Log' }}
+                  {{ habit.today_value > 0 ? t('completed') : t('save') }}
                 </button>
               </div>
             </div>
@@ -1480,8 +1480,8 @@ const getStrengthLabel = (strength) => {
       <div v-show="activeTab === 'summary'" class="space-y-6">
         <!-- Header -->
         <div class="bg-linear-to-r from-indigo-500 to-purple-600 rounded-[3rem] p-12 shadow-xl">
-          <h2 class="text-3xl font-black text-white mb-2">Last 7 Days Summary</h2>
-          <p class="text-indigo-100 font-medium">Your habit performance at a glance</p>
+          <h2 class="text-3xl font-black text-white mb-2">{{ t('summaryView') }}</h2>
+          <p class="text-indigo-100 font-medium">{{ t('retrospectiveAnalysis') }}</p>
         </div>
 
         <!-- Loading State -->
@@ -1496,7 +1496,7 @@ const getStrengthLabel = (strength) => {
             <h3
               class="text-2xl font-black text-slate-900 dark:text-white mb-4 uppercase tracking-tight flex items-center gap-3">
               <div class="w-2 h-8 bg-blue-500 rounded-full"></div>
-              Boolean Habits
+              {{ t('booleanHabits') }}
             </h3>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               <div v-for="habit in summaryData.boolean" :key="habit.habit_id"
@@ -1535,7 +1535,7 @@ const getStrengthLabel = (strength) => {
                       <div class="text-2xl font-black text-slate-900 dark:text-white">
                         {{ habit.metrics.total_completions }}
                       </div>
-                      <div class="text-xs font-bold text-slate-400 uppercase tracking-wide">Completed</div>
+                      <div class="text-xs font-bold text-slate-400 uppercase tracking-wide">{{ t('completed') }}</div>
                     </div>
                     <div class="text-center p-3 bg-slate-50 dark:bg-slate-700 rounded-xl">
                       <div class="text-2xl font-black text-slate-900 dark:text-white">
@@ -1554,7 +1554,7 @@ const getStrengthLabel = (strength) => {
             <h3
               class="text-2xl font-black text-slate-900 dark:text-white mb-4 uppercase tracking-tight flex items-center gap-3">
               <div class="w-2 h-8 bg-green-500 rounded-full"></div>
-              Counter Habits
+              {{ t('counterHabits') }}
             </h3>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               <div v-for="habit in summaryData.counter" :key="habit.habit_id"
@@ -1609,7 +1609,7 @@ const getStrengthLabel = (strength) => {
             <h3
               class="text-2xl font-black text-slate-900 dark:text-white mb-4 uppercase tracking-tight flex items-center gap-3">
               <div class="w-2 h-8 bg-orange-500 rounded-full"></div>
-              Value Habits
+              {{ t('valueHabits') }}
             </h3>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               <div v-for="habit in summaryData.value" :key="habit.habit_id"
@@ -1664,7 +1664,7 @@ const getStrengthLabel = (strength) => {
             <h3
               class="text-2xl font-black text-slate-900 dark:text-white mb-4 uppercase tracking-tight flex items-center gap-3">
               <div class="w-2 h-8 bg-yellow-500 rounded-full"></div>
-              Rating Habits
+              {{ t('ratingHabits') }}
             </h3>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               <div v-for="habit in summaryData.rating" :key="habit.habit_id"
@@ -1720,13 +1720,16 @@ const getStrengthLabel = (strength) => {
             class="mt-12">
             <!-- Insights Header -->
             <div class="bg-linear-to-r from-indigo-500 to-purple-600 rounded-[3rem] p-12 shadow-xl mb-6">
-              <h2 class="text-3xl font-black text-white mb-2">📊 Insights</h2>
-              <p class="text-indigo-100 font-medium">Discover patterns in your habits</p>
+              <h2 class="text-3xl font-black text-white mb-2">{{ t('insights') }}</h2>
+              <p class="text-indigo-100 font-medium">{{ t('discoverCorrelations') }}</p>
             </div>
 
             <!-- Loading State for Insights -->
             <div v-if="isFetchingInsights" class="flex items-center justify-center py-20">
-              <RefreshCw :size="40" class="animate-spin text-indigo-500" />
+              <div class="text-center">
+                <RefreshCw :size="40" class="animate-spin text-indigo-500 mx-auto mb-4" />
+                <p class="text-slate-600 dark:text-slate-400 font-bold">{{ t('loading') }}</p>
+              </div>
             </div>
 
             <!-- Insights Content -->
@@ -1822,10 +1825,10 @@ const getStrengthLabel = (strength) => {
               class="bg-white dark:bg-slate-800 rounded-[3rem] p-16 shadow-lg border border-slate-100 dark:border-slate-700 text-center">
               <div class="text-6xl mb-4">🔍</div>
               <h3 class="text-2xl font-black text-slate-900 dark:text-white mb-2">
-                No Patterns Yet
+                {{ t('noInsightsYet') }}
               </h3>
               <p class="text-slate-500 dark:text-slate-400">
-                Keep tracking your habits! We need more data to find meaningful connections.
+                {{ t('computeCorrelations') }}
               </p>
             </div>
           </div>
@@ -1835,8 +1838,8 @@ const getStrengthLabel = (strength) => {
             v-if="summaryData.boolean.length === 0 && summaryData.counter.length === 0 && summaryData.value.length === 0 && summaryData.rating.length === 0"
             class="bg-white dark:bg-slate-800 rounded-[3rem] p-16 shadow-lg border border-slate-100 dark:border-slate-700 text-center">
             <div class="text-6xl mb-4">📊</div>
-            <h3 class="text-2xl font-black text-slate-900 dark:text-white mb-2">No Data Yet</h3>
-            <p class="text-slate-500 dark:text-slate-400">Start tracking your habits to see your weekly summary here!
+            <h3 class="text-2xl font-black text-slate-900 dark:text-white mb-2">{{ t('noHabitsYet') }}</h3>
+            <p class="text-slate-500 dark:text-slate-400">{{ t('startTracking') }}
             </p>
           </div>
         </div>
@@ -1847,15 +1850,16 @@ const getStrengthLabel = (strength) => {
         <!-- Date Range Selector -->
         <div
           class="bg-white dark:bg-slate-800 rounded-[3rem] p-8 shadow-lg border border-slate-100 dark:border-slate-700">
-          <h2 class="text-2xl font-black text-slate-900 dark:text-white mb-6">Date Range</h2>
+          <h2 class="text-2xl font-black text-slate-900 dark:text-white mb-6">{{ t('dateRange') }}</h2>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <div class="space-y-2">
-              <label class="text-xs font-black uppercase tracking-widest text-slate-400 ml-2">Start Date</label>
+              <label class="text-xs font-black uppercase tracking-widest text-slate-400 ml-2">{{ t('startDate')
+                }}</label>
               <input v-model="graphStartDate" type="date"
                 class="w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-50 dark:border-slate-700 rounded-2xl px-6 py-4 focus:bg-white dark:focus:bg-slate-600 focus:border-indigo-500 transition outline-none font-bold text-slate-900 dark:text-white" />
             </div>
             <div class="space-y-2">
-              <label class="text-xs font-black uppercase tracking-widest text-slate-400 ml-2">End Date</label>
+              <label class="text-xs font-black uppercase tracking-widest text-slate-400 ml-2">{{ t('endDate') }}</label>
               <input v-model="graphEndDate" type="date"
                 class="w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-50 dark:border-slate-700 rounded-2xl px-6 py-4 focus:bg-white dark:focus:bg-slate-600 focus:border-indigo-500 transition outline-none font-bold text-slate-900 dark:text-white" />
             </div>
@@ -1880,11 +1884,12 @@ const getStrengthLabel = (strength) => {
         <!-- Boolean Habits Chart -->
         <div
           class="bg-white dark:bg-slate-800 rounded-[3rem] p-8 shadow-lg border border-slate-100 dark:border-slate-700">
-          <h3 class="text-xl font-black text-slate-900 dark:text-white mb-6 uppercase tracking-tight">Boolean Habits
+          <h3 class="text-xl font-black text-slate-900 dark:text-white mb-6 uppercase tracking-tight">{{
+            t('booleanHabits') }}
           </h3>
           <div class="h-80 flex items-center justify-center"
             v-if="!graphData.boolean || graphData.boolean.length === 0">
-            <p class="text-slate-400 dark:text-slate-500 font-medium text-lg">No data for this date & time range</p>
+            <p class="text-slate-400 dark:text-slate-500 font-medium text-lg">{{ t('noData') }}</p>
           </div>
           <div class="h-80" v-else>
             <canvas id="chart-boolean"></canvas>
@@ -1894,11 +1899,12 @@ const getStrengthLabel = (strength) => {
         <!-- Counter Habits Chart -->
         <div
           class="bg-white dark:bg-slate-800 rounded-[3rem] p-8 shadow-lg border border-slate-100 dark:border-slate-700">
-          <h3 class="text-xl font-black text-slate-900 dark:text-white mb-6 uppercase tracking-tight">Counter Habits
+          <h3 class="text-xl font-black text-slate-900 dark:text-white mb-6 uppercase tracking-tight">{{
+            t('counterHabits') }}
           </h3>
           <div class="h-80 flex items-center justify-center"
             v-if="!graphData.counter || graphData.counter.length === 0">
-            <p class="text-slate-400 dark:text-slate-500 font-medium text-lg">No data for this date & time range</p>
+            <p class="text-slate-400 dark:text-slate-500 font-medium text-lg">{{ t('noData') }}</p>
           </div>
           <div class="h-80" v-else>
             <canvas id="chart-counter"></canvas>
@@ -1908,9 +1914,10 @@ const getStrengthLabel = (strength) => {
         <!-- Value Habits Chart -->
         <div
           class="bg-white dark:bg-slate-800 rounded-[3rem] p-8 shadow-lg border border-slate-100 dark:border-slate-700">
-          <h3 class="text-xl font-black text-slate-900 dark:text-white mb-6 uppercase tracking-tight">Value Habits</h3>
+          <h3 class="text-xl font-black text-slate-900 dark:text-white mb-6 uppercase tracking-tight">{{
+            t('valueHabits') }}</h3>
           <div class="h-80 flex items-center justify-center" v-if="!graphData.value || graphData.value.length === 0">
-            <p class="text-slate-400 dark:text-slate-500 font-medium text-lg">No data for this date & time range</p>
+            <p class="text-slate-400 dark:text-slate-500 font-medium text-lg">{{ t('noData') }}</p>
           </div>
           <div class="h-80" v-else>
             <canvas id="chart-value"></canvas>
@@ -1920,9 +1927,10 @@ const getStrengthLabel = (strength) => {
         <!-- Rating Habits Chart -->
         <div
           class="bg-white dark:bg-slate-800 rounded-[3rem] p-8 shadow-lg border border-slate-100 dark:border-slate-700">
-          <h3 class="text-xl font-black text-slate-900 dark:text-white mb-6 uppercase tracking-tight">Rating Habits</h3>
+          <h3 class="text-xl font-black text-slate-900 dark:text-white mb-6 uppercase tracking-tight">{{
+            t('ratingHabits') }}</h3>
           <div class="h-80 flex items-center justify-center" v-if="!graphData.rating || graphData.rating.length === 0">
-            <p class="text-slate-400 dark:text-slate-500 font-medium text-lg">No data for this date & time range</p>
+            <p class="text-slate-400 dark:text-slate-500 font-medium text-lg">{{ t('noData') }}</p>
           </div>
           <div class="h-80" v-else>
             <canvas id="chart-rating"></canvas>
@@ -1939,14 +1947,14 @@ const getStrengthLabel = (strength) => {
             <div class="p-3 bg-indigo-100 dark:bg-indigo-900/30 rounded-2xl">
               <User :size="24" class="text-indigo-600 dark:text-indigo-400" stroke-width="2.5" />
             </div>
-            <h2 class="text-2xl font-black text-slate-900 dark:text-white">Account Information</h2>
+            <h2 class="text-2xl font-black text-slate-900 dark:text-white">{{ t('accountInformation') }}</h2>
           </div>
 
           <div class="space-y-4">
             <div class="flex items-center gap-4 p-4 bg-slate-50 dark:bg-slate-700 rounded-2xl">
               <User :size="20" class="text-slate-400" />
               <div>
-                <p class="text-xs font-black uppercase tracking-widest text-slate-400">Username</p>
+                <p class="text-xs font-black uppercase tracking-widest text-slate-400">{{ t('username') }}</p>
                 <p class="font-bold text-slate-900 dark:text-white">{{ userInfo.username || 'Loading...'
                 }}</p>
               </div>
@@ -1955,7 +1963,7 @@ const getStrengthLabel = (strength) => {
             <div class="flex items-center gap-4 p-4 bg-slate-50 dark:bg-slate-700 rounded-2xl">
               <Mail :size="20" class="text-slate-400" />
               <div>
-                <p class="text-xs font-black uppercase tracking-widest text-slate-400">Email</p>
+                <p class="text-xs font-black uppercase tracking-widest text-slate-400">{{ t('email') }}</p>
                 <input v-model="profileData.email" type="email"
                   class="font-bold text-slate-900 dark:text-white bg-transparent border-b-2 border-indigo-500 focus:outline-none w-full" />
               </div>
@@ -1976,7 +1984,7 @@ const getStrengthLabel = (strength) => {
           <div class="space-y-4">
             <div>
               <label class="text-xs font-black uppercase tracking-widest text-slate-400 ml-2 mb-2 block">
-                Current Password
+                {{ t('currentPassword') }}
               </label>
               <input v-model="profileData.current_password" type="password" placeholder="Enter current password"
                 class="w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-50 dark:border-slate-700 rounded-2xl px-6 py-4 focus:bg-white dark:focus:bg-slate-600 focus:border-orange-500 transition outline-none font-bold text-slate-900 dark:text-white" />
@@ -1984,7 +1992,7 @@ const getStrengthLabel = (strength) => {
 
             <div>
               <label class="text-xs font-black uppercase tracking-widest text-slate-400 ml-2 mb-2 block">
-                New Password
+                {{ t('newPassword') }}
               </label>
               <input v-model="newPassword" type="password" placeholder="Enter new password"
                 class="w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-50 dark:border-slate-700 rounded-2xl px-6 py-4 focus:bg-white dark:focus:bg-slate-600 focus:border-orange-500 transition outline-none font-bold text-slate-900 dark:text-white" />
@@ -1992,7 +2000,7 @@ const getStrengthLabel = (strength) => {
 
             <div>
               <label class="text-xs font-black uppercase tracking-widest text-slate-400 ml-2 mb-2 block">
-                Confirm Password
+                {{ t('confirmNewPassword') }}
               </label>
               <input v-model="confirmPassword" type="password" placeholder="Confirm new password"
                 class="w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-50 dark:border-slate-700 rounded-2xl px-6 py-4 focus:bg-white dark:focus:bg-slate-600 focus:border-orange-500 transition outline-none font-bold text-slate-900 dark:text-white" />
@@ -2010,7 +2018,7 @@ const getStrengthLabel = (strength) => {
           <RefreshCw v-if="isSavingProfile" :size="20" class="animate-spin" />
           <CheckCircle2 v-else-if="profileSaved" :size="20" stroke-width="2.5" />
           <Save v-else :size="20" stroke-width="2.5" />
-          {{ isSavingProfile ? 'Saving...' : profileSaved ? 'Profile Saved' : 'Save Profile' }}
+          {{ isSavingProfile ? t('saving') : profileSaved ? t('profileUpdated') : t('updateProfile') }}
         </button>
 
         <!-- Category Management -->
@@ -2020,21 +2028,21 @@ const getStrengthLabel = (strength) => {
             <div class="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-2xl">
               <Database :size="24" class="text-purple-600 dark:text-purple-400" stroke-width="2.5" />
             </div>
-            <h2 class="text-2xl font-black text-slate-900 dark:text-white">Manage Categories</h2>
+            <h2 class="text-2xl font-black text-slate-900 dark:text-white">{{ t('categoryManagement') }}</h2>
           </div>
 
           <!-- Add New Category -->
           <div class="mb-6">
             <label class="text-xs font-black uppercase tracking-widest text-slate-400 ml-2 mb-2 block">
-              Add New Category
+              {{ t('addCategory') }}
             </label>
             <div class="flex gap-3">
-              <input v-model="newCategoryName" @keyup.enter="addCategory" type="text" placeholder="Enter category name"
+              <input v-model="newCategoryName" @keyup.enter="addCategory" type="text" :placeholder="t('categoryName')"
                 class="flex-1 bg-slate-50 dark:bg-slate-700 border-2 border-slate-50 dark:border-slate-700 rounded-2xl px-6 py-4 focus:bg-white dark:focus:bg-slate-600 focus:border-indigo-500 transition outline-none font-bold text-slate-900 dark:text-white" />
               <button @click="addCategory" :disabled="isSavingCategory || !newCategoryName.trim()"
                 class="px-8 py-4 bg-indigo-600 text-white rounded-2xl font-bold hover:bg-indigo-700 transition-all shadow-md active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
                 <Plus :size="20" stroke-width="2.5" />
-                Add
+                {{ t('addCategory') }}
               </button>
             </div>
           </div>
@@ -2063,13 +2071,13 @@ const getStrengthLabel = (strength) => {
               <div class="flex gap-2 ml-4">
                 <button v-if="editingCategory !== category.id" @click="editingCategory = category.id"
                   class="px-4 py-2 bg-slate-200 dark:bg-slate-600 text-slate-700 dark:text-slate-300 rounded-xl font-bold hover:bg-slate-300 dark:hover:bg-slate-500 transition-all text-sm">
-                  Edit
+                  {{ t('editCategory') }}
                 </button>
 
                 <button v-else @click="updateCategory(category)"
                   class="px-4 py-2 bg-green-600 text-white rounded-xl font-bold hover:bg-green-700 transition-all text-sm flex items-center gap-1">
                   <Save :size="16" />
-                  Save
+                  {{ t('save') }}
                 </button>
 
                 <button v-if="editingCategory === category.id" @click="editingCategory = null"
@@ -2080,7 +2088,7 @@ const getStrengthLabel = (strength) => {
                 <button @click="deleteCategory(category.id)" :disabled="isDeletingCategory === category.id"
                   class="px-4 py-2 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-xl font-bold hover:bg-red-200 dark:hover:bg-red-900/50 transition-all text-sm flex items-center gap-1 disabled:opacity-50">
                   <Trash2 :size="16" />
-                  Delete
+                  {{ isDeletingCategory === category.id ? t('deleting') : t('deleteCategory') }}
                 </button>
               </div>
             </div>
@@ -2094,7 +2102,7 @@ const getStrengthLabel = (strength) => {
             <div class="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-2xl">
               <CheckCircle2 :size="24" class="text-blue-600 dark:text-blue-400" stroke-width="2.5" />
             </div>
-            <h2 class="text-2xl font-black text-slate-900 dark:text-white">Manage Habits</h2>
+            <h2 class="text-2xl font-black text-slate-900 dark:text-white">{{ t('editHabit') }}</h2>
           </div>
 
           <!-- Existing Habits -->
@@ -2161,7 +2169,7 @@ const getStrengthLabel = (strength) => {
                 d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"
                 clip-rule="evenodd" />
             </svg>
-            <span class="text-sm font-bold">View on GitHub</span>
+            <span class="text-sm font-bold">{{ t('viewOnGithub') }}</span>
           </a>
         </div>
 
@@ -2169,21 +2177,21 @@ const getStrengthLabel = (strength) => {
         <button @click="goToAdminSettings"
           class="flex items-center gap-2 px-6 py-3 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl font-bold hover:bg-slate-200 dark:hover:bg-slate-600 transition-all shadow-sm active:scale-95">
           <Settings :size="18" stroke-width="2.5" />
-          <span class="text-sm">Admin Settings</span>
+          <span class="text-sm">{{ t('adminSettings') }}</span>
         </button>
 
         <!-- Export Button -->
         <button @click="goToExport"
           class="flex items-center gap-2 px-6 py-3 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl font-bold transition-all shadow-sm active:scale-95">
           <Download :size="18" stroke-width="2.5" />
-          <span class="text-sm">Export</span>
+          <span class="text-sm">{{ t('export') }}</span>
         </button>
       </div>
 
       <!-- Copyright -->
       <div class="text-center mt-6">
         <p class="text-xs text-slate-400 dark:text-slate-500 font-medium">
-          © {{ new Date().getFullYear() }} Continuum. All rights reserved.
+          © {{ new Date().getFullYear() }} {{ t('appName') }}. {{ t('allRightsReserved') }}
         </p>
       </div>
     </footer>
@@ -2196,7 +2204,7 @@ const getStrengthLabel = (strength) => {
           <div class="absolute top-0 left-0 w-full h-2 bg-indigo-500"></div>
 
           <div class="flex justify-between items-center mb-10">
-            <h2 class="text-3xl font-black text-slate-900 dark:text-white">New Habit</h2>
+            <h2 class="text-3xl font-black text-slate-900 dark:text-white">{{ t('newHabit') }}</h2>
             <button @click="isModalOpen = false"
               class="text-slate-300 hover:text-slate-900 dark:hover:text-white transition">
               <X :size="32" />
@@ -2205,24 +2213,27 @@ const getStrengthLabel = (strength) => {
 
           <form @submit.prevent="addHabit" class="space-y-8">
             <div class="space-y-2">
-              <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2">Objective Name</label>
+              <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2">{{ t('objectiveName')
+                }}</label>
               <input v-model="newHabitName" type="text" placeholder="e.g. Daily Sprints" required
                 class="w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-50 dark:border-slate-700 rounded-3xl px-6 py-4 focus:bg-white dark:focus:bg-slate-600 focus:border-indigo-500 transition outline-none font-bold text-lg text-slate-900 dark:text-white">
             </div>
 
             <div class="grid grid-cols-2 gap-6">
               <div class="space-y-2">
-                <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2">Metric Type</label>
+                <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2">{{ t('metricType')
+                  }}</label>
                 <select v-model="newHabitType"
                   class="w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-50 dark:border-slate-700 rounded-3xl px-6 py-4 font-bold outline-none appearance-none text-slate-900 dark:text-white">
-                  <option value="boolean">Boolean</option>
-                  <option value="counter">Counter</option>
-                  <option value="value">Value</option>
-                  <option value="rating">Rating</option>
+                  <option value="boolean">{{ t('boolean') }}</option>
+                  <option value="counter">{{ t('counter') }}</option>
+                  <option value="value">{{ t('value') }}</option>
+                  <option value="rating">{{ t('rating') }}</option>
                 </select>
               </div>
               <div class="space-y-2">
-                <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2">Visual Icon</label>
+                <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2">{{ t('visualIcon')
+                  }}</label>
                 <input v-model="newHabitIcon" placeholder="e.g. Beer, Flame"
                   class="w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-50 dark:border-slate-700 rounded-3xl px-6 py-4 font-bold outline-none text-slate-900 dark:text-white">
               </div>
@@ -2231,7 +2242,7 @@ const getStrengthLabel = (strength) => {
             <!-- Max Value for Rating -->
             <div v-if="newHabitType === 'rating'" class="space-y-2">
               <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2">
-                Number of Stars
+                {{ t('numberOfStars') }}
               </label>
               <input v-model.number="newHabitMaxValue" type="number" min="1" max="10" placeholder="5"
                 class="w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-50 dark:border-slate-700 rounded-3xl px-6 py-4 focus:bg-white dark:focus:bg-slate-600 focus:border-indigo-500 transition outline-none font-bold text-lg text-slate-900 dark:text-white">
@@ -2241,16 +2252,18 @@ const getStrengthLabel = (strength) => {
             </div>
 
             <div class="space-y-2">
-              <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2">Category</label>
+              <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2">{{ t('category')
+                }}</label>
               <select v-model="newHabitCategoryId"
                 class="w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-50 dark:border-slate-700 rounded-3xl px-6 py-4 font-bold outline-none appearance-none text-slate-900 dark:text-white">
-                <option :value="null">Uncategorized</option>
+                <option :value="null">{{ t('uncategorized') }}</option>
                 <option v-for="cat in categories" :key="cat.id" :value="cat.id">{{ cat.name }}</option>
               </select>
             </div>
 
             <div class="space-y-2">
-              <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2">Identity Color</label>
+              <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2">{{ t('identityColor')
+                }}</label>
               <div class="flex items-center gap-4 bg-slate-50 dark:bg-slate-700 p-4 rounded-3xl">
                 <input v-model="newHabitColor" type="color"
                   class="w-16 h-12 rounded-xl border-none bg-transparent cursor-pointer">
@@ -2260,7 +2273,7 @@ const getStrengthLabel = (strength) => {
 
             <button type="submit"
               class="w-full bg-indigo-600 text-white py-6 rounded-4xl font-black text-xl hover:bg-indigo-700 transition-all shadow-xl">
-              Initiate Habit
+              {{ t('initiateHabit') }}
             </button>
           </form>
         </div>
@@ -2275,7 +2288,7 @@ const getStrengthLabel = (strength) => {
           <div class="absolute top-0 left-0 w-full h-2 bg-blue-500"></div>
 
           <div class="flex justify-between items-center mb-10">
-            <h2 class="text-3xl font-black text-slate-900 dark:text-white">Edit Habit</h2>
+            <h2 class="text-3xl font-black text-slate-900 dark:text-white">{{ t('editHabit') }}</h2>
             <button @click="cancelEditHabit"
               class="text-slate-300 hover:text-slate-900 dark:hover:text-white transition">
               <X :size="32" />
@@ -2310,9 +2323,9 @@ const getStrengthLabel = (strength) => {
 
             <!-- Unit for Value type -->
             <div v-if="editingHabitData.habit_type === 'value'" class="space-y-2">
-              <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2">Unit
+              <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2">{{ t('habitUnit') }}
                 (Optional)</label>
-              <input v-model="editingHabitData.unit" type="text" placeholder="e.g. km, miles, hours"
+              <input v-model="editingHabitData.unit" type="text" :placeholder="t('unitPlaceholder')"
                 class="w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-50 dark:border-slate-700 rounded-3xl px-6 py-4 focus:bg-white dark:focus:bg-slate-600 focus:border-indigo-500 transition outline-none font-bold text-slate-900 dark:text-white" />
               <p class="text-xs text-slate-400 ml-2">Leave empty to use default unit</p>
             </div>
@@ -2320,7 +2333,7 @@ const getStrengthLabel = (strength) => {
             <!-- Max Value for Rating -->
             <div v-if="editingHabitData.habit_type === 'rating'" class="space-y-2">
               <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2">
-                Max Rating Value
+                {{ t('maxValue') }}
               </label>
               <input v-model.number="editingHabitData.max_value" type="number" min="1" max="10"
                 class="w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-50 dark:border-slate-700 rounded-3xl px-6 py-4 focus:bg-white dark:focus:bg-slate-600 focus:border-indigo-500 transition outline-none font-bold text-lg text-slate-900 dark:text-white" />
@@ -2340,7 +2353,7 @@ const getStrengthLabel = (strength) => {
                 class="flex-1 bg-blue-600 text-white py-4 rounded-3xl font-black hover:bg-blue-700 transition-all shadow-xl disabled:opacity-50 flex items-center justify-center gap-2">
                 <RefreshCw v-if="isSavingHabit" :size="20" class="animate-spin" />
                 <Save v-else :size="20" stroke-width="2.5" />
-                {{ isSavingHabit ? 'Saving...' : 'Save Changes' }}
+                {{ isSavingHabit ? t('saving') : t('save') }}
               </button>
               <button type="button" @click="cancelEditHabit"
                 class="flex-1 bg-slate-300 dark:bg-slate-600 text-slate-700 dark:text-slate-300 py-4 rounded-3xl font-black hover:bg-slate-400 dark:hover:bg-slate-500 transition-all">
