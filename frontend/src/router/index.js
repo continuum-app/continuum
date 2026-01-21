@@ -3,6 +3,7 @@ import LoginView from '../views/LoginView.vue'
 import RegisterView from '../views/RegisterView.vue'
 import DashboardView from '../views/DashboardView.vue'
 import AdminSettings from '../views/AdminSettings.vue'
+import ExportView from '../views/ExportView.vue'
 import authService from '../services/auth'
 
 const router = createRouter({
@@ -30,6 +31,12 @@ const router = createRouter({
       path: '/admin-settings',
       name: 'admin-settings',
       component: AdminSettings,
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/export',
+      name: 'export',
+      component: ExportView,
       meta: { requiresAuth: true }
     },
     {

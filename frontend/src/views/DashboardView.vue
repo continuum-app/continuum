@@ -57,11 +57,6 @@ const graphData = ref({
   rating: []
 })
 
-// Export state
-const exportStartDate = ref('')
-const exportEndDate = ref('')
-const isExporting = ref(false)
-
 // Summary state
 const summaryData = ref({
   boolean: [],
@@ -349,6 +344,10 @@ const goToAdminSettings = () => {
   router.push('/admin-settings')
 }
 
+const goToExport = () => {
+  router.push('/export')
+}
+
 const selectLanguage = (langCode) => {
   setLanguage(langCode)
   isLanguageDropdownOpen.value = false
@@ -484,22 +483,12 @@ const initializeDateRange = () => {
 
   graphEndDate.value = today.toISOString().split('T')[0]
   graphStartDate.value = thirtyDaysAgo.toISOString().split('T')[0]
-
-  // Initialize export dates with same defaults
-  exportEndDate.value = today.toISOString().split('T')[0]
-  exportStartDate.value = thirtyDaysAgo.toISOString().split('T')[0]
 }
 
 // Set date range for a specific year
 const setYearRange = (year) => {
   graphStartDate.value = `${year}-01-01`
   graphEndDate.value = `${year}-12-31`
-}
-
-// Set export date range for a specific year
-const setExportYearRange = (year) => {
-  exportStartDate.value = `${year}-01-01`
-  exportEndDate.value = `${year}-12-31`
 }
 
 // Set date range for all available data
@@ -515,22 +504,6 @@ const setAllDataRange = async () => {
     // Fallback: set to a wide range
     graphStartDate.value = '2020-01-01'
     graphEndDate.value = new Date().toISOString().split('T')[0]
-  }
-}
-
-// Set export date range for all available data
-const setAllExportDataRange = async () => {
-  try {
-    const response = await api.get('habits/date_range/')
-    if (response.data.start_date && response.data.end_date) {
-      exportStartDate.value = response.data.start_date
-      exportEndDate.value = response.data.end_date
-    }
-  } catch (err) {
-    console.error('Failed to fetch date range:', err)
-    // Fallback: set to a wide range
-    exportStartDate.value = '2020-01-01'
-    exportEndDate.value = new Date().toISOString().split('T')[0]
   }
 }
 
@@ -554,46 +527,6 @@ const fetchSummaryData = async () => {
     console.error('Failed to fetch summary data:', err)
   } finally {
     isFetchingSummary.value = false
-  }
-}
-
-// Export data to CSV
-const exportToCSV = async () => {
-  if (!exportStartDate.value || !exportEndDate.value) {
-    alert('Please select a valid date range')
-    return
-  }
-
-  isExporting.value = true
-
-  try {
-    const response = await api.get('habits/export_csv/', {
-      params: {
-        start_date: exportStartDate.value,
-        end_date: exportEndDate.value
-      }
-    })
-
-    // Create CSV content
-    const csvContent = response.data.csv_content
-
-    // Create a blob and download
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-    const link = document.createElement('a')
-    const url = URL.createObjectURL(blob)
-
-    link.setAttribute('href', url)
-    link.setAttribute('download', `habit_data_${exportStartDate.value}_to_${exportEndDate.value}.csv`)
-    link.style.visibility = 'hidden'
-
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-  } catch (err) {
-    console.error('Failed to export data:', err)
-    alert('Failed to export data. Please try again.')
-  } finally {
-    isExporting.value = false
   }
 }
 
@@ -947,16 +880,6 @@ const getStrengthLabel = (strength) => {
           ]">
             <BarChart3 :size="20" stroke-width="2.5" />
             <span>Graph</span>
-          </button>
-
-          <button @click="activeTab = 'export'" :class="[
-            'flex-1 flex items-center justify-center gap-2 px-6 py-4 rounded-2xl font-bold transition-all',
-            activeTab === 'export'
-              ? 'bg-indigo-500 text-white shadow-lg'
-              : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700'
-          ]">
-            <Download :size="20" stroke-width="2.5" />
-            <span>Export</span>
           </button>
         </div>
       </div>
@@ -1609,58 +1532,6 @@ const getStrengthLabel = (strength) => {
           </div>
         </div>
       </div>
-
-      <!-- Export Tab -->
-      <div v-show="activeTab === 'export'" class="space-y-6">
-        <!-- Date Range Selector -->
-        <div
-          class="bg-white dark:bg-slate-800 rounded-[3rem] p-8 shadow-lg border border-slate-100 dark:border-slate-700">
-          <h2 class="text-2xl font-black text-slate-900 dark:text-white mb-6">Date Range</h2>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-            <div class="space-y-2">
-              <label class="text-xs font-black uppercase tracking-widest text-slate-400 ml-2">Start Date</label>
-              <input v-model="exportStartDate" type="date"
-                class="w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-50 dark:border-slate-700 rounded-2xl px-6 py-4 focus:bg-white dark:focus:bg-slate-600 focus:border-indigo-500 transition outline-none font-bold text-slate-900 dark:text-white" />
-            </div>
-            <div class="space-y-2">
-              <label class="text-xs font-black uppercase tracking-widest text-slate-400 ml-2">End Date</label>
-              <input v-model="exportEndDate" type="date"
-                class="w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-50 dark:border-slate-700 rounded-2xl px-6 py-4 focus:bg-white dark:focus:bg-slate-600 focus:border-indigo-500 transition outline-none font-bold text-slate-900 dark:text-white" />
-            </div>
-          </div>
-
-          <!-- Year Shortcuts -->
-          <div class="pt-4 border-t border-slate-100 dark:border-slate-700">
-            <p class="text-xs font-black uppercase tracking-widest text-slate-400 ml-2 mb-3">Quick Select</p>
-            <div class="flex gap-3 flex-wrap">
-              <button @click="setAllExportDataRange"
-                class="px-6 py-2.5 bg-indigo-600 text-white rounded-xl font-bold text-sm hover:bg-indigo-700 transition-all shadow-sm active:scale-95">
-                All
-              </button>
-              <button v-for="year in quickSelectYears" :key="year" @click="setExportYearRange(year)"
-                class="px-6 py-2.5 bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-white rounded-xl font-bold text-sm hover:bg-slate-200 dark:hover:bg-slate-600 transition-all shadow-sm active:scale-95">
-                {{ year }}
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Export Button -->
-        <div
-          class="bg-white dark:bg-slate-800 rounded-[3rem] p-8 shadow-lg border border-slate-100 dark:border-slate-700">
-          <h3 class="text-xl font-black text-slate-900 dark:text-white mb-6 uppercase tracking-tight">Export Data</h3>
-          <p class="text-slate-500 dark:text-slate-400 mb-6">
-            Export all habit completion data for the selected date range as a CSV file. Each row represents a habit, and
-            each column represents a day.
-          </p>
-          <button @click="exportToCSV" :disabled="isExporting"
-            class="px-12 py-6 bg-green-600 text-white rounded-2xl font-bold hover:bg-green-700 transition-all shadow-lg active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-3">
-            <RefreshCw v-if="isExporting" :size="20" class="animate-spin" />
-            <Download v-else :size="20" stroke-width="2.5" />
-            {{ isExporting ? 'Exporting...' : 'Export Data' }}
-          </button>
-        </div>
-      </div>
     </div>
 
     <!-- Footer -->
@@ -1684,6 +1555,13 @@ const getStrengthLabel = (strength) => {
           class="flex items-center gap-2 px-6 py-3 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl font-bold hover:bg-slate-200 dark:hover:bg-slate-600 transition-all shadow-sm active:scale-95">
           <Settings :size="18" stroke-width="2.5" />
           <span class="text-sm">Admin Settings</span>
+        </button>
+
+        <!-- Export Button -->
+        <button @click="goToExport"
+          class="flex items-center gap-2 px-6 py-3 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl font-bold transition-all shadow-sm active:scale-95">
+          <Download :size="18" stroke-width="2.5" />
+          <span class="text-sm">Export</span>
         </button>
       </div>
 
