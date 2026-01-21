@@ -6,7 +6,7 @@ import authService from '../services/auth'
 import { useDarkMode } from '../composables/useDarkMode'
 import { useLanguage } from '../composables/useLanguage'
 import * as LucideIcons from 'lucide-vue-next'
-import { Plus, X, ChevronDown, CheckCircle2, RefreshCw, Save, Star, Moon, Sun, GripVertical, BarChart3, FileText, Download, Calendar, Settings, Languages, Check } from 'lucide-vue-next'
+import { Plus, X, ChevronDown, CheckCircle2, RefreshCw, Save, Star, Moon, Sun, GripVertical, BarChart3, FileText, Download, Calendar, Settings, Languages, Check, User, ArrowLeft, Trash2, Mail, Lock, Database } from 'lucide-vue-next'
 import { Chart, registerables } from 'chart.js'
 import 'chartjs-adapter-date-fns'
 
@@ -47,13 +47,13 @@ const graphEndDate = ref('')
 const chartInstances = ref({
   boolean: null,
   counter: null,
-  timer: null,
+  value: null,
   rating: null
 })
 const graphData = ref({
   boolean: [],
   counter: [],
-  timer: [],
+  value: [],
   rating: []
 })
 
@@ -61,10 +61,31 @@ const graphData = ref({
 const summaryData = ref({
   boolean: [],
   counter: [],
-  timer: [],
+  value: [],
   rating: []
 })
 const isFetchingSummary = ref(false)
+
+// Profile state
+const userInfo = ref({
+  username: '',
+  email: '',
+  is_staff: false,
+  is_superuser: false
+})
+const profileData = ref({
+  email: '',
+  current_password: ''
+})
+const newPassword = ref('')
+const confirmPassword = ref('')
+const isSavingCategory = ref(false)
+const isDeletingCategory = ref(null)
+const isSavingProfile = ref(false)
+const profileSaved = ref(false)
+const passwordUpdateSuccess = ref(false)
+const newCategoryName = ref('')
+const editingCategory = ref(null)
 
 // Computed property for dynamic years
 const quickSelectYears = computed(() => {
@@ -348,6 +369,158 @@ const goToExport = () => {
   router.push('/export')
 }
 
+// Fetch user info
+const fetchUserInfo = async () => {
+  try {
+    const res = await api.get('auth/user/')
+    userInfo.value = res.data
+    profileData.value.email = res.data.email
+  } catch (err) {
+    console.error('Failed to fetch user info:', err)
+  }
+}
+
+// Update profile
+const updateProfile = async () => {
+  isSavingProfile.value = true
+  const startTime = Date.now()
+
+  try {
+    // Update email
+    if (profileData.value.email !== userInfo.value.email) {
+      await api.post('auth/user/', {
+        email: profileData.value.email
+      })
+    }
+
+    // Update password if provided
+    if (newPassword.value && confirmPassword.value) {
+      if (newPassword.value !== confirmPassword.value) {
+        alert('Passwords do not match')
+        isSavingProfile.value = false
+        return
+      }
+
+      if (!profileData.value.current_password) {
+        alert('Current password is required to change password')
+        isSavingProfile.value = false
+        return
+      }
+
+      await api.post('auth/password/change/', {
+        old_password: profileData.value.current_password,
+        new_password1: newPassword.value,
+        new_password2: confirmPassword.value
+      })
+
+      newPassword.value = ''
+      confirmPassword.value = ''
+      profileData.value.current_password = ''
+      passwordUpdateSuccess.value = true
+
+      // Hide success message after 3 seconds
+      setTimeout(() => {
+        passwordUpdateSuccess.value = false
+      }, 3000)
+    }
+
+    // Ensure spinner shows for at least 500ms for better UX
+    const elapsedTime = Date.now() - startTime
+    const remainingTime = Math.max(0, 500 - elapsedTime)
+
+    await new Promise(resolve => setTimeout(resolve, remainingTime))
+
+    // Set saved state to true
+    profileSaved.value = true
+
+    // Refresh user info
+    await fetchUserInfo()
+
+    // Hide saved message after 3 seconds
+    setTimeout(() => {
+      profileSaved.value = false
+    }, 3000)
+  } catch (err) {
+    console.error('Failed to update profile:', err)
+    if (err.response?.status === 400) {
+      alert(`Error: ${Object.values(err.response.data).join(', ')}`)
+    } else {
+      alert('Failed to update profile. Please check console for details.')
+    }
+  } finally {
+    isSavingProfile.value = false
+  }
+}
+
+// Add new category
+const addCategory = async () => {
+  if (!newCategoryName.value.trim()) return
+
+  isSavingCategory.value = true
+  try {
+    await api.post('categories/', {
+      name: newCategoryName.value,
+      order: categories.value.length
+    })
+
+    newCategoryName.value = ''
+    await fetchCategories()
+  } catch (err) {
+    console.error('Failed to add category:', err)
+    alert('Failed to add category')
+  } finally {
+    isSavingCategory.value = false
+  }
+}
+
+// Delete category
+const deleteCategory = async (categoryId) => {
+  if (!confirm('Are you sure you want to delete this category? Habits in this category will become uncategorized.')) {
+    return
+  }
+
+  isDeletingCategory.value = categoryId
+  try {
+    await api.delete(`categories/${categoryId}/`)
+    await fetchCategories()
+  } catch (err) {
+    console.error('Failed to delete category:', err)
+    alert('Failed to delete category')
+  } finally {
+    isDeletingCategory.value = null
+  }
+}
+
+// Update category name
+const updateCategory = async (category) => {
+  if (!category.name.trim()) return
+
+  try {
+    await api.patch(`categories/${category.id}/`, {
+      name: category.name
+    })
+    editingCategory.value = null
+  } catch (err) {
+    console.error('Failed to update category:', err)
+    alert('Failed to update category')
+  }
+}
+
+// Delete habit
+const deleteHabit = async (habitId) => {
+  if (!confirm('Are you sure you want to delete this habit? All completion data will be permanently deleted.')) {
+    return
+  }
+
+  try {
+    await api.delete(`habits/${habitId}/`)
+    habits.value = habits.value.filter(h => h.id !== habitId)
+  } catch (err) {
+    console.error('Failed to delete habit:', err)
+    alert('Failed to delete habit')
+  }
+}
+
 const selectLanguage = (langCode) => {
   setLanguage(langCode)
   isLanguageDropdownOpen.value = false
@@ -468,7 +641,11 @@ const handleDrop = (e, targetCategoryId) => {
 }
 
 const getIcon = (iconName) => {
-  const searchName = iconName.toLowerCase();
+  // Convert hyphen-separated names to camelCase
+  // e.g., "arrow-right" becomes "arrowRight"
+  const camelCaseName = iconName.replace(/-([a-z])/g, (match, letter) => letter.toUpperCase());
+
+  const searchName = camelCaseName.toLowerCase();
   const key = Object.keys(LucideIcons).find(
     (k) => k.toLowerCase() === searchName
   );
@@ -581,7 +758,7 @@ const fetchGraphData = async () => {
     graphData.value = {
       boolean: fillMissingDates(response.data.boolean || [], graphStartDate.value, graphEndDate.value),
       counter: fillMissingDates(response.data.counter || [], graphStartDate.value, graphEndDate.value),
-      timer: fillMissingDates(response.data.timer || [], graphStartDate.value, graphEndDate.value),
+      value: fillMissingDates(response.data.value || [], graphStartDate.value, graphEndDate.value),
       rating: fillMissingDates(response.data.rating || [], graphStartDate.value, graphEndDate.value)
     }
 
@@ -594,7 +771,7 @@ const fetchGraphData = async () => {
 
 // Render all charts
 const renderCharts = () => {
-  const habitTypes = ['boolean', 'counter', 'timer', 'rating']
+  const habitTypes = ['boolean', 'counter', 'value', 'rating']
 
   habitTypes.forEach(type => {
     const canvasId = `chart-${type}`
@@ -734,8 +911,15 @@ watch(activeTab, (newTab) => {
   } else if (newTab === 'summary') {
     fetchSummaryData()
     fetchInsightsData()
+  } else if (newTab === 'profile') {
+    fetchUserInfo()
   }
 })
+
+// Watch for changes to profile to reset saved state
+watch(profileData, () => {
+  profileSaved.value = false
+}, { deep: true })
 
 onMounted(() => {
   fetchCategories()
@@ -880,6 +1064,16 @@ const getStrengthLabel = (strength) => {
           ]">
             <BarChart3 :size="20" stroke-width="2.5" />
             <span>Graph</span>
+          </button>
+
+          <button @click="activeTab = 'profile'" :class="[
+            'flex-1 flex items-center justify-center gap-2 px-6 py-4 rounded-2xl font-bold transition-all',
+            activeTab === 'profile'
+              ? 'bg-indigo-500 text-white shadow-lg'
+              : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700'
+          ]">
+            <User :size="20" stroke-width="2.5" />
+            <span>Profile</span>
           </button>
         </div>
       </div>
@@ -1031,8 +1225,8 @@ const getStrengthLabel = (strength) => {
                   </button>
                 </div>
 
-                <!-- Timer Type -->
-                <div v-else-if="habit.habit_type === 'timer'" class="flex gap-3">
+                <!-- Value Type -->
+                <div v-else-if="habit.habit_type === 'value'" class="flex gap-3">
                   <div class="relative flex-1">
                     <input type="number" v-model="habit.temp_value" placeholder="0.0" step="0.1" min="0"
                       class="w-full p-4 bg-slate-50 dark:bg-slate-700 border border-slate-100 dark:border-slate-600 rounded-2xl font-bold outline-none focus:ring-2 text-slate-900 dark:text-white"
@@ -1207,15 +1401,15 @@ const getStrengthLabel = (strength) => {
             </div>
           </div>
 
-          <!-- Timer Habits -->
-          <div v-if="summaryData.timer.length > 0">
+          <!-- Value Habits -->
+          <div v-if="summaryData.value.length > 0">
             <h3
               class="text-2xl font-black text-slate-900 dark:text-white mb-4 uppercase tracking-tight flex items-center gap-3">
               <div class="w-2 h-8 bg-orange-500 rounded-full"></div>
-              Timer Habits
+              Value Habits
             </h3>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              <div v-for="habit in summaryData.timer" :key="habit.habit_id"
+              <div v-for="habit in summaryData.value" :key="habit.habit_id"
                 class="bg-white dark:bg-slate-800 rounded-4xl p-6 shadow-lg border border-slate-100 dark:border-slate-700 hover:shadow-xl transition-all">
                 <div class="flex items-center gap-3 mb-4">
                   <div class="p-3 rounded-2xl" :style="{ backgroundColor: habit.color + '20' }">
@@ -1234,21 +1428,21 @@ const getStrengthLabel = (strength) => {
                 <div class="space-y-3">
                   <div class="text-center p-4 rounded-2xl" :style="{ backgroundColor: habit.color + '10' }">
                     <div class="text-4xl font-black" :style="{ color: habit.color }">
-                      {{ habit.metrics.total_hours }}h
+                      {{ habit.metrics.total }} {{ habit.metrics.unit || '' }}
                     </div>
-                    <div class="text-xs font-bold text-slate-400 uppercase tracking-wide mt-1">Total Hours</div>
+                    <div class="text-xs font-bold text-slate-400 uppercase tracking-wide mt-1">Total</div>
                   </div>
 
                   <div class="grid grid-cols-2 gap-3">
                     <div class="text-center p-3 bg-slate-50 dark:bg-slate-700 rounded-xl">
                       <div class="text-xl font-black text-slate-900 dark:text-white">
-                        {{ habit.metrics.average_hours }}h
+                        {{ habit.metrics.average }} {{ habit.metrics.unit || '' }}
                       </div>
                       <div class="text-xs font-bold text-slate-400 uppercase tracking-wide">Avg/Day</div>
                     </div>
                     <div class="text-center p-3 bg-slate-50 dark:bg-slate-700 rounded-xl">
                       <div class="text-xl font-black text-slate-900 dark:text-white">
-                        {{ habit.metrics.max_session }}h
+                        {{ habit.metrics.max_value }} {{ habit.metrics.unit || '' }}
                       </div>
                       <div class="text-xs font-bold text-slate-400 uppercase tracking-wide">Longest</div>
                     </div>
@@ -1319,7 +1513,7 @@ const getStrengthLabel = (strength) => {
 
           <!-- Insights Section -->
           <div
-            v-if="!isFetchingSummary && (summaryData.boolean.length > 0 || summaryData.counter.length > 0 || summaryData.timer.length > 0 || summaryData.rating.length > 0)"
+            v-if="!isFetchingSummary && (summaryData.boolean.length > 0 || summaryData.counter.length > 0 || summaryData.value.length > 0 || summaryData.rating.length > 0)"
             class="mt-12">
             <!-- Insights Header -->
             <div class="bg-linear-to-r from-indigo-500 to-purple-600 rounded-[3rem] p-12 shadow-xl mb-6">
@@ -1435,7 +1629,7 @@ const getStrengthLabel = (strength) => {
 
           <!-- Empty State -->
           <div
-            v-if="summaryData.boolean.length === 0 && summaryData.counter.length === 0 && summaryData.timer.length === 0 && summaryData.rating.length === 0"
+            v-if="summaryData.boolean.length === 0 && summaryData.counter.length === 0 && summaryData.value.length === 0 && summaryData.rating.length === 0"
             class="bg-white dark:bg-slate-800 rounded-[3rem] p-16 shadow-lg border border-slate-100 dark:border-slate-700 text-center">
             <div class="text-6xl mb-4">📊</div>
             <h3 class="text-2xl font-black text-slate-900 dark:text-white mb-2">No Data Yet</h3>
@@ -1508,15 +1702,15 @@ const getStrengthLabel = (strength) => {
           </div>
         </div>
 
-        <!-- Timer Habits Chart -->
+        <!-- Value Habits Chart -->
         <div
           class="bg-white dark:bg-slate-800 rounded-[3rem] p-8 shadow-lg border border-slate-100 dark:border-slate-700">
-          <h3 class="text-xl font-black text-slate-900 dark:text-white mb-6 uppercase tracking-tight">Timer Habits</h3>
-          <div class="h-80 flex items-center justify-center" v-if="!graphData.timer || graphData.timer.length === 0">
+          <h3 class="text-xl font-black text-slate-900 dark:text-white mb-6 uppercase tracking-tight">Value Habits</h3>
+          <div class="h-80 flex items-center justify-center" v-if="!graphData.value || graphData.value.length === 0">
             <p class="text-slate-400 dark:text-slate-500 font-medium text-lg">No data for this date & time range</p>
           </div>
           <div class="h-80" v-else>
-            <canvas id="chart-timer"></canvas>
+            <canvas id="chart-value"></canvas>
           </div>
         </div>
 
@@ -1529,6 +1723,215 @@ const getStrengthLabel = (strength) => {
           </div>
           <div class="h-80" v-else>
             <canvas id="chart-rating"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Profile Tab -->
+      <div v-show="activeTab === 'profile'" class="space-y-6">
+        <!-- Account Information -->
+        <div
+          class="bg-white dark:bg-slate-800 rounded-[3rem] p-8 shadow-lg border border-slate-100 dark:border-slate-700">
+          <div class="flex items-center gap-3 mb-6">
+            <div class="p-3 bg-indigo-100 dark:bg-indigo-900/30 rounded-2xl">
+              <User :size="24" class="text-indigo-600 dark:text-indigo-400" stroke-width="2.5" />
+            </div>
+            <h2 class="text-2xl font-black text-slate-900 dark:text-white">Account Information</h2>
+          </div>
+
+          <div class="space-y-4">
+            <div class="flex items-center gap-4 p-4 bg-slate-50 dark:bg-slate-700 rounded-2xl">
+              <User :size="20" class="text-slate-400" />
+              <div>
+                <p class="text-xs font-black uppercase tracking-widest text-slate-400">Username</p>
+                <p class="font-bold text-slate-900 dark:text-white">{{ userInfo.username || 'Loading...'
+                }}</p>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-4 p-4 bg-slate-50 dark:bg-slate-700 rounded-2xl">
+              <Mail :size="20" class="text-slate-400" />
+              <div>
+                <p class="text-xs font-black uppercase tracking-widest text-slate-400">Email</p>
+                <input v-model="profileData.email" type="email"
+                  class="font-bold text-slate-900 dark:text-white bg-transparent border-b-2 border-indigo-500 focus:outline-none w-full" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Password Management -->
+        <div
+          class="bg-white dark:bg-slate-800 rounded-[3rem] p-8 shadow-lg border border-slate-100 dark:border-slate-700">
+          <div class="flex items-center gap-3 mb-6">
+            <div class="p-3 bg-orange-100 dark:bg-orange-900/30 rounded-2xl">
+              <Lock :size="24" class="text-orange-600 dark:text-orange-400" stroke-width="2.5" />
+            </div>
+            <h2 class="text-2xl font-black text-slate-900 dark:text-white">Change Password</h2>
+          </div>
+
+          <div class="space-y-4">
+            <div>
+              <label class="text-xs font-black uppercase tracking-widest text-slate-400 ml-2 mb-2 block">
+                Current Password
+              </label>
+              <input v-model="profileData.current_password" type="password" placeholder="Enter current password"
+                class="w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-50 dark:border-slate-700 rounded-2xl px-6 py-4 focus:bg-white dark:focus:bg-slate-600 focus:border-orange-500 transition outline-none font-bold text-slate-900 dark:text-white" />
+            </div>
+
+            <div>
+              <label class="text-xs font-black uppercase tracking-widest text-slate-400 ml-2 mb-2 block">
+                New Password
+              </label>
+              <input v-model="newPassword" type="password" placeholder="Enter new password"
+                class="w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-50 dark:border-slate-700 rounded-2xl px-6 py-4 focus:bg-white dark:focus:bg-slate-600 focus:border-orange-500 transition outline-none font-bold text-slate-900 dark:text-white" />
+            </div>
+
+            <div>
+              <label class="text-xs font-black uppercase tracking-widest text-slate-400 ml-2 mb-2 block">
+                Confirm Password
+              </label>
+              <input v-model="confirmPassword" type="password" placeholder="Confirm new password"
+                class="w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-50 dark:border-slate-700 rounded-2xl px-6 py-4 focus:bg-white dark:focus:bg-slate-600 focus:border-orange-500 transition outline-none font-bold text-slate-900 dark:text-white" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Save Button -->
+        <button @click="updateProfile" :disabled="isSavingProfile || profileSaved" :class="[
+          'w-full px-8 py-4 rounded-2xl font-bold transition-all shadow-md active:scale-95 disabled:cursor-not-allowed flex items-center justify-center gap-2',
+          profileSaved
+            ? 'bg-green-600 text-white'
+            : 'bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50'
+        ]">
+          <RefreshCw v-if="isSavingProfile" :size="20" class="animate-spin" />
+          <CheckCircle2 v-else-if="profileSaved" :size="20" stroke-width="2.5" />
+          <Save v-else :size="20" stroke-width="2.5" />
+          {{ isSavingProfile ? 'Saving...' : profileSaved ? 'Profile Saved' : 'Save Profile' }}
+        </button>
+
+        <!-- Category Management -->
+        <div
+          class="bg-white dark:bg-slate-800 rounded-[3rem] p-8 shadow-lg border border-slate-100 dark:border-slate-700">
+          <div class="flex items-center gap-3 mb-6">
+            <div class="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-2xl">
+              <Database :size="24" class="text-purple-600 dark:text-purple-400" stroke-width="2.5" />
+            </div>
+            <h2 class="text-2xl font-black text-slate-900 dark:text-white">Manage Categories</h2>
+          </div>
+
+          <!-- Add New Category -->
+          <div class="mb-6">
+            <label class="text-xs font-black uppercase tracking-widest text-slate-400 ml-2 mb-2 block">
+              Add New Category
+            </label>
+            <div class="flex gap-3">
+              <input v-model="newCategoryName" @keyup.enter="addCategory" type="text" placeholder="Enter category name"
+                class="flex-1 bg-slate-50 dark:bg-slate-700 border-2 border-slate-50 dark:border-slate-700 rounded-2xl px-6 py-4 focus:bg-white dark:focus:bg-slate-600 focus:border-indigo-500 transition outline-none font-bold text-slate-900 dark:text-white" />
+              <button @click="addCategory" :disabled="isSavingCategory || !newCategoryName.trim()"
+                class="px-8 py-4 bg-indigo-600 text-white rounded-2xl font-bold hover:bg-indigo-700 transition-all shadow-md active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
+                <Plus :size="20" stroke-width="2.5" />
+                Add
+              </button>
+            </div>
+          </div>
+
+          <!-- Existing Categories -->
+          <div class="space-y-3">
+            <p class="text-xs font-black uppercase tracking-widest text-slate-400 ml-2 mb-3">
+              Existing Categories ({{ categories.length }})
+            </p>
+
+            <div v-if="categories.length === 0" class="text-center py-8 text-slate-400 dark:text-slate-500">
+              No categories yet. Add your first category above.
+            </div>
+
+            <div v-for="category in categories" :key="category.id"
+              class="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-700 rounded-2xl hover:shadow-md transition-all">
+              <div class="flex-1" v-if="editingCategory !== category.id">
+                <p class="font-bold text-slate-900 dark:text-white">{{ category.name }}</p>
+              </div>
+
+              <input v-else v-model="category.name" @keyup.enter="updateCategory(category)"
+                @keyup.esc="editingCategory = null" type="text"
+                class="flex-1 bg-white dark:bg-slate-600 border-2 border-indigo-500 rounded-xl px-4 py-2 font-bold outline-none text-slate-900 dark:text-white"
+                autofocus />
+
+              <div class="flex gap-2 ml-4">
+                <button v-if="editingCategory !== category.id" @click="editingCategory = category.id"
+                  class="px-4 py-2 bg-slate-200 dark:bg-slate-600 text-slate-700 dark:text-slate-300 rounded-xl font-bold hover:bg-slate-300 dark:hover:bg-slate-500 transition-all text-sm">
+                  Edit
+                </button>
+
+                <button v-else @click="updateCategory(category)"
+                  class="px-4 py-2 bg-green-600 text-white rounded-xl font-bold hover:bg-green-700 transition-all text-sm flex items-center gap-1">
+                  <Save :size="16" />
+                  Save
+                </button>
+
+                <button v-if="editingCategory === category.id" @click="editingCategory = null"
+                  class="px-4 py-2 bg-slate-300 dark:bg-slate-600 text-slate-700 dark:text-slate-300 rounded-xl font-bold hover:bg-slate-400 dark:hover:bg-slate-500 transition-all text-sm">
+                  Cancel
+                </button>
+
+                <button @click="deleteCategory(category.id)" :disabled="isDeletingCategory === category.id"
+                  class="px-4 py-2 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-xl font-bold hover:bg-red-200 dark:hover:bg-red-900/50 transition-all text-sm flex items-center gap-1 disabled:opacity-50">
+                  <Trash2 :size="16" />
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Manage Habits -->
+        <div
+          class="bg-white dark:bg-slate-800 rounded-[3rem] p-8 shadow-lg border border-slate-100 dark:border-slate-700">
+          <div class="flex items-center gap-3 mb-6">
+            <div class="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-2xl">
+              <CheckCircle2 :size="24" class="text-blue-600 dark:text-blue-400" stroke-width="2.5" />
+            </div>
+            <h2 class="text-2xl font-black text-slate-900 dark:text-white">Manage Habits</h2>
+          </div>
+
+          <!-- Existing Habits -->
+          <div class="space-y-3">
+            <p class="text-xs font-black uppercase tracking-widest text-slate-400 ml-2 mb-3">
+              Your Habits ({{ habits.length }})
+            </p>
+
+            <div v-if="habits.length === 0" class="text-center py-8 text-slate-400 dark:text-slate-500">
+              No habits yet. Create your first habit using the "+ Add Habit" button at the top.
+            </div>
+
+            <div v-for="habit in habits" :key="habit.id"
+              class="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-700 rounded-2xl hover:shadow-md transition-all">
+              <div class="flex items-center gap-4 flex-1">
+                <div class="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center"
+                  :style="{ backgroundColor: habit.color + '20' }">
+                  <component :is="getIcon(habit.icon)" :size="20" :style="{ color: habit.color }" stroke-width="2.5" />
+                </div>
+                <div class="flex-1">
+                  <p class="font-bold text-slate-900 dark:text-white">{{ habit.name }}</p>
+                  <div class="flex gap-2 mt-1">
+                    <span
+                      class="text-xs px-2 py-1 rounded-full bg-slate-200 dark:bg-slate-600 text-slate-700 dark:text-slate-300 font-bold">
+                      {{ habit.habit_type }}
+                    </span>
+                    <span v-if="habit.category"
+                      class="text-xs px-2 py-1 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 font-bold">
+                      {{ habit.category.name }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <button @click="deleteHabit(habit.id)"
+                class="px-4 py-2 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-xl font-bold hover:bg-red-200 dark:hover:bg-red-900/50 transition-all text-sm flex items-center gap-1 flex-shrink-0 ml-4">
+                <Trash2 :size="16" />
+                Delete
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -1602,7 +2005,7 @@ const getStrengthLabel = (strength) => {
                   class="w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-50 dark:border-slate-700 rounded-3xl px-6 py-4 font-bold outline-none appearance-none text-slate-900 dark:text-white">
                   <option value="boolean">Boolean</option>
                   <option value="counter">Counter</option>
-                  <option value="timer">Timer</option>
+                  <option value="value">Value</option>
                   <option value="rating">Rating</option>
                 </select>
               </div>

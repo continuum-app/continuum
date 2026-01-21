@@ -25,7 +25,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('name', models.CharField(max_length=100)),
-                ('habit_type', models.CharField(choices=[('boolean', 'Yes/No'), ('counter', 'Counter'), ('timer', 'Time Duration'), ('rating', 'Rating')], default='boolean', max_length=10)),
+                ('habit_type', models.CharField(choices=[('boolean', 'Yes/No'), ('counter', 'Counter'), ('value', 'Decimal Value'), ('rating', 'Rating')], default='boolean', max_length=10)),
                 ('icon', models.CharField(default='calendar', max_length=50)),
                 ('color', models.CharField(default='#1F85DE', max_length=20)),
                 ('max_value', models.IntegerField(blank=True, default=0, null=True)),

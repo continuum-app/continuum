@@ -15,7 +15,7 @@ export const translations = {
     // Habit Types
     boolean: 'Boolean',
     counter: 'Counter',
-    timer: 'Timer',
+    value: 'Value',
     rating: 'Rating',
     
     // Actions
@@ -43,7 +43,7 @@ export const translations = {
     endDate: 'End Date',
     booleanHabits: 'Boolean Habits',
     counterHabits: 'Counter Habits',
-    timerHabits: 'Timer Habits',
+    valueHabits: 'Value Habits',
     ratingHabits: 'Rating Habits',
     noData: 'No data for this date & time range',
     
@@ -79,7 +79,7 @@ export const translations = {
     // Habit Types
     boolean: 'Booléen',
     counter: 'Compteur',
-    timer: 'Minuteur',
+    value: 'Valeur',
     rating: 'Évaluation',
     
     // Actions
@@ -107,7 +107,7 @@ export const translations = {
     endDate: 'Date de Fin',
     booleanHabits: 'Habitudes Booléennes',
     counterHabits: 'Habitudes Compteur',
-    timerHabits: 'Habitudes Minuteur',
+    valueHabits: 'Habitudes Minuteur',
     ratingHabits: 'Habitudes Évaluation',
     noData: 'Aucune donnée pour cette plage de dates',
     
@@ -143,7 +143,7 @@ export const translations = {
     // Habit Types
     boolean: 'Booleano',
     counter: 'Contador',
-    timer: 'Temporizador',
+    value: 'Valor',
     rating: 'Calificación',
     
     // Actions
@@ -171,7 +171,7 @@ export const translations = {
     endDate: 'Fecha de Fin',
     booleanHabits: 'Hábitos Booleanos',
     counterHabits: 'Hábitos Contador',
-    timerHabits: 'Hábitos Temporizador',
+    valueHabits: 'Hábitos Temporizador',
     ratingHabits: 'Hábitos Calificación',
     noData: 'No hay datos para este rango de fechas',
     
@@ -207,7 +207,7 @@ export const translations = {
     // Habit Types
     boolean: 'Boolean',
     counter: 'Zähler',
-    timer: 'Timer',
+    value: 'Wert',
     rating: 'Bewertung',
     
     // Actions
@@ -235,7 +235,7 @@ export const translations = {
     endDate: 'Enddatum',
     booleanHabits: 'Boolean Gewohnheiten',
     counterHabits: 'Zähler Gewohnheiten',
-    timerHabits: 'Timer Gewohnheiten',
+    valueHabits: 'Wert Gewohnheiten',
     ratingHabits: 'Bewertungs Gewohnheiten',
     noData: 'Keine Daten für diesen Datumsbereich',
     
@@ -271,7 +271,7 @@ export const translations = {
     // Habit Types
     boolean: 'Booleano',
     counter: 'Contador',
-    timer: 'Temporizador',
+    value: 'Valor',
     rating: 'Avaliação',
     
     // Actions
@@ -299,7 +299,7 @@ export const translations = {
     endDate: 'Data de Término',
     booleanHabits: 'Hábitos Booleanos',
     counterHabits: 'Hábitos Contador',
-    timerHabits: 'Hábitos Temporizador',
+    valueHabits: 'Hábitos Temporizador',
     ratingHabits: 'Hábitos Avaliação',
     noData: 'Sem dados para este intervalo de datas',
     
@@ -335,7 +335,7 @@ export const translations = {
     // Habit Types
     boolean: '布尔',
     counter: '计数器',
-    timer: '计时器',
+    value: '值',
     rating: '评分',
     
     // Actions
@@ -363,7 +363,7 @@ export const translations = {
     endDate: '结束日期',
     booleanHabits: '布尔习惯',
     counterHabits: '计数器习惯',
-    timerHabits: '计时器习惯',
+    valueHabits: '计时器习惯',
     ratingHabits: '评分习惯',
     noData: '此日期范围内无数据',
     
@@ -399,7 +399,7 @@ export const translations = {
     // Habit Types
     boolean: 'ブール',
     counter: 'カウンター',
-    timer: 'タイマー',
+    value: '値',
     rating: '評価',
     
     // Actions
@@ -427,7 +427,7 @@ export const translations = {
     endDate: '終了日',
     booleanHabits: 'ブール習慣',
     counterHabits: 'カウンター習慣',
-    timerHabits: 'タイマー習慣',
+    valueHabits: 'タイマー習慣',
     ratingHabits: '評価習慣',
     noData: 'この日付範囲のデータはありません',
     

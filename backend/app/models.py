@@ -20,7 +20,7 @@ class Habit(models.Model):
     TYPE_CHOICES = [
         ("boolean", "Yes/No"),
         ("counter", "Counter"),
-        ("timer", "Time Duration"),
+        ("value", "Decimal Value"),
         ("rating", "Rating"),
     ]
     name = models.CharField(max_length=100)
@@ -39,6 +39,10 @@ class Habit(models.Model):
     icon = models.CharField(max_length=50, default="calendar")
     color = models.CharField(max_length=20, default="#1F85DE")
     max_value = models.IntegerField(null=True, blank=True)
+    unit = models.CharField(
+        max_length=50, null=True, blank=True,
+        help_text="Optional unit for value habit (e.g., 'km', 'miles', 'hours')"
+    )
 
     class Meta:
         ordering = ["name"]

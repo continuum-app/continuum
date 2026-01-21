@@ -130,7 +130,7 @@ class HabitViewSet(viewsets.ModelViewSet):
         habits = self.get_queryset()
 
         # Structure: { habit_type: [{ habit_name, habit_id, color, data: [{ date, value }] }] }
-        result = {"boolean": [], "counter": [], "timer": [], "rating": []}
+        result = {"boolean": [], "counter": [], "value": [], "rating": []}
 
         for habit in habits:
             # Get completions for this habit in the date range
@@ -283,7 +283,7 @@ class HabitViewSet(viewsets.ModelViewSet):
         days_in_range = (end_date - start_date).days
 
         # Structure: { habit_type: [{ habit_name, color, metrics }] }
-        result = {"boolean": [], "counter": [], "timer": [], "rating": []}
+        result = {"boolean": [], "counter": [], "value": [], "rating": []}
 
         for habit in habits:
             # Get completions for this habit in the date range
@@ -317,15 +317,16 @@ class HabitViewSet(viewsets.ModelViewSet):
                     "days_tracked": completion_count,
                     "days_in_range": days_in_range,
                 }
-            elif habit.habit_type == "timer":
-                # For timer: total hours, average, max session
+            elif habit.habit_type == "value":
+                # For value: count, km, hour, etc.
                 values = [float(c.value) for c in completions]
                 metrics = {
-                    "total_hours": round(sum(values), 1),
-                    "average_hours": round(sum(values) / len(values), 1),
-                    "max_session": round(max(values), 1),
+                    "total": round(sum(values), 1),
+                    "average": round(sum(values) / len(values), 1),
+                    "max_value": round(max(values), 1),
                     "days_tracked": completion_count,
                     "days_in_range": days_in_range,
+                    "unit": habit.unit,
                 }
             elif habit.habit_type == "rating":
                 # For rating: average, distribution
