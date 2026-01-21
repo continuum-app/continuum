@@ -3,10 +3,17 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.views import APIView
-from .serializers import HabitSerializer, CategorySerializer, SiteSettingsSerializer
+from .serializers import (
+    HabitSerializer,
+    CategorySerializer,
+    SiteSettingsSerializer,
+    HabitCorrelationSerializer,
+)
 from datetime import date, datetime, timedelta
 from .models import Habit, Completion, Category, SiteSettings
 from django.db.models import Q
+from rest_framework.decorators import api_view, permission_classes
+from .models import HabitCorrelation
 
 
 class CategoryViewSet(viewsets.ModelViewSet):
@@ -466,3 +473,338 @@ class SiteSettingsViewSet(viewsets.ModelViewSet):
         """Public endpoint to check if registration is allowed - no authentication required"""
         settings = SiteSettings.get_settings()
         return Response({"allow_registration": settings.allow_registration})
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def habit_insights(request):
+    """
+    Get correlation insights for the current user.
+    Returns the top correlated habit pairs.
+
+    Query Parameters:
+    - limit: Number of insights to return (default: 5)
+    - min_correlation: Minimum correlation threshold (default: 0.5)
+
+    Example:
+    GET /api/habits/insights/?limit=10&min_correlation=0.6
+    """
+    user = request.user
+
+    # Get query parameters with defaults
+    try:
+        limit = int(request.GET.get("limit", 5))
+        limit = max(1, min(limit, 50))  # Clamp between 1 and 50
+    except ValueError:
+        limit = 5
+
+    try:
+        min_correlation = float(request.GET.get("min_correlation", 0.5))
+        min_correlation = max(0.0, min(min_correlation, 1.0))  # Clamp between 0 and 1
+    except ValueError:
+        min_correlation = 0.5
+
+    # Fetch correlations for this user
+    correlations = (
+        HabitCorrelation.objects.filter(
+            user=user, correlation_coefficient__gte=min_correlation
+        )
+        .select_related("habit1", "habit1__category", "habit2", "habit2__category")
+        .order_by("-correlation_coefficient")[:limit]
+    )
+
+    # Serialize the data
+    serializer = HabitCorrelationSerializer(correlations, many=True)
+
+    return Response(
+        {
+            "insights": serializer.data,
+            "count": len(serializer.data),
+            "filters": {"min_correlation": min_correlation, "limit": limit},
+        }
+    )
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def habit_insights_for_habit(request, habit_id):
+    """
+    Get correlations for a specific habit.
+    Shows which other habits are most correlated with the given habit.
+
+    Example:
+    GET /api/habits/123/insights/
+    """
+    user = request.user
+
+    try:
+        limit = int(request.GET.get("limit", 5))
+        limit = max(1, min(limit, 20))
+    except ValueError:
+        limit = 5
+
+    # Get correlations where the habit appears in either position
+    from django.db.models import Q
+
+    correlations = (
+        HabitCorrelation.objects.filter(user=user)
+        .filter(Q(habit1_id=habit_id) | Q(habit2_id=habit_id))
+        .select_related("habit1", "habit1__category", "habit2", "habit2__category")
+        .order_by("-correlation_coefficient")[:limit]
+    )
+
+    if not correlations.exists():
+        return Response(
+            {
+                "insights": [],
+                "count": 0,
+                "message": "No correlations found for this habit.",
+            }
+        )
+
+    serializer = HabitCorrelationSerializer(correlations, many=True)
+
+    return Response(
+        {
+            "insights": serializer.data,
+            "count": len(serializer.data),
+            "habit_id": habit_id,
+        }
+    )
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def habit_insights_summary(request):
+    """
+    Get summary statistics about correlations for the user.
+
+    Returns:
+    - Total number of correlations computed
+    - Strongest correlation
+    - Distribution by strength
+    - Last update time
+    """
+    user = request.user
+
+    correlations = HabitCorrelation.objects.filter(user=user)
+
+    if not correlations.exists():
+        return Response(
+            {
+                "total_correlations": 0,
+                "has_data": False,
+                "message": "No correlations computed yet. Run the compute_correlations command.",
+            }
+        )
+
+    # Get strongest correlation
+    strongest = correlations.order_by("-correlation_coefficient").first()
+
+    # Count by strength
+    very_strong = correlations.filter(correlation_coefficient__gte=0.9).count()
+    strong = correlations.filter(
+        correlation_coefficient__gte=0.7, correlation_coefficient__lt=0.9
+    ).count()
+    moderate = correlations.filter(
+        correlation_coefficient__gte=0.5, correlation_coefficient__lt=0.7
+    ).count()
+    weak = correlations.filter(correlation_coefficient__lt=0.5).count()
+
+    return Response(
+        {
+            "total_correlations": correlations.count(),
+            "has_data": True,
+            "strongest_correlation": (
+                {
+                    "habit1": strongest.habit1.name,
+                    "habit2": strongest.habit2.name,
+                    "correlation": float(strongest.correlation_coefficient),
+                }
+                if strongest
+                else None
+            ),
+            "distribution": {
+                "very_strong": very_strong,
+                "strong": strong,
+                "moderate": moderate,
+                "weak": weak,
+            },
+            "last_updated": strongest.calculated_at if strongest else None,
+            "date_range": (
+                {"start": strongest.start_date, "end": strongest.end_date}
+                if strongest
+                else None
+            ),
+        }
+    )
+
+
+class HabitCorrelationViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    ViewSet for viewing habit correlations (insights).
+
+    Provides:
+    - list: Get top correlations for current user
+    - retrieve: Get specific correlation by ID
+    - summary: Get correlation statistics
+    - for_habit: Get correlations for a specific habit
+    """
+
+    serializer_class = HabitCorrelationSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        """Return correlations for the current user only."""
+        return (
+            HabitCorrelation.objects.filter(user=self.request.user)
+            .select_related("habit1", "habit1__category", "habit2", "habit2__category")
+            .order_by("-correlation_coefficient")
+        )
+
+    def list(self, request, *args, **kwargs):
+        """
+        Get top correlations for the current user.
+
+        Query Parameters:
+        - limit: Number of insights to return (default: 5, max: 50)
+        - min_correlation: Minimum correlation threshold (default: 0.5)
+
+        Example:
+        GET /api/correlations/?limit=10&min_correlation=0.6
+        """
+        # Get and validate query parameters
+        try:
+            limit = int(request.GET.get("limit", 5))
+            limit = max(1, min(limit, 50))  # Clamp between 1 and 50
+        except ValueError:
+            limit = 5
+
+        try:
+            min_correlation = float(request.GET.get("min_correlation", 0.5))
+            min_correlation = max(
+                0.0, min(min_correlation, 1.0)
+            )  # Clamp between 0 and 1
+        except ValueError:
+            min_correlation = 0.5
+
+        # Filter and limit queryset
+        queryset = self.get_queryset().filter(
+            correlation_coefficient__gte=min_correlation
+        )[:limit]
+
+        # Serialize
+        serializer = self.get_serializer(queryset, many=True)
+
+        return Response(
+            {
+                "insights": serializer.data,
+                "count": len(serializer.data),
+                "filters": {"min_correlation": min_correlation, "limit": limit},
+            }
+        )
+
+    @action(detail=False, methods=["get"])
+    def summary(self, request):
+        """
+        Get summary statistics about correlations for the user.
+
+        Returns:
+        - Total number of correlations computed
+        - Strongest correlation
+        - Distribution by strength
+        - Last update time
+
+        Example:
+        GET /api/correlations/summary/
+        """
+        correlations = self.get_queryset()
+
+        if not correlations.exists():
+            return Response(
+                {
+                    "total_correlations": 0,
+                    "has_data": False,
+                    "message": "No correlations computed yet. Run the compute_correlations command.",
+                }
+            )
+
+        # Get strongest correlation
+        strongest = correlations.first()
+
+        # Count by strength
+        very_strong = correlations.filter(correlation_coefficient__gte=0.9).count()
+        strong = correlations.filter(
+            correlation_coefficient__gte=0.7, correlation_coefficient__lt=0.9
+        ).count()
+        moderate = correlations.filter(
+            correlation_coefficient__gte=0.5, correlation_coefficient__lt=0.7
+        ).count()
+        weak = correlations.filter(correlation_coefficient__lt=0.5).count()
+
+        return Response(
+            {
+                "total_correlations": correlations.count(),
+                "has_data": True,
+                "strongest_correlation": (
+                    {
+                        "habit1": strongest.habit1.name,
+                        "habit2": strongest.habit2.name,
+                        "correlation": float(strongest.correlation_coefficient),
+                    }
+                    if strongest
+                    else None
+                ),
+                "distribution": {
+                    "very_strong": very_strong,
+                    "strong": strong,
+                    "moderate": moderate,
+                    "weak": weak,
+                },
+                "last_updated": strongest.calculated_at if strongest else None,
+                "date_range": (
+                    {"start": strongest.start_date, "end": strongest.end_date}
+                    if strongest
+                    else None
+                ),
+            }
+        )
+
+    @action(detail=False, methods=["get"], url_path="for-habit/(?P<habit_id>[^/.]+)")
+    def for_habit(self, request, habit_id=None):
+        """
+        Get correlations for a specific habit.
+        Shows which other habits are most correlated with the given habit.
+
+        Example:
+        GET /api/correlations/for-habit/123/
+        """
+        try:
+            limit = int(request.GET.get("limit", 5))
+            limit = max(1, min(limit, 20))
+        except ValueError:
+            limit = 5
+
+        # Get correlations where the habit appears in either position
+        correlations = self.get_queryset().filter(
+            Q(habit1_id=habit_id) | Q(habit2_id=habit_id)
+        )[:limit]
+
+        if not correlations.exists():
+            return Response(
+                {
+                    "insights": [],
+                    "count": 0,
+                    "message": "No correlations found for this habit.",
+                }
+            )
+
+        serializer = self.get_serializer(correlations, many=True)
+
+        return Response(
+            {
+                "insights": serializer.data,
+                "count": len(serializer.data),
+                "habit_id": int(habit_id),
+            }
+        )

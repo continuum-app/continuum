@@ -1,19 +1,26 @@
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import HabitViewSet, CategoryViewSet, UserInfoView, SiteSettingsViewSet
 from .custom_views import CustomRegisterView
+from .views import (
+    HabitViewSet,
+    CategoryViewSet,
+    HabitCorrelationViewSet,
+    UserInfoView,
+    SiteSettingsViewSet,
+)
 
 # Create router for API endpoints
 router = DefaultRouter()
 router.register(r"habits", HabitViewSet, basename="habit")
 router.register(r"categories", CategoryViewSet, basename="category")
 router.register(r"settings", SiteSettingsViewSet, basename="settings")
+router.register(r"correlations", HabitCorrelationViewSet, basename="correlation")
 
 urlpatterns = [
     # Django admin
     path("admin/", admin.site.urls),
-    # API routes (habits and categories)
+    # API routes (habits, categories, correlations, etc.)
     path("api/", include(router.urls)),
     # User info endpoint
     path("api/auth/user/", UserInfoView.as_view(), name="user-info"),

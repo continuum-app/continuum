@@ -130,7 +130,18 @@ const trackingDateString = computed(() => {
 
 // --- COMPUTED ---
 const groupedHabits = computed(() => {
+  console.log('🔍 Computing groupedHabits...')
+  console.log('  - Habits:', habits.value.length)
+  console.log('  - Categories:', categories.value.length)
+  console.log('  - Category Order:', categoryOrder.value)
+
   const groups = []
+
+  // If no habits at all, return empty
+  if (habits.value.length === 0) {
+    console.log('  ❌ No habits, returning empty')
+    return groups
+  }
 
   // Create a map of categories by ID for quick lookup
   const categoryMap = new Map()
@@ -138,20 +149,27 @@ const groupedHabits = computed(() => {
     categoryMap.set(cat.id, cat)
   })
 
+  console.log('  - Category Map:', Array.from(categoryMap.keys()))
+
   // Check if uncategorized habits exist
-  const uncategorized = habits.value.filter(h => !h.category)
+  const uncategorized = habits.value.filter(h => !h.category || h.category === null)
   const hasUncategorized = uncategorized.length > 0
+
+  console.log('  - Uncategorized habits:', uncategorized.length)
 
   // Build ordered list based on categoryOrder
   let orderedCategoryIds
-  if (categoryOrder.value.length > 0) {
+
+  if (categoryOrder.value && categoryOrder.value.length > 0) {
     // Use existing order
-    orderedCategoryIds = categoryOrder.value
+    orderedCategoryIds = [...categoryOrder.value]
+    console.log('  - Using saved order:', orderedCategoryIds)
   } else {
     // Create default order: uncategorized first (if exists), then categories
     orderedCategoryIds = hasUncategorized
       ? ['uncategorized', ...categories.value.map(c => c.id)]
       : categories.value.map(c => c.id)
+    console.log('  - Creating default order:', orderedCategoryIds)
   }
 
   // Add groups in order (including uncategorized)
@@ -163,21 +181,30 @@ const groupedHabits = computed(() => {
           name: 'Uncategorized',
           habits: uncategorized
         })
+        console.log('  ✓ Added uncategorized group with', uncategorized.length, 'habits')
       }
     } else {
       const cat = categoryMap.get(id)
       if (cat) {
-        const categoryHabits = habits.value.filter(h => h.category?.id === cat.id)
+        const categoryHabits = habits.value.filter(h => h.category && h.category.id === cat.id)
         if (categoryHabits.length > 0) {
           groups.push({
             id: cat.id,
             name: cat.name,
             habits: categoryHabits
           })
+          console.log('  ✓ Added category', cat.name, 'with', categoryHabits.length, 'habits')
+        } else {
+          console.log('  ⚠️ Category', cat.name, 'has no habits')
         }
+      } else {
+        console.log('  ⚠️ Category ID', id, 'not found in categoryMap')
       }
     }
   })
+
+  console.log('  ✅ Final groups:', groups.length)
+  console.log('  Groups:', groups.map(g => ({ name: g.name, count: g.habits.length })))
 
   return groups
 })
@@ -188,29 +215,18 @@ const fetchCategories = async () => {
     const res = await api.get('categories/')
     categories.value = res.data
 
-    // Sort by order field
-    categories.value.sort((a, b) => (a.order || 0) - (b.order || 0))
-
-    // Try to load saved order from localStorage
-    const savedOrder = localStorage.getItem('categoryOrder')
-    if (savedOrder) {
-      try {
-        categoryOrder.value = JSON.parse(savedOrder)
-        return
-      } catch (e) {
-        console.error('Failed to parse saved order:', e)
+    // Sort by order, use ID as tiebreaker
+    categories.value.sort((a, b) => {
+      if (a.order === b.order) {
+        return a.id - b.id
       }
-    }
+      return (a.order || 0) - (b.order || 0)
+    })
 
-    // No saved order, create default based on database order
+    // Create default order
     categoryOrder.value = categories.value.map(c => c.id)
+    categoryOrder.value.push('uncategorized')
 
-    // Add uncategorized at the end if there are uncategorized habits
-    // Note: We can't check habits.value here if habits aren't loaded yet
-    // So we always add it and let groupedHabits computed filter it out if empty
-    if (!categoryOrder.value.includes('uncategorized')) {
-      categoryOrder.value.push('uncategorized')
-    }
   } catch (err) {
     console.error("Failed to fetch categories:", err)
   }
@@ -740,6 +756,7 @@ watch(activeTab, (newTab) => {
     fetchGraphData()
   } else if (newTab === 'summary') {
     fetchSummaryData()
+    fetchInsightsData()
   }
 })
 
@@ -748,6 +765,53 @@ onMounted(() => {
   fetchHabits()
   initializeDateRange()
 })
+
+// Insights state
+const insightsData = ref([])
+const isFetchingInsights = ref(false)
+
+// Fetch insights data
+const fetchInsightsData = async () => {
+  isFetchingInsights.value = true
+  try {
+    // NEW ENDPOINT: /api/correlations/ instead of /api/habits/insights/
+    const response = await api.get('correlations/', {
+      params: {
+        limit: 5,
+        min_correlation: 0.5
+      }
+    })
+    insightsData.value = response.data.insights
+  } catch (err) {
+    console.error('Failed to fetch insights:', err)
+  } finally {
+    isFetchingInsights.value = false
+  }
+}
+
+// Helper function to get correlation badge color
+const getCorrelationBadgeColor = (strength) => {
+  const colors = {
+    'very_strong': 'bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300',
+    'strong': 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300',
+    'moderate': 'bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300',
+    'weak': 'bg-yellow-100 dark:bg-yellow-900 text-yellow-700 dark:text-yellow-300',
+    'very_weak': 'bg-gray-100 dark:bg-gray-900 text-gray-700 dark:text-gray-300'
+  }
+  return colors[strength] || colors['moderate']
+}
+
+// Helper function to get strength label
+const getStrengthLabel = (strength) => {
+  const labels = {
+    'very_strong': 'Very Strong',
+    'strong': 'Strong',
+    'moderate': 'Moderate',
+    'weak': 'Weak',
+    'very_weak': 'Very Weak'
+  }
+  return labels[strength] || 'Moderate'
+}
 </script>
 
 <template>
@@ -857,6 +921,27 @@ onMounted(() => {
 
       <!-- Tracking Tab -->
       <div v-show="activeTab === 'tracking'" class="space-y-8">
+
+        <div class="fixed top-4 right-4 bg-red-500 text-white p-4 rounded-lg shadow-2xl z-50 max-w-xs" hidden="">
+          <h3 class="font-black mb-2">🔍 DEBUG INFO</h3>
+          <div class="space-y-1 text-xs">
+            <div>✓ Tracking tab is VISIBLE</div>
+            <div>Active Tab: <strong>{{ activeTab }}</strong></div>
+            <div>Loading: <strong>{{ isLoadingHabits }}</strong></div>
+            <div>Habits Count: <strong>{{ habits.length }}</strong></div>
+            <div>Categories: <strong>{{ categories.length }}</strong></div>
+            <div>Groups: <strong>{{ groupedHabits.length }}</strong></div>
+            <div class="pt-2 border-t border-white/30 mt-2">
+              <div v-if="habits.length > 0">
+                First habit: {{ habits[0].name }}
+              </div>
+              <div v-else class="text-yellow-300">
+                ⚠️ Habits array is empty
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- Date Navigation -->
         <div
           class="bg-white dark:bg-slate-800 rounded-[3rem] p-6 shadow-lg border border-slate-100 dark:border-slate-700">
@@ -1262,6 +1347,122 @@ onMounted(() => {
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
+
+          <!-- Insights Section -->
+          <div
+            v-if="!isFetchingSummary && (summaryData.boolean.length > 0 || summaryData.counter.length > 0 || summaryData.timer.length > 0 || summaryData.rating.length > 0)"
+            class="mt-12">
+            <!-- Insights Header -->
+            <div class="bg-linear-to-r from-indigo-500 to-purple-600 rounded-[3rem] p-12 shadow-xl mb-6">
+              <h2 class="text-3xl font-black text-white mb-2">📊 Insights</h2>
+              <p class="text-indigo-100 font-medium">Discover patterns in your habits</p>
+            </div>
+
+            <!-- Loading State for Insights -->
+            <div v-if="isFetchingInsights" class="flex items-center justify-center py-20">
+              <RefreshCw :size="40" class="animate-spin text-indigo-500" />
+            </div>
+
+            <!-- Insights Content -->
+            <div v-else-if="insightsData.length > 0" class="space-y-6">
+              <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div v-for="(insight, index) in insightsData" :key="index"
+                  class="bg-white dark:bg-slate-800 rounded-4xl p-8 shadow-lg border border-slate-100 dark:border-slate-700 hover:shadow-xl transition-all">
+
+                  <!-- Correlation Badge -->
+                  <div class="flex items-center justify-between mb-6">
+                    <span :class="getCorrelationBadgeColor(insight.strength)"
+                      class="px-4 py-2 rounded-full text-xs font-black uppercase tracking-wider">
+                      {{ getStrengthLabel(insight.strength) }}
+                    </span>
+                    <span class="text-3xl font-black text-indigo-600 dark:text-indigo-400">
+                      {{ (insight.correlation * 100).toFixed(0) }}%
+                    </span>
+                  </div>
+
+                  <!-- Habit Pair Display -->
+                  <div class="space-y-4 mb-6">
+                    <!-- Habit 1 -->
+                    <div class="flex items-center gap-4 p-4 bg-slate-50 dark:bg-slate-700 rounded-2xl">
+                      <div class="p-3 rounded-xl" :style="{ backgroundColor: insight.habit1.color + '20' }">
+                        <component :is="getIcon(insight.habit1.icon)" :size="24"
+                          :style="{ color: insight.habit1.color }" stroke-width="2.5" />
+                      </div>
+                      <div class="flex-1">
+                        <h4 class="font-black text-slate-900 dark:text-white text-lg">
+                          {{ insight.habit1.name }}
+                        </h4>
+                        <p v-if="insight.habit1.category"
+                          class="text-xs font-bold text-slate-400 uppercase tracking-wide">
+                          {{ insight.habit1.category }}
+                        </p>
+                      </div>
+                    </div>
+
+                    <!-- Connection Arrow -->
+                    <div class="flex justify-center">
+                      <div class="bg-linear-to-r from-indigo-500 to-purple-600 text-white p-3 rounded-full">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                          stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                          <line x1="12" y1="5" x2="12" y2="19"></line>
+                          <polyline points="19 12 12 19 5 12"></polyline>
+                        </svg>
+                      </div>
+                    </div>
+
+                    <!-- Habit 2 -->
+                    <div class="flex items-center gap-4 p-4 bg-slate-50 dark:bg-slate-700 rounded-2xl">
+                      <div class="p-3 rounded-xl" :style="{ backgroundColor: insight.habit2.color + '20' }">
+                        <component :is="getIcon(insight.habit2.icon)" :size="24"
+                          :style="{ color: insight.habit2.color }" stroke-width="2.5" />
+                      </div>
+                      <div class="flex-1">
+                        <h4 class="font-black text-slate-900 dark:text-white text-lg">
+                          {{ insight.habit2.name }}
+                        </h4>
+                        <p v-if="insight.habit2.category"
+                          class="text-xs font-bold text-slate-400 uppercase tracking-wide">
+                          {{ insight.habit2.category }}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Description -->
+                  <div
+                    class="p-4 bg-linear-to-r from-indigo-50 to-purple-50 dark:from-indigo-950 dark:to-purple-950 rounded-2xl">
+                    <p class="text-sm font-bold text-slate-700 dark:text-slate-300 leading-relaxed">
+                      {{ insight.description }}
+                    </p>
+                  </div>
+
+                  <!-- Stats Footer -->
+                  <div
+                    class="mt-4 pt-4 border-t border-slate-100 dark:border-slate-700 flex justify-between items-center">
+                    <span class="text-xs font-bold text-slate-400">
+                      Based on {{ insight.sample_size }} days
+                    </span>
+                    <span class="text-xs font-bold text-slate-400">
+                      {{ new Date(insight.start_date).toLocaleDateString() }} -
+                      {{ new Date(insight.end_date).toLocaleDateString() }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- No Insights State -->
+            <div v-else
+              class="bg-white dark:bg-slate-800 rounded-[3rem] p-16 shadow-lg border border-slate-100 dark:border-slate-700 text-center">
+              <div class="text-6xl mb-4">🔍</div>
+              <h3 class="text-2xl font-black text-slate-900 dark:text-white mb-2">
+                No Patterns Yet
+              </h3>
+              <p class="text-slate-500 dark:text-slate-400">
+                Keep tracking your habits! We need more data to find meaningful connections.
+              </p>
             </div>
           </div>
 

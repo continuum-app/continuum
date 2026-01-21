@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Habit, Category, Completion, SiteSettings
+from .models import Habit, Category, Completion, SiteSettings, HabitCorrelation
 from datetime import date
 
 
@@ -52,3 +52,81 @@ class SiteSettingsSerializer(serializers.ModelSerializer):
         model = SiteSettings
         fields = ["id", "allow_registration", "updated_at", "updated_by"]
         read_only_fields = ["id", "updated_at", "updated_by"]
+
+
+# Lightweight serializer for habit info in correlations
+class HabitBasicSerializer(serializers.ModelSerializer):
+    """Minimal habit serializer for correlation insights."""
+
+    category_name = serializers.CharField(
+        source="category.name", read_only=True, allow_null=True
+    )
+
+    class Meta:
+        model = Habit
+        fields = ["id", "name", "icon", "color", "habit_type", "category_name"]
+
+
+class HabitCorrelationSerializer(serializers.ModelSerializer):
+    """Serializer for habit correlation insights."""
+
+    habit1 = HabitBasicSerializer(read_only=True)
+    habit2 = HabitBasicSerializer(read_only=True)
+    correlation = serializers.DecimalField(
+        source="correlation_coefficient", max_digits=5, decimal_places=4, read_only=True
+    )
+    strength = serializers.SerializerMethodField()
+    description = serializers.SerializerMethodField()
+
+    class Meta:
+        model = HabitCorrelation
+        fields = [
+            "habit1",
+            "habit2",
+            "correlation",
+            "sample_size",
+            "start_date",
+            "end_date",
+            "strength",
+            "description",
+        ]
+        read_only_fields = fields
+
+    def get_strength(self, obj):
+        """Classify correlation strength."""
+        abs_coef = abs(float(obj.correlation_coefficient))
+
+        if abs_coef >= 0.9:
+            return "very_strong"
+        elif abs_coef >= 0.7:
+            return "strong"
+        elif abs_coef >= 0.5:
+            return "moderate"
+        elif abs_coef >= 0.3:
+            return "weak"
+        else:
+            return "very_weak"
+
+    def get_description(self, obj):
+        """Generate human-readable description of the correlation."""
+        habit1_name = obj.habit1.name
+        habit2_name = obj.habit2.name
+        coefficient = float(obj.correlation_coefficient)
+
+        if coefficient > 0:
+            if coefficient >= 0.9:
+                return f"When you do {habit1_name}, you almost always do {habit2_name} too!"
+            elif coefficient >= 0.7:
+                return f"You tend to do {habit1_name} and {habit2_name} together."
+            elif coefficient >= 0.5:
+                return f"There's a moderate connection between {habit1_name} and {habit2_name}."
+            else:
+                return f"You sometimes do {habit1_name} and {habit2_name} together."
+        else:
+            abs_coef = abs(coefficient)
+            if abs_coef >= 0.7:
+                return f"You rarely do {habit1_name} and {habit2_name} on the same day."
+            elif abs_coef >= 0.5:
+                return f"When you do {habit1_name}, you tend to skip {habit2_name}."
+            else:
+                return f"There's a slight inverse relationship between {habit1_name} and {habit2_name}."

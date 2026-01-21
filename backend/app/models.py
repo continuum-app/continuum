@@ -62,6 +62,48 @@ class Completion(models.Model):
         return f"{self.habit.name} - {self.date}"
 
 
+class HabitCorrelation(models.Model):
+    """
+    Stores correlation data between pairs of habits for a user.
+    Updated nightly to show which habits tend to be done together.
+    """
+
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="habit_correlations"
+    )
+    habit1 = models.ForeignKey(
+        Habit, on_delete=models.CASCADE, related_name="correlations_as_habit1"
+    )
+    habit2 = models.ForeignKey(
+        Habit, on_delete=models.CASCADE, related_name="correlations_as_habit2"
+    )
+
+    # Correlation coefficient (-1 to 1)
+    correlation_coefficient = models.DecimalField(max_digits=5, decimal_places=4)
+
+    # Number of days used in calculation
+    sample_size = models.IntegerField()
+
+    # Date range used for calculation
+    start_date = models.DateField()
+    end_date = models.DateField()
+
+    # Metadata
+    calculated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ["user", "habit1", "habit2"]
+        ordering = ["-correlation_coefficient"]
+        indexes = [
+            models.Index(fields=["user", "-correlation_coefficient"]),
+        ]
+
+    def __str__(self):
+        return (
+            f"{self.habit1.name} ↔ {self.habit2.name}: {self.correlation_coefficient}"
+        )
+
+
 class SiteSettings(models.Model):
     """
     Site-wide settings that can only be modified by admin users.
