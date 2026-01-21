@@ -86,6 +86,16 @@ const profileSaved = ref(false)
 const passwordUpdateSuccess = ref(false)
 const newCategoryName = ref('')
 const editingCategory = ref(null)
+const editingHabit = ref(null)
+const editingHabitData = ref({
+  name: '',
+  icon: '',
+  color: '',
+  habit_type: '',
+  max_value: 5,
+  unit: ''
+})
+const isSavingHabit = ref(false)
 
 // Computed property for dynamic years
 const quickSelectYears = computed(() => {
@@ -521,6 +531,70 @@ const deleteHabit = async (habitId) => {
   }
 }
 
+// Start editing a habit
+const startEditHabit = (habit) => {
+  editingHabit.value = habit.id
+  editingHabitData.value = {
+    name: habit.name,
+    icon: habit.icon,
+    color: habit.color,
+    habit_type: habit.habit_type,
+    max_value: habit.max_value || 5,
+    unit: habit.unit || ''
+  }
+}
+
+// Cancel editing habit
+const cancelEditHabit = () => {
+  editingHabit.value = null
+  editingHabitData.value = {
+    name: '',
+    icon: '',
+    color: '',
+    habit_type: '',
+    max_value: 5,
+    unit: ''
+  }
+}
+
+// Update habit
+const updateHabit = async (habitId) => {
+  if (!editingHabitData.value.name.trim()) return
+
+  isSavingHabit.value = true
+  try {
+    const payload = {
+      name: editingHabitData.value.name,
+      icon: editingHabitData.value.icon,
+      color: editingHabitData.value.color,
+      habit_type: editingHabitData.value.habit_type,
+      max_value: editingHabitData.value.max_value
+    }
+
+    if (editingHabitData.value.unit) {
+      payload.unit = editingHabitData.value.unit
+    }
+
+    await api.patch(`habits/${habitId}/`, payload)
+
+    // Update habit in local list
+    const habitIndex = habits.value.findIndex(h => h.id === habitId)
+    if (habitIndex !== -1) {
+      habits.value[habitIndex] = {
+        ...habits.value[habitIndex],
+        ...payload
+      }
+    }
+
+    editingHabit.value = null
+  } catch (err) {
+    console.error('Failed to update habit:', err)
+    alert('Failed to update habit')
+  } finally {
+    isSavingHabit.value = false
+  }
+}
+
 const selectLanguage = (langCode) => {
   setLanguage(langCode)
   isLanguageDropdownOpen.value = false
@@ -592,14 +666,25 @@ const handleDragEnter = (e, categoryId) => {
 }
 
 const handleDragLeave = (e) => {
-  dragOverCategoryId.value = null
+  // Only set to null if we're leaving the category group itself
+  // Check if we're moving to a non-category element
+  if (e.target.classList && e.target.classList.contains('category-group')) {
+    dragOverCategoryId.value = null
+  }
 }
 
 const handleDrop = (e, targetCategoryId) => {
   e.stopPropagation()
   e.preventDefault()
 
-  if (!draggedCategoryId.value || draggedCategoryId.value === targetCategoryId) {
+  console.log('Drop detected:', { draggedCategoryId: draggedCategoryId.value, targetCategoryId })
+
+  if (!draggedCategoryId.value) {
+    dragOverCategoryId.value = null
+    return
+  }
+
+  if (draggedCategoryId.value === targetCategoryId) {
     dragOverCategoryId.value = null
     return
   }
@@ -608,34 +693,34 @@ const handleDrop = (e, targetCategoryId) => {
   const draggedIndex = newOrder.indexOf(draggedCategoryId.value)
   const targetIndex = newOrder.indexOf(targetCategoryId)
 
+  console.log('Indices:', { draggedIndex, targetIndex, newOrderLength: newOrder.length })
+
   if (draggedIndex !== -1 && targetIndex !== -1) {
-    // Special case: only 2 groups and dragging last onto first
-    if (newOrder.length === 2 && draggedIndex === 1 && targetIndex === 0) {
-      // Swap them - dragged goes first
-      newOrder.splice(draggedIndex, 1)
-      newOrder.splice(0, 0, draggedCategoryId.value)
+    // Remove dragged item
+    newOrder.splice(draggedIndex, 1)
+
+    // Calculate insertion index based on direction
+    let insertIndex
+    if (draggedIndex < targetIndex) {
+      // Dragging forward (from earlier to later)
+      // After removal, target index shifts down by 1, but we want to insert AFTER it
+      insertIndex = targetIndex
     } else {
-      // Normal case: always insert AFTER the target
-      // Remove dragged item
-      newOrder.splice(draggedIndex, 1)
-
-      // Calculate adjusted target index after removal
-      let adjustedTargetIndex = targetIndex
-      if (draggedIndex < targetIndex) {
-        adjustedTargetIndex = targetIndex - 1
-      }
-
-      // Always insert AFTER the target
-      const insertIndex = adjustedTargetIndex + 1
-
-      // Insert at calculated position
-      newOrder.splice(insertIndex, 0, draggedCategoryId.value)
+      // Dragging backward (from later to earlier)
+      // Target index doesn't shift, insert before it
+      insertIndex = targetIndex
     }
+
+    // Insert at calculated position
+    newOrder.splice(insertIndex, 0, draggedCategoryId.value)
+
+    console.log('New order:', newOrder)
 
     categoryOrder.value = newOrder
     saveLayoutToServer()
   }
 
+  draggedCategoryId.value = null
   dragOverCategoryId.value = null
   return false
 }
@@ -1147,15 +1232,15 @@ const getStrengthLabel = (strength) => {
         </div>
 
         <!-- Habit Groups -->
-        <div v-else v-for="group in groupedHabits" :key="group.id" :draggable=true
-          @dragstart="(e) => handleDragStart(e, group.id)" @dragend="handleDragEnd"
-          @dragover="(e) => handleDragOver(e, group.id)" @dragenter="(e) => handleDragEnter(e, group.id)"
-          @dragleave="handleDragLeave" @drop="(e) => handleDrop(e, group.id)" :class="[
+        <div v-else v-for="group in groupedHabits" :key="group.id" @dragover="(e) => handleDragOver(e, group.id)"
+          @dragenter="(e) => handleDragEnter(e, group.id)" @dragleave="handleDragLeave"
+          @drop="(e) => handleDrop(e, group.id)" :class="[
             'category-group transition-all duration-200',
             dragOverCategoryId === group.id ? 'border-4 border-indigo-500 border-dashed rounded-3xl p-4' : ''
           ]">
           <!-- Category Header -->
-          <div class="flex items-center gap-3 mb-6 cursor-move select-none">
+          <div :draggable=true @dragstart="(e) => handleDragStart(e, group.id)" @dragend="handleDragEnd"
+            class="flex items-center gap-3 mb-6 cursor-move select-none">
             <GripVertical class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
               :size="24" />
             <h2 class="text-2xl font-black text-slate-800 dark:text-white uppercase tracking-tight">
@@ -1907,7 +1992,7 @@ const getStrengthLabel = (strength) => {
             <div v-for="habit in habits" :key="habit.id"
               class="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-700 rounded-2xl hover:shadow-md transition-all">
               <div class="flex items-center gap-4 flex-1">
-                <div class="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center"
+                <div class="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center"
                   :style="{ backgroundColor: habit.color + '20' }">
                   <component :is="getIcon(habit.icon)" :size="20" :style="{ color: habit.color }" stroke-width="2.5" />
                 </div>
@@ -1926,11 +2011,20 @@ const getStrengthLabel = (strength) => {
                 </div>
               </div>
 
-              <button @click="deleteHabit(habit.id)"
-                class="px-4 py-2 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-xl font-bold hover:bg-red-200 dark:hover:bg-red-900/50 transition-all text-sm flex items-center gap-1 flex-shrink-0 ml-4">
-                <Trash2 :size="16" />
-                Delete
-              </button>
+              <div class="flex gap-2 ml-4">
+                <button @click="startEditHabit(habit)"
+                  class="p-2 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-xl hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-all active:scale-95">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                  </svg>
+                </button>
+                <button @click="deleteHabit(habit.id)"
+                  class="p-2 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-xl hover:bg-red-200 dark:hover:bg-red-900/50 transition-all active:scale-95">
+                  <Trash2 :size="18" stroke-width="2.5" />
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -2050,6 +2144,91 @@ const getStrengthLabel = (strength) => {
               class="w-full bg-indigo-600 text-white py-6 rounded-4xl font-black text-xl hover:bg-indigo-700 transition-all shadow-xl">
               Initiate Habit
             </button>
+          </form>
+        </div>
+      </div>
+    </Transition>
+
+    <!-- Modal for Edit Habit -->
+    <Transition name="fade">
+      <div v-if="editingHabit" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-md" @click="cancelEditHabit"></div>
+        <div class="relative bg-white dark:bg-slate-800 w-full max-w-lg rounded-[3rem] p-12 shadow-2xl overflow-hidden">
+          <div class="absolute top-0 left-0 w-full h-2 bg-blue-500"></div>
+
+          <div class="flex justify-between items-center mb-10">
+            <h2 class="text-3xl font-black text-slate-900 dark:text-white">Edit Habit</h2>
+            <button @click="cancelEditHabit"
+              class="text-slate-300 hover:text-slate-900 dark:hover:text-white transition">
+              <X :size="32" />
+            </button>
+          </div>
+
+          <form @submit.prevent="updateHabit(editingHabit)" class="space-y-8">
+            <div class="space-y-2">
+              <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2">Habit Name</label>
+              <input v-model="editingHabitData.name" type="text" placeholder="Enter habit name" required
+                class="w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-50 dark:border-slate-700 rounded-3xl px-6 py-4 focus:bg-white dark:focus:bg-slate-600 focus:border-indigo-500 transition outline-none font-bold text-lg text-slate-900 dark:text-white" />
+            </div>
+
+            <div class="grid grid-cols-2 gap-6">
+              <div class="space-y-2">
+                <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2">Icon</label>
+                <input v-model="editingHabitData.icon" type="text" placeholder="e.g. activity"
+                  class="w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-50 dark:border-slate-700 rounded-2xl px-4 py-3 font-bold text-slate-900 dark:text-white focus:border-indigo-500 transition outline-none" />
+              </div>
+              <div class="space-y-2">
+                <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2">Type</label>
+                <select v-model="editingHabitData.habit_type" disabled
+                  class="w-full bg-slate-100 dark:bg-slate-700 border-2 border-slate-100 dark:border-slate-700 rounded-2xl px-4 py-3 font-bold text-slate-600 dark:text-slate-400 cursor-not-allowed">
+                  <option value="boolean">Yes/No</option>
+                  <option value="counter">Counter</option>
+                  <option value="value">Decimal Value</option>
+                  <option value="rating">Rating</option>
+                </select>
+                <p class="text-xs text-slate-400 ml-2 mt-1">Type cannot be changed</p>
+              </div>
+            </div>
+
+            <!-- Unit for Value type -->
+            <div v-if="editingHabitData.habit_type === 'value'" class="space-y-2">
+              <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2">Unit
+                (Optional)</label>
+              <input v-model="editingHabitData.unit" type="text" placeholder="e.g. km, miles, hours"
+                class="w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-50 dark:border-slate-700 rounded-3xl px-6 py-4 focus:bg-white dark:focus:bg-slate-600 focus:border-indigo-500 transition outline-none font-bold text-slate-900 dark:text-white" />
+              <p class="text-xs text-slate-400 ml-2">Leave empty to use default unit</p>
+            </div>
+
+            <!-- Max Value for Rating -->
+            <div v-if="editingHabitData.habit_type === 'rating'" class="space-y-2">
+              <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2">
+                Max Rating Value
+              </label>
+              <input v-model.number="editingHabitData.max_value" type="number" min="1" max="10"
+                class="w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-50 dark:border-slate-700 rounded-3xl px-6 py-4 focus:bg-white dark:focus:bg-slate-600 focus:border-indigo-500 transition outline-none font-bold text-lg text-slate-900 dark:text-white" />
+            </div>
+
+            <div class="space-y-2">
+              <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2">Color</label>
+              <div class="flex items-center gap-4 bg-slate-50 dark:bg-slate-700 p-4 rounded-3xl">
+                <input v-model="editingHabitData.color" type="color"
+                  class="w-16 h-10 rounded-2xl cursor-pointer border-none" />
+                <span class="font-mono text-sm text-slate-600 dark:text-slate-400">{{ editingHabitData.color }}</span>
+              </div>
+            </div>
+
+            <div class="flex gap-3">
+              <button type="submit" :disabled="isSavingHabit"
+                class="flex-1 bg-blue-600 text-white py-4 rounded-3xl font-black hover:bg-blue-700 transition-all shadow-xl disabled:opacity-50 flex items-center justify-center gap-2">
+                <RefreshCw v-if="isSavingHabit" :size="20" class="animate-spin" />
+                <Save v-else :size="20" stroke-width="2.5" />
+                {{ isSavingHabit ? 'Saving...' : 'Save Changes' }}
+              </button>
+              <button type="button" @click="cancelEditHabit"
+                class="flex-1 bg-slate-300 dark:bg-slate-600 text-slate-700 dark:text-slate-300 py-4 rounded-3xl font-black hover:bg-slate-400 dark:hover:bg-slate-500 transition-all">
+                Cancel
+              </button>
+            </div>
           </form>
         </div>
       </div>
