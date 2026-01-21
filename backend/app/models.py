@@ -40,8 +40,10 @@ class Habit(models.Model):
     color = models.CharField(max_length=20, default="#1F85DE")
     max_value = models.IntegerField(null=True, blank=True)
     unit = models.CharField(
-        max_length=50, null=True, blank=True,
-        help_text="Optional unit for value habit (e.g., 'km', 'miles', 'hours')"
+        max_length=50,
+        null=True,
+        blank=True,
+        help_text="Optional unit for value habit (e.g., 'km', 'miles', 'hours')",
     )
 
     class Meta:
@@ -70,6 +72,11 @@ class HabitCorrelation(models.Model):
     """
     Stores correlation data between pairs of habits for a user.
     Updated nightly to show which habits tend to be done together.
+
+    Supports multiple correlation methods:
+    - Pearson: Linear relationships
+    - Spearman: Rank-based (monotonic) relationships
+    - DTW: Dynamic Time Warping distance (time-shifted patterns)
     """
 
     user = models.ForeignKey(
@@ -82,8 +89,30 @@ class HabitCorrelation(models.Model):
         Habit, on_delete=models.CASCADE, related_name="correlations_as_habit2"
     )
 
-    # Correlation coefficient (-1 to 1)
-    correlation_coefficient = models.DecimalField(max_digits=5, decimal_places=4)
+    # Pearson correlation coefficient (-1 to 1) - linear relationships
+    correlation_coefficient = models.DecimalField(
+        max_digits=5,
+        decimal_places=4,
+        help_text="Pearson correlation (linear relationships)",
+    )
+
+    # Spearman rank correlation coefficient (-1 to 1) - monotonic relationships
+    spearman_coefficient = models.DecimalField(
+        max_digits=5,
+        decimal_places=4,
+        null=True,
+        blank=True,
+        help_text="Spearman rank correlation (handles ordinal data better)",
+    )
+
+    # DTW distance (0+) - normalized 0-1, lower = more similar
+    dtw_distance = models.DecimalField(
+        max_digits=5,
+        decimal_places=4,
+        null=True,
+        blank=True,
+        help_text="Dynamic Time Warping distance (detects time-shifted patterns)",
+    )
 
     # Number of days used in calculation
     sample_size = models.IntegerField()
@@ -106,6 +135,35 @@ class HabitCorrelation(models.Model):
         return (
             f"{self.habit1.name} ↔ {self.habit2.name}: {self.correlation_coefficient}"
         )
+
+    @property
+    def max_correlation(self):
+        """
+        Returns the maximum correlation strength across all three methods.
+
+        Takes the absolute value for Pearson and Spearman coefficients
+        (since both -1 and +1 indicate strong correlation),
+        and inverts DTW distance (since lower DTW = stronger similarity).
+
+        Returns a value between 0 and 1, where 1 = strongest correlation.
+        """
+        correlations = []
+
+        # Pearson correlation: -1 to 1, use absolute value
+        if self.correlation_coefficient is not None:
+            correlations.append(abs(float(self.correlation_coefficient)))
+
+        # Spearman correlation: -1 to 1, use absolute value
+        if self.spearman_coefficient is not None:
+            correlations.append(abs(float(self.spearman_coefficient)))
+
+        # DTW distance: 0+ (normalized 0-1), invert it (1 - distance)
+        # so that 0 distance becomes 1 (perfect match)
+        if self.dtw_distance is not None:
+            correlations.append(1 - float(self.dtw_distance))
+
+        # Return the maximum correlation found
+        return max(correlations) if correlations else 0.0
 
 
 class SiteSettings(models.Model):

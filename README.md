@@ -87,15 +87,57 @@ graph TD
 ```
 
 This ensures:
-- Clear boundaries between layers  
-- Predictable data movement  
-- Independent frontend/backend evolution  
+- Clear boundaries between layers
+- Predictable data movement
+- Independent frontend/backend evolution
+
+---
+
+## 🔍 Habit Insights & Correlation Analysis
+
+Continuum uses **multiple correlation algorithms** to discover meaningful relationships between your habits:
+
+### 📐 Correlation Methods
+
+1. **Pearson Correlation Coefficient**
+   - Measures **linear relationships** between two habits
+   - Range: `-1` (perfect negative) to `+1` (perfect positive)
+   - Best for: Detecting proportional relationships
+
+2. **Spearman Rank Correlation**
+   - Measures **monotonic relationships** using rank-based analysis
+   - Range: `-1` (perfect negative) to `+1` (perfect positive)
+   - Best for: Ordinal data and non-linear but consistent patterns
+
+3. **Dynamic Time Warping (DTW)**
+   - Measures **similarity with time shifts** and flexible alignment
+   - Range: `0` (identical patterns) to `1` (completely different)
+   - Best for: Detecting patterns that occur at different times or with delays
+
+### 💡 How It Works
+
+- Correlations are computed automatically using historical completion data
+- The system calculates all three metrics for each habit pair
+- **Maximum correlation** is used to identify the strongest relationship signal
+- Insights are ranked by strength: `very_strong` → `strong` → `moderate` → `weak` → `very_weak`
+
+### 🎯 Use Cases
+
+- 📊 Identify habits that naturally cluster together
+- 🧠 Understand behavioral patterns and dependencies
+- 🎯 Optimize your routine by grouping correlated habits
+- 🔄 Detect inverse relationships (habits that compete for time/energy)
+
 ---
 
 ## ✨ Features
 
 - 📂 Habit categories and organization
 - 📊 Statistics and trend analysis
+- 🔍 **Habit Insights & Correlations** — Discover which habits you tend to do together
+  - **Pearson Correlation** — Detects linear relationships between habits
+  - **Spearman Rank Correlation** — Identifies monotonic relationships (handles ordinal data)
+  - **Dynamic Time Warping (DTW)** — Detects time-shifted patterns and flexible alignments
 - ⚙️ Admin configuration panel
 - 🎯 Clean, modern UX with strong visual hierarchy
 - 🔐 Token-based authentication & SSO (planned)

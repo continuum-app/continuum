@@ -75,6 +75,7 @@ class HabitCorrelationSerializer(serializers.ModelSerializer):
     correlation = serializers.DecimalField(
         source="correlation_coefficient", max_digits=5, decimal_places=4, read_only=True
     )
+    max_correlation = serializers.SerializerMethodField()
     strength = serializers.SerializerMethodField()
     description = serializers.SerializerMethodField()
 
@@ -84,6 +85,9 @@ class HabitCorrelationSerializer(serializers.ModelSerializer):
             "habit1",
             "habit2",
             "correlation",
+            "spearman_coefficient",
+            "dtw_distance",
+            "max_correlation",
             "sample_size",
             "start_date",
             "end_date",
@@ -92,17 +96,21 @@ class HabitCorrelationSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = fields
 
-    def get_strength(self, obj):
-        """Classify correlation strength."""
-        abs_coef = abs(float(obj.correlation_coefficient))
+    def get_max_correlation(self, obj):
+        """Get the maximum correlation across all methods."""
+        return obj.max_correlation
 
-        if abs_coef >= 0.9:
+    def get_strength(self, obj):
+        """Classify correlation strength based on maximum correlation across all methods."""
+        max_corr = obj.max_correlation
+
+        if max_corr >= 0.9:
             return "very_strong"
-        elif abs_coef >= 0.7:
+        elif max_corr >= 0.7:
             return "strong"
-        elif abs_coef >= 0.5:
+        elif max_corr >= 0.5:
             return "moderate"
-        elif abs_coef >= 0.3:
+        elif max_corr >= 0.3:
             return "weak"
         else:
             return "very_weak"

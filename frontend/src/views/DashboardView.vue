@@ -32,6 +32,7 @@ const activeTab = ref('tracking') // New: active tab state
 // Date navigation for tracking
 const currentTrackingDate = ref(new Date())
 const isLoadingHabits = ref(false)
+const isCardView = ref(true) // Toggle between card and row view
 
 // Form Refs for New Habit
 const newHabitName = ref('')
@@ -1191,37 +1192,62 @@ const getStrengthLabel = (strength) => {
         <!-- Date Navigation -->
         <div
           class="bg-white dark:bg-slate-800 rounded-[3rem] p-6 shadow-lg border border-slate-100 dark:border-slate-700">
-          <div class="flex items-center justify-between">
+          <!-- Navigation and Date Row -->
+          <div class="flex items-center justify-between gap-3">
             <!-- Previous Day Button -->
             <button @click="goToPreviousDay"
-              class="p-4 rounded-2xl bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 transition-all active:scale-95">
-              <ChevronDown :size="24" class="rotate-90 text-slate-700 dark:text-slate-300" stroke-width="2.5" />
+              class="shrink-0 p-3 rounded-2xl bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 transition-all active:scale-95 self-center">
+              <ChevronDown :size="20" class="rotate-90 text-slate-700 dark:text-slate-300" stroke-width="2.5" />
             </button>
 
-            <!-- Current Date Display -->
-            <div class="flex-1 text-center px-6">
-              <div class="text-3xl font-black text-slate-900 dark:text-white mb-1">
-                {{ formattedTrackingDate }}
+            <!-- Date and View Toggle Combined Cell -->
+            <div class="flex-1 flex flex-col items-center gap-3">
+              <!-- Current Date Display -->
+              <div class="text-center">
+                <div class="text-lg md:text-2xl font-black text-slate-900 dark:text-white truncate">
+                  {{ formattedTrackingDate }}
+                </div>
+                <div class="text-xs text-slate-400 dark:text-slate-500 font-bold truncate">
+                  {{ trackingDateString }}
+                </div>
               </div>
-              <div class="text-sm text-slate-400 dark:text-slate-500 font-bold">
-                {{ trackingDateString }}
+
+              <!-- View Toggle -->
+              <div class="flex gap-1 p-1 bg-slate-100 dark:bg-slate-700 rounded-lg">
+                <button @click="isCardView = true" :class="[
+                  'px-3 py-1.5 rounded-md font-bold transition-all text-xs',
+                  isCardView
+                    ? 'bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-sm'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                ]">
+                  Cards
+                </button>
+                <button @click="isCardView = false" :class="[
+                  'px-3 py-1.5 rounded-md font-bold transition-all text-xs',
+                  !isCardView
+                    ? 'bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-sm'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                ]">
+                  Rows
+                </button>
               </div>
-              <!-- Today Button (only show if not on today) -->
-              <button v-if="formattedTrackingDate !== 'Today'" @click="goToToday"
-                class="mt-2 px-4 py-2 bg-indigo-600 text-white rounded-xl font-bold text-sm hover:bg-indigo-700 transition-all active:scale-95">
-                Go to Today
-              </button>
             </div>
 
             <!-- Next Day Button -->
             <button @click="goToNextDay" :disabled="!canGoToNextDay" :class="[
-              'p-4 rounded-2xl transition-all active:scale-95',
+              'shrink-0 p-3 rounded-2xl transition-all active:scale-95 self-center',
               canGoToNextDay
                 ? 'bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600'
                 : 'bg-slate-50 dark:bg-slate-800 opacity-30 cursor-not-allowed'
             ]">
-              <ChevronDown :size="24" class="-rotate-90"
+              <ChevronDown :size="20" class="-rotate-90"
                 :class="canGoToNextDay ? 'text-slate-700 dark:text-slate-300' : 'text-slate-400'" stroke-width="2.5" />
+            </button>
+
+            <!-- Today Button (only show if not on today) -->
+            <button v-if="formattedTrackingDate !== 'Today'" @click="goToToday"
+              class="shrink-0 px-3 py-2 bg-indigo-600 text-white rounded-xl font-bold text-xs md:text-sm hover:bg-indigo-700 transition-all active:scale-95 whitespace-nowrap self-center">
+              Today
             </button>
           </div>
         </div>
@@ -1253,8 +1279,8 @@ const getStrengthLabel = (strength) => {
             </span>
           </div>
 
-          <!-- Habits Grid -->
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <!-- Habits Grid - Card View -->
+          <div v-if="isCardView" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <div v-for="habit in group.habits" :key="habit.id" :class="[
               'relative p-8 rounded-[3rem] transition-all duration-300 flex flex-col justify-between overflow-hidden border',
               habit.today_value > 0
@@ -1351,6 +1377,91 @@ const getStrengthLabel = (strength) => {
                   }">
                   <CheckCircle2 v-if="habit.today_value > 0" :size="20" />
                   {{ habit.today_value > 0 ? 'Completed' : 'Mark Complete' }}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Habits List - Row View -->
+          <div v-else class="space-y-2">
+            <div v-for="habit in group.habits" :key="habit.id" :class="[
+              'flex items-center justify-between p-4 rounded-2xl transition-all border',
+              habit.today_value > 0
+                ? 'bg-slate-50 dark:bg-slate-700/50 border-slate-100 dark:border-slate-600'
+                : 'bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700 hover:shadow-md'
+            ]">
+              <!-- Left: Icon and Info -->
+              <div class="flex items-center gap-4 flex-1 min-w-0">
+                <div class="p-3 rounded-2xl shrink-0 transition-all" :style="{
+                  backgroundColor: habit.today_value > 0 ? habit.color : `${habit.color}15`,
+                  color: habit.today_value > 0 ? 'white' : habit.color
+                }">
+                  <component :is="getIcon(habit.icon)" :size="20" stroke-width="2.5" />
+                </div>
+                <div class="min-w-0 flex-1">
+                  <h3 class="font-bold text-slate-900 dark:text-white truncate">{{ habit.name }}</h3>
+                  <p class="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wide">{{ habit.habit_type }}
+                  </p>
+                </div>
+              </div>
+
+              <!-- Right: Actions -->
+              <div class="flex items-center gap-2 ml-4 shrink-0">
+                <!-- Counter Input -->
+                <div v-if="habit.habit_type === 'counter'" class="flex items-center gap-2">
+                  <div class="flex items-center gap-1 bg-slate-100 dark:bg-slate-700 rounded-lg p-1">
+                    <button @click="habit.temp_value = Math.max(0, Number(habit.temp_value) - 1)"
+                      class="w-8 h-8 flex items-center justify-center rounded-md hover:bg-slate-200 dark:hover:bg-slate-600 transition">
+                      <span class="font-bold text-slate-600 dark:text-slate-300">-</span>
+                    </button>
+                    <input v-model.number="habit.temp_value" type="number" min="0"
+                      class="w-12 text-center bg-transparent font-bold text-slate-900 dark:text-white outline-none text-sm" />
+                    <button @click="habit.temp_value = Number(habit.temp_value) + 1"
+                      class="w-8 h-8 flex items-center justify-center rounded-md hover:bg-slate-200 dark:hover:bg-slate-600 transition">
+                      <span class="font-bold text-slate-600 dark:text-slate-300">+</span>
+                    </button>
+                  </div>
+                  <button @click="saveCompletion(habit)"
+                    class="px-3 py-2 rounded-lg font-bold text-white transition-all active:scale-95 flex items-center gap-1 shrink-0"
+                    :style="{ backgroundColor: habit.color }">
+                    <RefreshCw v-if="habit.is_saving" :size="16" class="animate-spin" />
+                    <Save v-else :size="16" />
+                  </button>
+                </div>
+
+                <!-- Value Input -->
+                <div v-else-if="habit.habit_type === 'value'" class="flex items-center gap-2">
+                  <input v-model.number="habit.temp_value" type="number" min="0"
+                    class="w-16 px-2 py-1 bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg font-bold text-center text-slate-900 dark:text-white outline-none text-sm" />
+                  <span v-if="habit.unit" class="text-xs font-bold text-slate-500 dark:text-slate-400">{{ habit.unit
+                    }}</span>
+                  <button @click="saveCompletion(habit)"
+                    class="px-3 py-2 rounded-lg font-bold text-white transition-all active:scale-95 flex items-center gap-1 shrink-0"
+                    :style="{ backgroundColor: habit.color }">
+                    <RefreshCw v-if="habit.is_saving" :size="16" class="animate-spin" />
+                    <Save v-else :size="16" />
+                  </button>
+                </div>
+
+                <!-- Rating Stars -->
+                <div v-else-if="habit.habit_type === 'rating'" class="flex items-center gap-0.5">
+                  <button v-for="star in (habit.max_value || 5)" :key="star"
+                    @click="habit.temp_value = star; saveCompletion(habit)"
+                    class="transition-all hover:scale-110 active:scale-95"
+                    :class="star <= habit.temp_value ? '' : 'opacity-30'">
+                    <Star :size="16" :fill="star <= habit.temp_value ? habit.color : 'none'" :stroke="habit.color"
+                      stroke-width="2" />
+                  </button>
+                </div>
+
+                <!-- Boolean Button -->
+                <button v-else @click="saveCompletion(habit)" :class="[
+                  'px-4 py-1.5 rounded-lg font-bold text-white text-sm transition-all active:scale-95 shrink-0',
+                  habit.today_value > 0
+                    ? 'bg-green-500 hover:bg-green-600'
+                    : 'hover:opacity-80'
+                ]" :style="!habit.today_value ? { backgroundColor: habit.color } : {}">
+                  {{ habit.today_value > 0 ? 'Done' : 'Log' }}
                 </button>
               </div>
             </div>

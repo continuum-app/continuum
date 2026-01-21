@@ -14,8 +14,16 @@ from django.utils import timezone
 from datetime import timedelta
 from decimal import Decimal
 import numpy as np
+from scipy.stats import spearmanr
 from collections import defaultdict
 from ...models import Habit, Completion, HabitCorrelation
+
+try:
+    from dtaidistance import dtw
+
+    HAS_DTW = True
+except ImportError:
+    HAS_DTW = False
 
 
 class Command(BaseCommand):
@@ -90,7 +98,7 @@ class Command(BaseCommand):
         ).select_related("habit")
 
         # Build a data structure: {habit_id: {date: normalized_value}}
-        habit_data = defaultdict(dict)
+        habit_data = defaultdict(dict)  # Raw values
         habit_meta = {}  # Store habit metadata for normalization
 
         for completion in completions:
@@ -131,26 +139,52 @@ class Command(BaseCommand):
 
         for i, habit1 in enumerate(habits):
             for habit2 in habits[i + 1 :]:  # Only compute upper triangle
-                correlation = self.compute_correlation(
+                correlation_result = self.compute_all_correlations(
                     habit1,
                     habit2,
                     normalized_data,
+                    habit_data,
                     start_date,
                     end_date,
                     min_sample_size,
                 )
 
-                if correlation is not None:
-                    # Store or update correlation
+                if correlation_result is not None:
+                    # Store or update correlation with all methods
                     HabitCorrelation.objects.update_or_create(
                         user=user,
                         habit1=habit1,
                         habit2=habit2,
                         defaults={
                             "correlation_coefficient": Decimal(
-                                str(round(correlation["coefficient"], 4))
+                                str(
+                                    round(
+                                        correlation_result["pearson"]["coefficient"], 4
+                                    )
+                                )
                             ),
-                            "sample_size": correlation["sample_size"],
+                            "spearman_coefficient": (
+                                Decimal(
+                                    str(
+                                        round(
+                                            correlation_result["spearman"][
+                                                "coefficient"
+                                            ],
+                                            4,
+                                        )
+                                    )
+                                )
+                                if correlation_result["spearman"]
+                                else None
+                            ),
+                            "dtw_distance": (
+                                Decimal(
+                                    str(round(correlation_result["dtw"]["distance"], 4))
+                                )
+                                if correlation_result["dtw"]
+                                else None
+                            ),
+                            "sample_size": correlation_result["sample_size"],
                             "start_date": start_date,
                             "end_date": end_date,
                         },
@@ -159,25 +193,59 @@ class Command(BaseCommand):
 
         return correlations_computed
 
-    def compute_correlation(
-        self, habit1, habit2, normalized_data, start_date, end_date, min_sample_size
+    def compute_all_correlations(
+        self,
+        habit1,
+        habit2,
+        normalized_data,
+        habit_data,
+        start_date,
+        end_date,
+        min_sample_size,
     ):
-        """Compute Pearson correlation coefficient between two habits."""
+        """Compute Pearson, Spearman, and DTW correlations between two habits."""
 
-        habit1_data = normalized_data.get(habit1.id, {})
-        habit2_data = normalized_data.get(habit2.id, {})
+        habit1_normalized = normalized_data.get(habit1.id, {})
+        habit2_normalized = normalized_data.get(habit2.id, {})
+        habit1_raw = habit_data.get(habit1.id, {})
+        habit2_raw = habit_data.get(habit2.id, {})
 
         # Find all dates where either habit has data
-        all_dates = set(habit1_data.keys()) | set(habit2_data.keys())
+        all_dates = set(habit1_normalized.keys()) | set(habit2_normalized.keys())
 
         if len(all_dates) < min_sample_size:
             return None  # Not enough data points
 
         # Extract values for all dates, filling 0 for missing data
-        values1 = [habit1_data.get(date, 0.0) for date in sorted(all_dates)]
-        values2 = [habit2_data.get(date, 0.0) for date in sorted(all_dates)]
+        sorted_dates = sorted(all_dates)
+        values1_normalized = [habit1_normalized.get(date, 0.0) for date in sorted_dates]
+        values2_normalized = [habit2_normalized.get(date, 0.0) for date in sorted_dates]
+        values1_raw = [habit1_raw.get(date, 0.0) for date in sorted_dates]
+        values2_raw = [habit2_raw.get(date, 0.0) for date in sorted_dates]
 
-        # Compute Pearson correlation
+        sample_size = len(sorted_dates)
+
+        # Compute Pearson correlation (normalized data)
+        pearson_result = self.compute_pearson(values1_normalized, values2_normalized)
+
+        # Compute Spearman correlation (raw data, rank-based)
+        spearman_result = self.compute_spearman(values1_raw, values2_raw)
+
+        # Compute DTW distance (normalized data)
+        dtw_result = self.compute_dtw(values1_normalized, values2_normalized)
+
+        if pearson_result is None:
+            return None
+
+        return {
+            "pearson": pearson_result,
+            "spearman": spearman_result,
+            "dtw": dtw_result,
+            "sample_size": sample_size,
+        }
+
+    def compute_pearson(self, values1, values2):
+        """Compute Pearson correlation coefficient."""
         try:
             correlation_matrix = np.corrcoef(values1, values2)
             correlation_coefficient = correlation_matrix[0, 1]
@@ -186,14 +254,60 @@ class Command(BaseCommand):
             if np.isnan(correlation_coefficient):
                 return None
 
+            return {"coefficient": float(correlation_coefficient)}
+        except Exception as e:
+            self.stdout.write(
+                self.style.WARNING(f"  Error computing Pearson correlation: {e}")
+            )
+            return None
+
+    def compute_spearman(self, values1, values2):
+        """Compute Spearman rank correlation coefficient."""
+        try:
+            correlation_coefficient, p_value = spearmanr(values1, values2)
+
+            # Handle NaN
+            if np.isnan(correlation_coefficient):
+                return None
+
             return {
                 "coefficient": float(correlation_coefficient),
-                "sample_size": len(all_dates),
+                "p_value": float(p_value),
             }
         except Exception as e:
             self.stdout.write(
-                self.style.WARNING(
-                    f"  Error computing correlation for {habit1.name} & {habit2.name}: {e}"
-                )
+                self.style.WARNING(f"  Error computing Spearman correlation: {e}")
+            )
+            return None
+
+    def compute_dtw(self, values1, values2):
+        """Compute Dynamic Time Warping distance."""
+        if not HAS_DTW:
+            return None
+
+        try:
+            # Convert to numpy arrays
+            ts1 = np.array(values1, dtype=np.float64)
+            ts2 = np.array(values2, dtype=np.float64)
+
+            # Compute DTW distance
+            distance = dtw.distance(ts1, ts2)
+
+            # Normalize distance to 0-1 scale (using max possible distance)
+            # DTW distance can be large, so normalize relative to the length and value range
+            max_distance = len(ts1) * 2  # Rough normalization
+            normalized_distance = min(float(distance) / max_distance, 1.0)
+
+            # Convert to correlation-like score (higher is more similar)
+            # correlation_score = 1 - normalized_distance
+
+            return {
+                "distance": float(distance),
+                "normalized_distance": normalized_distance,
+                "correlation_score": 1 - normalized_distance,
+            }
+        except Exception as e:
+            self.stdout.write(
+                self.style.WARNING(f"  Error computing DTW distance: {e}")
             )
             return None
