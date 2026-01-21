@@ -597,6 +597,41 @@ const exportToCSV = async () => {
   }
 }
 
+// Helper function to fill missing dates with 0 values
+const fillMissingDates = (data, startDate, endDate) => {
+  if (!data || data.length === 0) return data
+
+  // Generate all dates in range
+  const allDates = []
+  const current = new Date(startDate)
+  const end = new Date(endDate)
+
+  while (current <= end) {
+    allDates.push(current.toISOString().split('T')[0])
+    current.setDate(current.getDate() + 1)
+  }
+
+  // Fill missing dates for each habit
+  return data.map(habitData => {
+    // Create a map of existing data points
+    const dataMap = new Map()
+    habitData.data.forEach(point => {
+      dataMap.set(point.date, point.value)
+    })
+
+    // Create complete dataset with 0 for missing dates
+    const filledData = allDates.map(date => ({
+      date: date,
+      value: dataMap.get(date) || 0
+    }))
+
+    return {
+      ...habitData,
+      data: filledData
+    }
+  })
+}
+
 // Fetch graph data from API
 const fetchGraphData = async () => {
   if (!graphStartDate.value || !graphEndDate.value) return
@@ -609,7 +644,14 @@ const fetchGraphData = async () => {
       }
     })
 
-    graphData.value = response.data
+    // Fill missing dates with 0 for each habit type
+    graphData.value = {
+      boolean: fillMissingDates(response.data.boolean || [], graphStartDate.value, graphEndDate.value),
+      counter: fillMissingDates(response.data.counter || [], graphStartDate.value, graphEndDate.value),
+      timer: fillMissingDates(response.data.timer || [], graphStartDate.value, graphEndDate.value),
+      rating: fillMissingDates(response.data.rating || [], graphStartDate.value, graphEndDate.value)
+    }
+
     await nextTick()
     renderCharts()
   } catch (err) {
@@ -646,7 +688,8 @@ const renderCharts = () => {
       tension: 0.3,
       fill: type === 'boolean' ? false : true,
       pointRadius: 4,
-      pointHoverRadius: 6
+      pointHoverRadius: 6,
+      spanGaps: false
     }))
 
     chartInstances.value[type] = new Chart(ctx, {
@@ -717,6 +760,7 @@ const renderCharts = () => {
           },
           y: {
             beginAtZero: true,
+            grace: '5%',
             grid: {
               color: isDark.value ? '#334155' : '#e2e8f0'
             },

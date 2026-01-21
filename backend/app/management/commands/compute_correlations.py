@@ -167,15 +167,15 @@ class Command(BaseCommand):
         habit1_data = normalized_data.get(habit1.id, {})
         habit2_data = normalized_data.get(habit2.id, {})
 
-        # Find dates where both habits have data
-        common_dates = set(habit1_data.keys()) & set(habit2_data.keys())
+        # Find all dates where either habit has data
+        all_dates = set(habit1_data.keys()) | set(habit2_data.keys())
 
-        if len(common_dates) < min_sample_size:
-            return None  # Not enough overlapping data
+        if len(all_dates) < min_sample_size:
+            return None  # Not enough data points
 
-        # Extract values for common dates
-        values1 = [habit1_data[date] for date in sorted(common_dates)]
-        values2 = [habit2_data[date] for date in sorted(common_dates)]
+        # Extract values for all dates, filling 0 for missing data
+        values1 = [habit1_data.get(date, 0.0) for date in sorted(all_dates)]
+        values2 = [habit2_data.get(date, 0.0) for date in sorted(all_dates)]
 
         # Compute Pearson correlation
         try:
@@ -188,7 +188,7 @@ class Command(BaseCommand):
 
             return {
                 "coefficient": float(correlation_coefficient),
-                "sample_size": len(common_dates),
+                "sample_size": len(all_dates),
             }
         except Exception as e:
             self.stdout.write(
