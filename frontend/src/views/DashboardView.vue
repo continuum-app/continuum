@@ -794,32 +794,39 @@ const fetchSummaryData = async () => {
 }
 
 // Helper function to fill missing dates with 0 values
-const fillMissingDates = (data, startDate, endDate) => {
+const fillMissingDates = (data) => {
   if (!data || data.length === 0) return data
-
-  // Generate all dates in range
-  const allDates = []
-  const current = new Date(startDate)
-  const end = new Date(endDate)
-
-  while (current <= end) {
-    allDates.push(current.toISOString().split('T')[0])
-    current.setDate(current.getDate() + 1)
-  }
 
   // Fill missing dates for each habit
   return data.map(habitData => {
+    if (!habitData.data || habitData.data.length === 0) {
+      return habitData
+    }
+
+    // Find the min and max dates where this habit has actual data
+    const dates = habitData.data.map(point => point.date).sort()
+    const minDataDate = dates[0]
+    const maxDataDate = dates[dates.length - 1]
+
     // Create a map of existing data points
     const dataMap = new Map()
     habitData.data.forEach(point => {
       dataMap.set(point.date, point.value)
     })
 
-    // Create complete dataset with 0 for missing dates
-    const filledData = allDates.map(date => ({
-      date: date,
-      value: dataMap.get(date) || 0
-    }))
+    // Generate dates only between min and max data dates
+    const filledData = []
+    const current = new Date(minDataDate)
+    const end = new Date(maxDataDate)
+
+    while (current <= end) {
+      const dateStr = current.toISOString().split('T')[0]
+      filledData.push({
+        date: dateStr,
+        value: dataMap.get(dateStr) || 0
+      })
+      current.setDate(current.getDate() + 1)
+    }
 
     return {
       ...habitData,
@@ -842,10 +849,10 @@ const fetchGraphData = async () => {
 
     // Fill missing dates with 0 for each habit type
     graphData.value = {
-      boolean: fillMissingDates(response.data.boolean || [], graphStartDate.value, graphEndDate.value),
-      counter: fillMissingDates(response.data.counter || [], graphStartDate.value, graphEndDate.value),
-      value: fillMissingDates(response.data.value || [], graphStartDate.value, graphEndDate.value),
-      rating: fillMissingDates(response.data.rating || [], graphStartDate.value, graphEndDate.value)
+      boolean: fillMissingDates(response.data.boolean || []),
+      counter: fillMissingDates(response.data.counter || []),
+      value: fillMissingDates(response.data.value || []),
+      rating: fillMissingDates(response.data.rating || [])
     }
 
     await nextTick()
@@ -1434,7 +1441,7 @@ const getStrengthLabel = (strength) => {
                   <input v-model.number="habit.temp_value" type="number" min="0"
                     class="w-16 px-2 py-1 bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg font-bold text-center text-slate-900 dark:text-white outline-none text-sm" />
                   <span v-if="habit.unit" class="text-xs font-bold text-slate-500 dark:text-slate-400">{{ habit.unit
-                    }}</span>
+                  }}</span>
                   <button @click="saveCompletion(habit)"
                     class="px-3 py-2 rounded-lg font-bold text-white transition-all active:scale-95 flex items-center gap-1 shrink-0"
                     :style="{ backgroundColor: habit.color }">
