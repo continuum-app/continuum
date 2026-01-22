@@ -127,19 +127,6 @@ onMounted(() => {
                     </h1>
                     <p class="text-slate-400 dark:text-slate-500 font-medium">Site-wide settings for administrators</p>
                 </div>
-                <div class="flex gap-4">
-                    <!-- Dark Mode Toggle -->
-                    <button @click="toggleDarkMode"
-                        class="bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-yellow-400 px-6 py-4 rounded-2xl font-bold flex items-center gap-3 hover:bg-slate-300 dark:hover:bg-slate-600 transition-all shadow-md active:scale-95">
-                        <Moon v-if="!isDark" :size="20" stroke-width="2.5" />
-                        <Sun v-else :size="20" stroke-width="2.5" />
-                    </button>
-
-                    <button @click="handleLogout"
-                        class="bg-red-600 text-white px-8 py-4 rounded-2xl font-bold hover:bg-red-700 transition-all shadow-md active:scale-95">
-                        Logout
-                    </button>
-                </div>
             </header>
 
             <div class="space-y-6">
