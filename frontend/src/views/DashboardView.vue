@@ -9,6 +9,7 @@ import * as LucideIcons from 'lucide-vue-next'
 import { Plus, X, ChevronDown, CheckCircle2, RefreshCw, Save, Star, Moon, Sun, GripVertical, BarChart3, FileText, Download, Calendar, Settings, Languages, Check, User, ArrowLeft, Trash2, Mail, Lock, Database } from 'lucide-vue-next'
 import { Chart, registerables } from 'chart.js'
 import 'chartjs-adapter-date-fns'
+import IconPicker from '../components/IconPicker.vue'
 
 // Register Chart.js components
 Chart.register(...registerables)
@@ -1074,11 +1075,14 @@ const getStrengthLabel = (strength) => {
     <div class="max-w-7xl mx-auto">
 
       <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
-        <div>
-          <h1 class="text-4xl font-black tracking-tighter text-slate-900 dark:text-white uppercase italic">
-            {{ t('appName') }}
-          </h1>
-          <p class="text-slate-400 dark:text-slate-500 font-medium">{{ t('tagline') }}</p>
+        <div class="flex items-center gap-4">
+          <img src="/logo.svg" alt="App Logo" class="h-14 w-14" />
+          <div>
+            <h1 class="text-4xl font-black tracking-tighter text-slate-900 dark:text-white uppercase italic">
+              {{ t('appName') }}
+            </h1>
+            <p class="text-slate-400 dark:text-slate-500 font-medium">{{ t('tagline') }}</p>
+          </div>
         </div>
         <div class="flex gap-4">
           <!-- Language Selector -->
@@ -1854,7 +1858,7 @@ const getStrengthLabel = (strength) => {
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <div class="space-y-2">
               <label class="text-xs font-black uppercase tracking-widest text-slate-400 ml-2">{{ t('startDate')
-                }}</label>
+              }}</label>
               <input v-model="graphStartDate" type="date"
                 class="w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-50 dark:border-slate-700 rounded-2xl px-6 py-4 focus:bg-white dark:focus:bg-slate-600 focus:border-indigo-500 transition outline-none font-bold text-slate-900 dark:text-white" />
             </div>
@@ -2200,8 +2204,9 @@ const getStrengthLabel = (strength) => {
     <Transition name="fade">
       <div v-if="isModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4">
         <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-md" @click="isModalOpen = false"></div>
-        <div class="relative bg-white dark:bg-slate-800 w-full max-w-lg rounded-[3rem] p-12 shadow-2xl overflow-hidden">
-          <div class="absolute top-0 left-0 w-full h-2 bg-indigo-500"></div>
+        <div
+          class="relative bg-white dark:bg-slate-800 w-full max-w-lg rounded-[3rem] p-12 shadow-2xl overflow-visible">
+          <div class="absolute top-0 left-0 right-0 h-2 bg-indigo-500 rounded-t-[3rem]"></div>
 
           <div class="flex justify-between items-center mb-10">
             <h2 class="text-3xl font-black text-slate-900 dark:text-white">{{ t('newHabit') }}</h2>
@@ -2214,30 +2219,24 @@ const getStrengthLabel = (strength) => {
           <form @submit.prevent="addHabit" class="space-y-8">
             <div class="space-y-2">
               <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2">{{ t('objectiveName')
-                }}</label>
+              }}</label>
               <input v-model="newHabitName" type="text" placeholder="e.g. Daily Sprints" required
                 class="w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-50 dark:border-slate-700 rounded-3xl px-6 py-4 focus:bg-white dark:focus:bg-slate-600 focus:border-indigo-500 transition outline-none font-bold text-lg text-slate-900 dark:text-white">
             </div>
 
-            <div class="grid grid-cols-2 gap-6">
-              <div class="space-y-2">
-                <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2">{{ t('metricType')
-                  }}</label>
-                <select v-model="newHabitType"
-                  class="w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-50 dark:border-slate-700 rounded-3xl px-6 py-4 font-bold outline-none appearance-none text-slate-900 dark:text-white">
-                  <option value="boolean">{{ t('boolean') }}</option>
-                  <option value="counter">{{ t('counter') }}</option>
-                  <option value="value">{{ t('value') }}</option>
-                  <option value="rating">{{ t('rating') }}</option>
-                </select>
-              </div>
-              <div class="space-y-2">
-                <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2">{{ t('visualIcon')
-                  }}</label>
-                <input v-model="newHabitIcon" placeholder="e.g. Beer, Flame"
-                  class="w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-50 dark:border-slate-700 rounded-3xl px-6 py-4 font-bold outline-none text-slate-900 dark:text-white">
-              </div>
+            <div class="space-y-2">
+              <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2">{{ t('metricType')
+              }}</label>
+              <select v-model="newHabitType"
+                class="w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-50 dark:border-slate-700 rounded-3xl px-6 py-4 font-bold outline-none appearance-none text-slate-900 dark:text-white">
+                <option value="boolean">{{ t('boolean') }}</option>
+                <option value="counter">{{ t('counter') }}</option>
+                <option value="value">{{ t('value') }}</option>
+                <option value="rating">{{ t('rating') }}</option>
+              </select>
             </div>
+
+            <IconPicker v-model="newHabitIcon" :label="t('visualIcon')" />
 
             <!-- Max Value for Rating -->
             <div v-if="newHabitType === 'rating'" class="space-y-2">
@@ -2253,7 +2252,7 @@ const getStrengthLabel = (strength) => {
 
             <div class="space-y-2">
               <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2">{{ t('category')
-                }}</label>
+              }}</label>
               <select v-model="newHabitCategoryId"
                 class="w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-50 dark:border-slate-700 rounded-3xl px-6 py-4 font-bold outline-none appearance-none text-slate-900 dark:text-white">
                 <option :value="null">{{ t('uncategorized') }}</option>
@@ -2263,7 +2262,7 @@ const getStrengthLabel = (strength) => {
 
             <div class="space-y-2">
               <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2">{{ t('identityColor')
-                }}</label>
+              }}</label>
               <div class="flex items-center gap-4 bg-slate-50 dark:bg-slate-700 p-4 rounded-3xl">
                 <input v-model="newHabitColor" type="color"
                   class="w-16 h-12 rounded-xl border-none bg-transparent cursor-pointer">
@@ -2284,8 +2283,9 @@ const getStrengthLabel = (strength) => {
     <Transition name="fade">
       <div v-if="editingHabit" class="fixed inset-0 z-50 flex items-center justify-center p-4">
         <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-md" @click="cancelEditHabit"></div>
-        <div class="relative bg-white dark:bg-slate-800 w-full max-w-lg rounded-[3rem] p-12 shadow-2xl overflow-hidden">
-          <div class="absolute top-0 left-0 w-full h-2 bg-blue-500"></div>
+        <div
+          class="relative bg-white dark:bg-slate-800 w-full max-w-lg rounded-[3rem] p-12 shadow-2xl overflow-visible">
+          <div class="absolute top-0 left-0 right-0 h-2 bg-blue-500 rounded-t-[3rem]"></div>
 
           <div class="flex justify-between items-center mb-10">
             <h2 class="text-3xl font-black text-slate-900 dark:text-white">{{ t('editHabit') }}</h2>
@@ -2302,23 +2302,18 @@ const getStrengthLabel = (strength) => {
                 class="w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-50 dark:border-slate-700 rounded-3xl px-6 py-4 focus:bg-white dark:focus:bg-slate-600 focus:border-indigo-500 transition outline-none font-bold text-lg text-slate-900 dark:text-white" />
             </div>
 
-            <div class="grid grid-cols-2 gap-6">
-              <div class="space-y-2">
-                <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2">Icon</label>
-                <input v-model="editingHabitData.icon" type="text" placeholder="e.g. activity"
-                  class="w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-50 dark:border-slate-700 rounded-2xl px-4 py-3 font-bold text-slate-900 dark:text-white focus:border-indigo-500 transition outline-none" />
-              </div>
-              <div class="space-y-2">
-                <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2">Type</label>
-                <select v-model="editingHabitData.habit_type" disabled
-                  class="w-full bg-slate-100 dark:bg-slate-700 border-2 border-slate-100 dark:border-slate-700 rounded-2xl px-4 py-3 font-bold text-slate-600 dark:text-slate-400 cursor-not-allowed">
-                  <option value="boolean">Yes/No</option>
-                  <option value="counter">Counter</option>
-                  <option value="value">Decimal Value</option>
-                  <option value="rating">Rating</option>
-                </select>
-                <p class="text-xs text-slate-400 ml-2 mt-1">Type cannot be changed</p>
-              </div>
+            <IconPicker v-model="editingHabitData.icon" label="Icon" />
+
+            <div class="space-y-2">
+              <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2">Type</label>
+              <select v-model="editingHabitData.habit_type" disabled
+                class="w-full bg-slate-100 dark:bg-slate-700 border-2 border-slate-100 dark:border-slate-700 rounded-2xl px-4 py-3 font-bold text-slate-600 dark:text-slate-400 cursor-not-allowed">
+                <option value="boolean">Yes/No</option>
+                <option value="counter">Counter</option>
+                <option value="value">Decimal Value</option>
+                <option value="rating">Rating</option>
+              </select>
+              <p class="text-xs text-slate-400 ml-2 mt-1">Type cannot be changed</p>
             </div>
 
             <!-- Unit for Value type -->
