@@ -14,6 +14,26 @@ import IconPicker from '../components/IconPicker.vue'
 // Register Chart.js components
 Chart.register(...registerables)
 
+// Cookie utility functions
+const setCookie = (name, value, days = 365) => {
+  const date = new Date()
+  date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000))
+  const expires = `expires=${date.toUTCString()}`
+  document.cookie = `${name}=${value};${expires};path=/`
+}
+
+const getCookie = (name) => {
+  const nameEQ = `${name}=`
+  const cookies = document.cookie.split(';')
+  for (let cookie of cookies) {
+    cookie = cookie.trim()
+    if (cookie.indexOf(nameEQ) === 0) {
+      return cookie.substring(nameEQ.length)
+    }
+  }
+  return null
+}
+
 const router = useRouter()
 const { isDark, toggleDarkMode } = useDarkMode()
 const { currentLanguage, setLanguage, languages, currentLanguageInfo, t } = useLanguage()
@@ -35,6 +55,14 @@ const activeTab = ref('tracking') // New: active tab state
 const currentTrackingDate = ref(new Date())
 const isLoadingHabits = ref(false)
 const isCardView = ref(true) // Toggle between card and row view
+
+// Load view preference from cookie
+const loadViewPreference = () => {
+  const saved = getCookie('viewPreference')
+  if (saved !== null) {
+    isCardView.value = saved === 'card'
+  }
+}
 
 // Form Refs for New Habit
 const newHabitName = ref('')
@@ -668,6 +696,7 @@ const closeLanguageDropdown = (event) => {
 }
 
 onMounted(() => {
+  loadViewPreference()
   fetchCategories()
   fetchHabits()
   fetchArchivedHabits()
@@ -1052,6 +1081,11 @@ watch(activeTab, (newTab) => {
 watch(profileData, () => {
   profileSaved.value = false
 }, { deep: true })
+
+// Save view preference to cookie when it changes
+watch(isCardView, (newValue) => {
+  setCookie('viewPreference', newValue ? 'card' : 'row')
+})
 
 onMounted(() => {
   fetchCategories()
