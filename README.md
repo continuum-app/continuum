@@ -1,11 +1,11 @@
 # 🌌 Continuum *(In Development)*
 
-**Continuum** is a **power-user–oriented habit-tracking engine** built for precision, insight, and long-term behavioral optimization.  
+**Continuum** is a **power-user–oriented habit-tracking engine** built for precision, insight, and long-term behavioral optimization.
 It enables granular tracking of daily routines, deep visualization of trends, and data-driven habit refinement.
 
 Designed with **correctness, extensibility, and performance** in mind, Continuum targets both:
-- 🧠 End users who want meaningful analytics  
-- 🛠️ Developers who value clean, scalable architecture  
+- 🧠 End users who want meaningful analytics
+- 🛠️ Developers who value clean, scalable architecture
 
 ---
 
@@ -24,10 +24,10 @@ Continuum is built around a few core principles:
 
 Continuum follows a **decoupled, API-first architecture**:
 
-- 🔌 Frontend and backend evolve independently  
-- 📜 Explicit, versionable data contracts  
-- 🔄 Stateless RESTful communication  
-- 🧪 Testable business logic isolated from presentation  
+- 🔌 Frontend and backend evolve independently
+- 📜 Explicit, versionable data contracts
+- 🔄 Stateless RESTful communication
+- 🧪 Testable business logic isolated from presentation
 
 ---
 
@@ -37,19 +37,19 @@ Continuum follows a **decoupled, API-first architecture**:
 
 Responsible for **business rules, persistence, and API exposure**.
 
-- **🐍 Django**  
+- **🐍 Django**
   High-level Python framework enabling rapid development with a clean, pragmatic design.
 
-- **🔗 Django REST Framework (DRF)**  
+- **🔗 Django REST Framework (DRF)**
   Robust API tooling: serialization, validation, authentication, and permissions.
 
-- **🌐 CORS Headers**  
+- **🌐 CORS Headers**
   Secure cross-origin communication between frontend and backend.
 
-- **🗃️ SQLite**  
+- **🗃️ SQLite**
   Lightweight database for local development and testing.
 
-- **🐘 PostgreSQL**  
+- **🐘 PostgreSQL**
   Production-grade relational database chosen for reliability and scalability.
 
 ---
@@ -58,19 +58,19 @@ Responsible for **business rules, persistence, and API exposure**.
 
 Focused on **speed, clarity, and interaction quality**.
 
-- **🖖 Vue.js 3**  
+- **🖖 Vue.js 3**
   Uses the Composition API (`<script setup>`) for expressive, maintainable components.
 
-- **⚡ Vite**  
+- **⚡ Vite**
   Ultra-fast dev server with near-instant Hot Module Replacement (HMR).
 
-- **🎨 Tailwind CSS v4**  
+- **🎨 Tailwind CSS v4**
   Utility-first styling with consistent spacing, modern cards, and clean layouts.
 
-- **📡 Axios**  
+- **📡 Axios**
   Promise-based HTTP client for API communication.
 
-- **🧩 Lucide Vue Next**  
+- **🧩 Lucide Vue Next**
   Elegant icon system used for habits, streaks, completion states, and analytics.
 
 ---
@@ -81,7 +81,7 @@ graph TD
     A[Django API & Admin] -->|JSON Serialization| B(REST Endpoint)
     B -->|Axios Requests| C(Vue.js Frontend)
     C -->|Reactivity System| D[Reactive State]
-    
+  
     style A fill:#092e20,color:#fff
     style D fill:#42b883,color:#fff
 ```
@@ -140,20 +140,20 @@ Continuum uses **multiple correlation algorithms** to discover meaningful relati
   - **Dynamic Time Warping (DTW)** — Detects time-shifted patterns and flexible alignments
 - ⚙️ Admin configuration panel
 - 🎯 Clean, modern UX with strong visual hierarchy
-- 🔐 Token-based authentication & SSO (planned)
+- 🔐 Token-based authentication & SSO
 - 📤 Data export support (`.csv`)
+- 📅 Weekly habit summaries
+- 📈 Yearly retrospective analytics
+- 🌍 Multi-language (i18n) support
 
 ---
 
 ## 🛣️ Roadmap
 
 Planned milestones include:
-
-- 📅 Weekly habit summaries
-- 📈 Yearly retrospective analytics
-- 🌍 Multi-language (i18n) support
 - 🔄 Advanced streak logic
 - 🧠 Insight-driven recommendations
+- 🎯 Goals setting and tracking
 
 ---
 
@@ -167,7 +167,7 @@ Installation will be provided via **Docker Compose** in a future release.
 
 ## 🤝 Contributing
 
-Contribution guidelines will be defined soon.  
+Contribution guidelines will be defined soon.
 The project is currently under **active development** — architecture and APIs may evolve.
 
 If you’re interested in contributing:
