@@ -33,6 +33,7 @@ class HabitSerializer(serializers.ModelSerializer):
             "color",
             "max_value",
             "today_value",
+            "archived",
         ]
 
     def get_today_value(self, obj):

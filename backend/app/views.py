@@ -51,7 +51,15 @@ class HabitViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         # Only return habits for the authenticated user
-        return self.queryset.filter(user=self.request.user)
+        queryset = self.queryset.filter(user=self.request.user)
+        # Filter by archived status if specified, default to non-archived
+        include_archived = self.request.query_params.get("include_archived", "false")
+        archived_only = self.request.query_params.get("archived_only", "false")
+        if archived_only.lower() == "true":
+            queryset = queryset.filter(archived=True)
+        elif include_archived.lower() != "true":
+            queryset = queryset.filter(archived=False)
+        return queryset
 
     def get_serializer_context(self):
         """Pass the requested date to the serializer"""
@@ -103,6 +111,27 @@ class HabitViewSet(viewsets.ModelViewSet):
                 "new_value": float(completion.value),
             }
         )
+
+    @action(detail=True, methods=["post"])
+    def archive(self, request, pk=None):
+        """Archive a habit."""
+        habit = self.get_object()
+        habit.archived = True
+        habit.save()
+        return Response({"status": "archived", "id": habit.id})
+
+    @action(detail=True, methods=["post"])
+    def unarchive(self, request, pk=None):
+        """Unarchive a habit."""
+        # Fetch habit directly without relying on get_queryset() which filters by archived status
+        try:
+            habit = Habit.objects.get(id=pk, user=request.user)
+        except Habit.DoesNotExist:
+            return Response({"error": "Habit not found"}, status=404)
+
+        habit.archived = False
+        habit.save()
+        return Response({"status": "unarchived", "id": habit.id})
 
     @action(detail=False, methods=["get"])
     def graph_data(self, request):

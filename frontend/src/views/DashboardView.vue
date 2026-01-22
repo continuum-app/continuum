@@ -6,7 +6,7 @@ import authService from '../services/auth'
 import { useDarkMode } from '../composables/useDarkMode'
 import { useLanguage } from '../composables/useLanguage'
 import * as LucideIcons from 'lucide-vue-next'
-import { Plus, X, ChevronDown, CheckCircle2, RefreshCw, Save, Star, Moon, Sun, GripVertical, BarChart3, FileText, Download, Calendar, Settings, Languages, Check, User, ArrowLeft, Trash2, Mail, Lock, Database } from 'lucide-vue-next'
+import { Plus, X, ChevronDown, CheckCircle2, RefreshCw, Save, Star, Moon, Sun, GripVertical, BarChart3, FileText, Download, Calendar, Settings, Languages, Check, User, ArrowLeft, Trash2, Mail, Lock, Database, Pencil, Archive, ArchiveRestore } from 'lucide-vue-next'
 import { Chart, registerables } from 'chart.js'
 import 'chartjs-adapter-date-fns'
 import IconPicker from '../components/IconPicker.vue'
@@ -23,6 +23,7 @@ const isLanguageDropdownOpen = ref(false)
 
 // --- STATE ---
 const habits = ref([])
+const archivedHabits = ref([])
 const categories = ref([])
 const isModalOpen = ref(false)
 const draggedCategoryId = ref(null)
@@ -533,6 +534,42 @@ const deleteHabit = async (habitId) => {
   }
 }
 
+// Archive habit
+const archiveHabit = async (habitId) => {
+  try {
+    await api.post(`habits/${habitId}/archive/`)
+    habits.value = habits.value.filter(h => h.id !== habitId)
+    await fetchArchivedHabits()
+  } catch (err) {
+    console.error('Failed to archive habit:', err)
+    alert('Failed to archive habit')
+  }
+}
+
+// Unarchive habit
+const unarchiveHabit = async (habitId) => {
+  try {
+    await api.post(`habits/${habitId}/unarchive/`)
+    archivedHabits.value = archivedHabits.value.filter(h => h.id !== habitId)
+    await fetchHabits(trackingDateString.value)
+  } catch (err) {
+    console.error('Failed to unarchive habit:', err)
+    alert('Failed to unarchive habit')
+  }
+}
+
+// Fetch archived habits
+const fetchArchivedHabits = async () => {
+  try {
+    const res = await api.get('habits/', {
+      params: { archived_only: 'true' }
+    })
+    archivedHabits.value = res.data
+  } catch (err) {
+    console.error('Failed to fetch archived habits:', err)
+  }
+}
+
 // Start editing a habit
 const startEditHabit = (habit) => {
   editingHabit.value = habit.id
@@ -633,6 +670,7 @@ const closeLanguageDropdown = (event) => {
 onMounted(() => {
   fetchCategories()
   fetchHabits()
+  fetchArchivedHabits()
   initializeDateRange()
 
   // Add click outside listener
@@ -1018,6 +1056,7 @@ watch(profileData, () => {
 onMounted(() => {
   fetchCategories()
   fetchHabits()
+  fetchArchivedHabits()
   initializeDateRange()
 })
 
@@ -2074,25 +2113,23 @@ const getStrengthLabel = (strength) => {
 
               <div class="flex gap-2 ml-4">
                 <button v-if="editingCategory !== category.id" @click="editingCategory = category.id"
-                  class="px-4 py-2 bg-slate-200 dark:bg-slate-600 text-slate-700 dark:text-slate-300 rounded-xl font-bold hover:bg-slate-300 dark:hover:bg-slate-500 transition-all text-sm">
-                  {{ t('editCategory') }}
+                  class="p-2 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-xl hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-all active:scale-95">
+                  <Pencil :size="18" stroke-width="2.5" />
                 </button>
 
                 <button v-else @click="updateCategory(category)"
-                  class="px-4 py-2 bg-green-600 text-white rounded-xl font-bold hover:bg-green-700 transition-all text-sm flex items-center gap-1">
-                  <Save :size="16" />
-                  {{ t('save') }}
+                  class="p-2 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-xl hover:bg-green-200 dark:hover:bg-green-900/50 transition-all active:scale-95">
+                  <Save :size="18" stroke-width="2.5" />
                 </button>
 
                 <button v-if="editingCategory === category.id" @click="editingCategory = null"
-                  class="px-4 py-2 bg-slate-300 dark:bg-slate-600 text-slate-700 dark:text-slate-300 rounded-xl font-bold hover:bg-slate-400 dark:hover:bg-slate-500 transition-all text-sm">
-                  Cancel
+                  class="p-2 bg-slate-200 dark:bg-slate-600 text-slate-600 dark:text-slate-300 rounded-xl hover:bg-slate-300 dark:hover:bg-slate-500 transition-all active:scale-95">
+                  <X :size="18" stroke-width="2.5" />
                 </button>
 
                 <button @click="deleteCategory(category.id)" :disabled="isDeletingCategory === category.id"
-                  class="px-4 py-2 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-xl font-bold hover:bg-red-200 dark:hover:bg-red-900/50 transition-all text-sm flex items-center gap-1 disabled:opacity-50">
-                  <Trash2 :size="16" />
-                  {{ isDeletingCategory === category.id ? t('deleting') : t('deleteCategory') }}
+                  class="p-2 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-xl hover:bg-red-200 dark:hover:bg-red-900/50 transition-all active:scale-95 disabled:opacity-50">
+                  <Trash2 :size="18" stroke-width="2.5" />
                 </button>
               </div>
             </div>
@@ -2142,7 +2179,7 @@ const getStrengthLabel = (strength) => {
               </div>
 
               <div class="flex gap-2 ml-4">
-                <button @click="startEditHabit(habit)"
+                <button @click="startEditHabit(habit)" :title="t('editHabit')"
                   class="p-2 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-xl hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-all active:scale-95">
                   <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
                     stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -2150,7 +2187,68 @@ const getStrengthLabel = (strength) => {
                     <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
                   </svg>
                 </button>
-                <button @click="deleteHabit(habit.id)"
+                <button @click="archiveHabit(habit.id)" :title="t('archiveHabit')"
+                  class="p-2 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400 rounded-xl hover:bg-yellow-200 dark:hover:bg-yellow-900/50 transition-all active:scale-95">
+                  <Archive :size="18" stroke-width="2.5" />
+                </button>
+                <button @click="deleteHabit(habit.id)" :title="t('deleteHabitPermanently')"
+                  class="p-2 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-xl hover:bg-red-200 dark:hover:bg-red-900/50 transition-all active:scale-95">
+                  <Trash2 :size="18" stroke-width="2.5" />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Archived Habits -->
+        <div
+          class="bg-white dark:bg-slate-800 rounded-[3rem] p-8 shadow-lg border border-slate-100 dark:border-slate-700">
+          <div class="flex items-center gap-3 mb-6">
+            <div class="p-3 bg-gray-100 dark:bg-gray-900/30 rounded-2xl">
+              <Archive :size="24" class="text-gray-600 dark:text-gray-400" stroke-width="2.5" />
+            </div>
+            <h2 class="text-2xl font-black text-slate-900 dark:text-white">{{ t('archivedHabits') || 'Archived Habits'
+            }}</h2>
+          </div>
+
+          <!-- Archived Habits List -->
+          <div class="space-y-3">
+            <p class="text-xs font-black uppercase tracking-widest text-slate-400 ml-2 mb-3">
+              {{ t('archived') || 'Archived' }} ({{ archivedHabits.length }})
+            </p>
+
+            <div v-if="archivedHabits.length === 0" class="text-center py-8 text-slate-400 dark:text-slate-500">
+              {{ t('noArchivedHabits') || 'No archived habits yet.' }}
+            </div>
+
+            <div v-for="habit in archivedHabits" :key="habit.id"
+              class="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-700 rounded-2xl hover:shadow-md transition-all opacity-75">
+              <div class="flex items-center gap-4 flex-1">
+                <div class="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center"
+                  :style="{ backgroundColor: habit.color + '20' }">
+                  <component :is="getIcon(habit.icon)" :size="20" :style="{ color: habit.color }" stroke-width="2.5" />
+                </div>
+                <div class="flex-1">
+                  <p class="font-bold text-slate-900 dark:text-white">{{ habit.name }}</p>
+                  <div class="flex gap-2 mt-1">
+                    <span
+                      class="text-xs px-2 py-1 rounded-full bg-slate-200 dark:bg-slate-600 text-slate-700 dark:text-slate-300 font-bold">
+                      {{ habit.habit_type }}
+                    </span>
+                    <span v-if="habit.category"
+                      class="text-xs px-2 py-1 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 font-bold">
+                      {{ habit.category.name }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex gap-2 ml-4">
+                <button @click="unarchiveHabit(habit.id)" :title="t('unarchiveHabit')"
+                  class="p-2 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-xl hover:bg-green-200 dark:hover:bg-green-900/50 transition-all active:scale-95">
+                  <ArchiveRestore :size="18" stroke-width="2.5" />
+                </button>
+                <button @click="deleteHabit(habit.id)" :title="t('deleteHabitPermanently')"
                   class="p-2 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-xl hover:bg-red-200 dark:hover:bg-red-900/50 transition-all active:scale-95">
                   <Trash2 :size="18" stroke-width="2.5" />
                 </button>

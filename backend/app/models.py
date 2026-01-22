@@ -45,6 +45,7 @@ class Habit(models.Model):
         blank=True,
         help_text="Optional unit for value habit (e.g., 'km', 'miles', 'hours')",
     )
+    archived = models.BooleanField(default=False)
 
     class Meta:
         ordering = ["name"]

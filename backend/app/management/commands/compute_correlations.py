@@ -86,8 +86,8 @@ class Command(BaseCommand):
     def compute_user_correlations(self, user, start_date, end_date, min_sample_size):
         """Compute correlations for a single user."""
 
-        # Get all habits for this user
-        habits = list(user.habits.all())
+        # Get all non-archived habits for this user
+        habits = list(user.habits.filter(archived=False))
 
         if len(habits) < 2:
             return 0  # Need at least 2 habits to correlate
