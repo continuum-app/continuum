@@ -17,7 +17,6 @@ import numpy as np
 from scipy.stats import spearmanr
 from collections import defaultdict
 from ...models import Habit, Completion, HabitCorrelation
-import time
 
 try:
     from dtaidistance import dtw
@@ -85,7 +84,7 @@ class Command(BaseCommand):
         )
 
     def compute_user_correlations(self, user, start_date, end_date, min_sample_size):
-        """Compute correlations for a single user."""
+        """Compute correlations for a single user using matrix operations."""
 
         # Get all non-archived habits for this user
         habits = list(user.habits.filter(archived=False))
@@ -98,227 +97,186 @@ class Command(BaseCommand):
             habit__user=user, date__gte=start_date, date__lte=end_date
         ).select_related("habit")
 
-        # Build a data structure: {habit_id: {date: normalized_value}}
-        habit_data = defaultdict(dict)  # Raw values
-        habit_meta = {}  # Store habit metadata for normalization
+        # Build a data structure: {habit_id: {date: value}}
+        habit_data = defaultdict(dict)
 
         for completion in completions:
             habit_id = completion.habit_id
             date = completion.date
             value = float(completion.value)
-
-            # Store raw value
             habit_data[habit_id][date] = value
 
-            # Track min/max for normalization
-            if habit_id not in habit_meta:
-                habit_meta[habit_id] = {"habit": completion.habit, "values": []}
-            habit_meta[habit_id]["values"].append(value)
+        # Create ordered list of habit IDs that have data
+        habit_ids = [h.id for h in habits if h.id in habit_data]
+        habit_map = {h.id: h for h in habits}
 
-        # Normalize all habit data to 0-1 scale
-        normalized_data = {}
-        for habit_id, dates_values in habit_data.items():
-            values = habit_meta[habit_id]["values"]
-            min_val = min(values)
-            max_val = max(values)
+        if len(habit_ids) < 2:
+            return 0
 
-            # Normalize to 0-1
-            if max_val > min_val:
-                normalized_data[habit_id] = {
-                    date: (value - min_val) / (max_val - min_val)
-                    for date, value in dates_values.items()
-                }
-            else:
-                # All values are the same
-                normalized_data[habit_id] = {
-                    date: 1.0 if value > 0 else 0.0
-                    for date, value in dates_values.items()
-                }
-
-        # Compute correlations between all pairs of habits
-        correlations_computed = 0
-
-        for i, habit1 in enumerate(habits):
-            for habit2 in habits[i + 1 :]:  # Only compute upper triangle
-                correlation_result = self.compute_all_correlations(
-                    habit1,
-                    habit2,
-                    normalized_data,
-                    habit_data,
-                    start_date,
-                    end_date,
-                    min_sample_size,
-                )
-
-                if correlation_result is not None:
-                    # Store or update correlation with all methods
-                    HabitCorrelation.objects.update_or_create(
-                        user=user,
-                        habit1=habit1,
-                        habit2=habit2,
-                        defaults={
-                            "correlation_coefficient": Decimal(
-                                str(
-                                    round(
-                                        correlation_result["pearson"]["coefficient"], 4
-                                    )
-                                )
-                            ),
-                            "spearman_coefficient": (
-                                Decimal(
-                                    str(
-                                        round(
-                                            correlation_result["spearman"][
-                                                "coefficient"
-                                            ],
-                                            4,
-                                        )
-                                    )
-                                )
-                                if correlation_result["spearman"]
-                                else None
-                            ),
-                            "dtw_distance": (
-                                Decimal(
-                                    str(round(correlation_result["dtw"]["distance"], 4))
-                                )
-                                if correlation_result["dtw"]
-                                else None
-                            ),
-                            "sample_size": correlation_result["sample_size"],
-                            "start_date": start_date,
-                            "end_date": end_date,
-                        },
-                    )
-                    correlations_computed += 1
-
-        return correlations_computed
-
-    def compute_all_correlations(
-        self,
-        habit1,
-        habit2,
-        normalized_data,
-        habit_data,
-        start_date,
-        end_date,
-        min_sample_size,
-    ):
-        """Compute Pearson, Spearman, and DTW correlations between two habits."""
-
-        habit1_normalized = normalized_data.get(habit1.id, {})
-        habit2_normalized = normalized_data.get(habit2.id, {})
-        habit1_raw = habit_data.get(habit1.id, {})
-        habit2_raw = habit_data.get(habit2.id, {})
-
-        # Find all dates where either habit has data
-        all_dates = set(habit1_normalized.keys()) | set(habit2_normalized.keys())
+        # Find all dates where any habit has data
+        all_dates = set()
+        for dates_values in habit_data.values():
+            all_dates.update(dates_values.keys())
 
         if len(all_dates) < min_sample_size:
-            return None  # Not enough data points
+            return 0
 
-        # Extract values for all dates, filling 0 for missing data
         sorted_dates = sorted(all_dates)
-        values1_normalized = [habit1_normalized.get(date, 0.0) for date in sorted_dates]
-        values2_normalized = [habit2_normalized.get(date, 0.0) for date in sorted_dates]
-        values1_raw = [habit1_raw.get(date, 0.0) for date in sorted_dates]
-        values2_raw = [habit2_raw.get(date, 0.0) for date in sorted_dates]
+        num_habits = len(habit_ids)
+        num_dates = len(sorted_dates)
 
-        sample_size = len(sorted_dates)
+        # Build raw data matrix (habits x dates)
+        raw_matrix = np.zeros((num_habits, num_dates), dtype=np.float64)
+        for i, habit_id in enumerate(habit_ids):
+            for j, date in enumerate(sorted_dates):
+                raw_matrix[i, j] = habit_data[habit_id].get(date, 0.0)
 
-        start = time.perf_counter()
-        # Compute Pearson correlation (normalized data)
-        pearson_result = self.compute_pearson(values1_normalized, values2_normalized)
-        end = time.perf_counter()
-        elapsed_time = end - start
-        print(f"Elapsed time: {elapsed_time:.4f} seconds")
-        start = time.perf_counter()
-        # Compute Spearman correlation (raw data, rank-based)
-        spearman_result = self.compute_spearman(values1_raw, values2_raw)
-        end = time.perf_counter()
-        elapsed_time = end - start
-        print(f"Elapsed time: {elapsed_time:.4f} seconds")
-        start = time.perf_counter()
-        # Compute DTW distance (normalized data)
-        dtw_result = self.compute_dtw(values1_normalized, values2_normalized)
-        end = time.perf_counter()
-        elapsed_time = end - start
-        print(f"Elapsed time: {elapsed_time:.4f} seconds")
+        # Build normalized data matrix (0-1 scale per habit)
+        normalized_matrix = np.zeros((num_habits, num_dates), dtype=np.float64)
+        for i, habit_id in enumerate(habit_ids):
+            row = raw_matrix[i]
+            min_val = row.min()
+            max_val = row.max()
 
-        if pearson_result is None:
-            return None
+            if max_val > min_val:
+                normalized_matrix[i] = (row - min_val) / (max_val - min_val)
+            else:
+                # All values are the same
+                normalized_matrix[i] = np.where(row > 0, 1.0, 0.0)
 
-        return {
-            "pearson": pearson_result,
-            "spearman": spearman_result,
-            "dtw": dtw_result,
-            "sample_size": sample_size,
-        }
+        # Compute all correlation matrices at once
+        pearson_matrix = self.compute_pearson_matrix(normalized_matrix)
+        spearman_matrix = self.compute_spearman_matrix(raw_matrix)
+        dtw_matrix = self.compute_dtw_matrix(normalized_matrix)
 
-    def compute_pearson(self, values1, values2):
-        """Compute Pearson correlation coefficient."""
+        # Fetch existing correlations for this user to determine create vs update
+        existing_correlations = HabitCorrelation.objects.filter(user=user)
+        existing_map = {(c.habit1_id, c.habit2_id): c for c in existing_correlations}
+
+        # Build lists for bulk operations
+        to_create = []
+        to_update = []
+
+        for i in range(num_habits):
+            for j in range(i + 1, num_habits):
+                habit1_id = habit_ids[i]
+                habit2_id = habit_ids[j]
+
+                pearson_coef = (
+                    pearson_matrix[i, j] if pearson_matrix is not None else None
+                )
+                spearman_coef = (
+                    spearman_matrix[i, j] if spearman_matrix is not None else None
+                )
+                dtw_dist = dtw_matrix[i, j] if dtw_matrix is not None else None
+
+                # Skip if Pearson is invalid
+                if pearson_coef is None or np.isnan(pearson_coef):
+                    continue
+
+                # Prepare values
+                pearson_decimal = Decimal(str(round(pearson_coef, 4)))
+                dtw_decimal = None
+                if dtw_dist is not None and not np.isnan(dtw_dist):
+                    dtw_decimal = Decimal(str(round(dtw_dist, 4)))
+                spearman_decimal = None
+                if spearman_coef is not None and not np.isnan(spearman_coef):
+                    spearman_decimal = Decimal(str(round(spearman_coef, 4)))
+
+                existing = existing_map.get((habit1_id, habit2_id))
+
+                if existing:
+                    # Update existing record
+                    existing.correlation_coefficient = pearson_decimal
+                    existing.spearman_coefficient = spearman_decimal
+                    existing.dtw_distance = dtw_decimal
+                    existing.sample_size = num_dates
+                    existing.start_date = start_date
+                    existing.end_date = end_date
+                    to_update.append(existing)
+                else:
+                    # Create new record
+                    to_create.append(
+                        HabitCorrelation(
+                            user=user,
+                            habit1=habit_map[habit1_id],
+                            habit2=habit_map[habit2_id],
+                            correlation_coefficient=pearson_decimal,
+                            spearman_coefficient=spearman_decimal,
+                            dtw_distance=dtw_decimal,
+                            sample_size=num_dates,
+                            start_date=start_date,
+                            end_date=end_date,
+                        )
+                    )
+
+        # Perform bulk operations
+        if to_create:
+            HabitCorrelation.objects.bulk_create(to_create)
+        if to_update:
+            HabitCorrelation.objects.bulk_update(
+                to_update,
+                [
+                    "correlation_coefficient",
+                    "spearman_coefficient",
+                    "dtw_distance",
+                    "sample_size",
+                    "start_date",
+                    "end_date",
+                ],
+            )
+
+        return len(to_create) + len(to_update)
+
+    def compute_pearson_matrix(self, matrix):
+        """Compute Pearson correlation matrix for all habits at once."""
         try:
-            correlation_matrix = np.corrcoef(values1, values2)
-            correlation_coefficient = correlation_matrix[0, 1]
-
-            # Handle NaN (can occur if all values are identical)
-            if np.isnan(correlation_coefficient):
-                return None
-
-            return {"coefficient": float(correlation_coefficient)}
+            # np.corrcoef computes the full correlation matrix
+            # Input: each row is a variable (habit), each column is an observation (date)
+            # Suppress warning for zero-variance rows (constant values) - results in NaN which we handle
+            with np.errstate(divide="ignore", invalid="ignore"):
+                correlation_matrix = np.corrcoef(matrix)
+            return correlation_matrix
         except Exception as e:
             self.stdout.write(
-                self.style.WARNING(f"  Error computing Pearson correlation: {e}")
+                self.style.WARNING(f"  Error computing Pearson correlation matrix: {e}")
             )
             return None
 
-    def compute_spearman(self, values1, values2):
-        """Compute Spearman rank correlation coefficient."""
+    def compute_spearman_matrix(self, matrix):
+        """Compute Spearman rank correlation matrix for all habits at once."""
         try:
-            correlation_coefficient, p_value = spearmanr(values1, values2)
+            # spearmanr with axis=1 treats each row as a variable
+            # Returns correlation matrix and p-value matrix
+            correlation_matrix, _ = spearmanr(matrix, axis=1)
 
-            # Handle NaN
-            if np.isnan(correlation_coefficient):
-                return None
+            # Handle single pair case where spearmanr returns scalar
+            if np.isscalar(correlation_matrix):
+                correlation_matrix = np.array(
+                    [[1.0, correlation_matrix], [correlation_matrix, 1.0]]
+                )
 
-            return {
-                "coefficient": float(correlation_coefficient),
-                "p_value": float(p_value),
-            }
+            return correlation_matrix
         except Exception as e:
             self.stdout.write(
-                self.style.WARNING(f"  Error computing Spearman correlation: {e}")
+                self.style.WARNING(
+                    f"  Error computing Spearman correlation matrix: {e}"
+                )
             )
             return None
 
-    def compute_dtw(self, values1, values2):
-        """Compute Dynamic Time Warping distance."""
+    def compute_dtw_matrix(self, matrix):
+        """Compute DTW distance matrix for all habits at once."""
         if not HAS_DTW:
             return None
 
         try:
-            # Convert to numpy arrays
-            ts1 = np.array(values1, dtype=np.float64)
-            ts2 = np.array(values2, dtype=np.float64)
-
-            # Compute DTW distance
-            distance = dtw.distance(ts1, ts2)
-
-            # Normalize distance to 0-1 scale (using max possible distance)
-            # DTW distance can be large, so normalize relative to the length and value range
-            max_distance = len(ts1) * 2  # Rough normalization
-            normalized_distance = min(float(distance) / max_distance, 1.0)
-
-            # Convert to correlation-like score (higher is more similar)
-            # correlation_score = 1 - normalized_distance
-
-            return {
-                "distance": float(distance),
-                "normalized_distance": normalized_distance,
-                "correlation_score": 1 - normalized_distance,
-            }
+            # dtw.distance_matrix computes all pairwise distances at once
+            # Input should be a list of sequences or 2D array where each row is a sequence
+            distance_matrix = dtw.distance_matrix(matrix)
+            return distance_matrix
         except Exception as e:
             self.stdout.write(
-                self.style.WARNING(f"  Error computing DTW distance: {e}")
+                self.style.WARNING(f"  Error computing DTW distance matrix: {e}")
             )
             return None
