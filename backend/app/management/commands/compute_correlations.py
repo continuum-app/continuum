@@ -268,6 +268,11 @@ class Command(BaseCommand):
     def compute_dtw_matrix(self, matrix):
         """Compute DTW distance matrix for all habits at once."""
         if not HAS_DTW:
+            self.stdout.write(
+                self.style.WARNING(
+                    f"  No DTW library installed, skipping DTW computation."
+                )
+            )
             return None
 
         try:
