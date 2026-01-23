@@ -161,7 +161,7 @@ Planned milestones include:
 - 🌙 Add dark theme logo (and light logo) for seamless theme switching
 - 🏷️ Add a flexible tag system for habits, supporting search, filtering, and analytics by tag
 - 🔽 In 'tracking': Add advanced filters (by category, tag, completion status), custom ordering, and quick search for efficient habit management
-
+- ⌚ Garmin Connect integration: Import activity and health data to enrich habit tracking and analytics
 ---
 
 ## 🚀 Installation
