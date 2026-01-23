@@ -264,29 +264,39 @@ const fetchGraphData = async () => {
       rating: fillMissingDates(response.data.rating || [])
     }
 
-    await nextTick()
-    renderCharts()
+    await renderCharts()
   } catch (err) {
     console.error('Failed to fetch graph data:', err)
   }
 }
 
 // Render all charts
-const renderCharts = () => {
+const renderCharts = async () => {
+  // Ensure DOM is fully updated before accessing canvas elements
+  await nextTick()
+
   const habitTypes = ['boolean', 'counter', 'value', 'rating']
 
   habitTypes.forEach(type => {
     const canvasId = `chart-${type}`
     const canvas = document.getElementById(canvasId)
 
-    if (!canvas) return
+    if (!canvas) {
+      console.warn(`Canvas element #${canvasId} not found in DOM`)
+      return
+    }
+
+    const ctx = canvas.getContext('2d')
+    if (!ctx) {
+      console.warn(`Could not get 2D context from canvas #${canvasId}`)
+      return
+    }
 
     // Destroy existing chart
     if (chartInstances.value[type]) {
       chartInstances.value[type].destroy()
     }
 
-    const ctx = canvas.getContext('2d')
     const data = graphData.value[type] || []
 
     if (data.length === 0) return
@@ -397,9 +407,9 @@ watch([graphStartDate, graphEndDate], () => {
 })
 
 // Watch for dark mode changes to update charts
-watch(isDark, () => {
+watch(isDark, async () => {
   if (activeTab.value === 'graph') {
-    renderCharts()
+    await renderCharts()
   }
 })
 
