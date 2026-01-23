@@ -17,6 +17,7 @@ import numpy as np
 from scipy.stats import spearmanr
 from collections import defaultdict
 from ...models import Habit, Completion, HabitCorrelation
+import time
 
 try:
     from dtaidistance import dtw
@@ -225,14 +226,24 @@ class Command(BaseCommand):
 
         sample_size = len(sorted_dates)
 
+        start = time.perf_counter()
         # Compute Pearson correlation (normalized data)
         pearson_result = self.compute_pearson(values1_normalized, values2_normalized)
-
+        end = time.perf_counter()
+        elapsed_time = end - start
+        print(f"Elapsed time: {elapsed_time:.4f} seconds")
+        start = time.perf_counter()
         # Compute Spearman correlation (raw data, rank-based)
         spearman_result = self.compute_spearman(values1_raw, values2_raw)
-
+        end = time.perf_counter()
+        elapsed_time = end - start
+        print(f"Elapsed time: {elapsed_time:.4f} seconds")
+        start = time.perf_counter()
         # Compute DTW distance (normalized data)
         dtw_result = self.compute_dtw(values1_normalized, values2_normalized)
+        end = time.perf_counter()
+        elapsed_time = end - start
+        print(f"Elapsed time: {elapsed_time:.4f} seconds")
 
         if pearson_result is None:
             return None
