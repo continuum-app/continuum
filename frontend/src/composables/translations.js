@@ -27,6 +27,10 @@ export const translations = {
     uncategorized: 'Uncategorized',
     habit: 'habit',
     habits: 'habits',
+    categories: 'Categories',
+    newCategoryName: 'New category name',
+    add: 'Add',
+    confirmDeleteCategory: 'Delete this category? Habits will become uncategorized.',
 
     // Modal
     objectiveName: 'Objective Name',
@@ -70,6 +74,7 @@ export const translations = {
     currentPassword: 'Current Password',
     newPassword: 'New Password',
     confirmNewPassword: 'Confirm New Password',
+    updatePassword: 'Update Password',
     updateProfile: 'Update Profile',
     profileUpdated: 'Profile updated successfully',
     passwordUpdated: 'Password updated successfully',
@@ -80,6 +85,7 @@ export const translations = {
     deleteCategory: 'Delete Category',
     saving: 'Saving...',
     deleting: 'Deleting...',
+    changePassword: 'Change Password',
 
     // Insights
     insights: 'Insights',
@@ -103,6 +109,8 @@ export const translations = {
 
     // Date Navigation
     today: 'Today',
+    yesterday: 'Yesterday',
+    tomorrow: 'Tomorrow',
     previous: 'Previous',
     next: 'Next',
 
@@ -121,6 +129,19 @@ export const translations = {
 
     // Units
     unitPlaceholder: 'e.g., km, hours, pages',
+
+    // Messages
+    passwordMismatch: 'Passwords do not match',
+    passwordTooShort: 'Password must be at least 8 characters',
+    passwordChangeFailed: 'Failed to change password',
+    confirmDeletePermanent: 'Delete this habit permanently? This cannot be undone.',
+    saved: 'Saved!',
+    passwordChanged: 'Password changed successfully',
+    noCategories: 'No categories yet. Add one above!',
+    cannotChange: 'Cannot be changed',
+    createFirstHabit: 'Create your first habit to get started!',
+    done: 'Done',
+    confirmHabitArchive: 'Archive this habit?',
   },
 
   fr: {
@@ -151,6 +172,9 @@ export const translations = {
     uncategorized: 'Non catégorisé',
     habit: 'habitude',
     habits: 'habitudes',
+    categories: 'Catégories',
+    newCategoryName: 'Nom de la catégorie',
+    add: 'Ajouter',
 
     // Modal
     objectiveName: 'Nom de l\'Objectif',
@@ -194,6 +218,7 @@ export const translations = {
     currentPassword: 'Mot de passe actuel',
     newPassword: 'Nouveau mot de passe',
     confirmNewPassword: 'Confirmer le nouveau mot de passe',
+    updatePassword: 'Mettre à jour le mot de passe',
     updateProfile: 'Mettre à jour le profil',
     profileUpdated: 'Profil mis à jour avec succès',
     passwordUpdated: 'Mot de passe mis à jour avec succès',
@@ -204,6 +229,8 @@ export const translations = {
     deleteCategory: 'Supprimer la Catégorie',
     saving: 'Enregistrement...',
     deleting: 'Suppression...',
+    changePassword: 'Modifier le Mont de passe',
+    cancel: 'Annuler',
 
     // Insights
     insights: 'Analyses',
@@ -227,6 +254,8 @@ export const translations = {
 
     // Date Navigation
     today: 'Aujourd\'hui',
+    yesterday: 'Hier',
+    tomorrow: 'Demain',
     previous: 'Précédent',
     next: 'Suivant',
 
