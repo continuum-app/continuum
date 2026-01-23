@@ -35,6 +35,7 @@ class Habit(models.Model):
         related_name="habits",
     )
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="habits")
+    creation_date = models.DateTimeField(auto_now_add=True, editable=False)
 
     icon = models.CharField(max_length=50, default="calendar")
     color = models.CharField(max_length=20, default="#1F85DE")
