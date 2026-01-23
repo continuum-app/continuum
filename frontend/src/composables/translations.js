@@ -114,6 +114,7 @@ export const translations = {
     tomorrow: 'Tomorrow',
     previous: 'Previous',
     next: 'Next',
+    days: 'Days',
 
     // View Options
     cardView: 'Card View',
@@ -260,6 +261,7 @@ export const translations = {
     tomorrow: 'Demain',
     previous: 'Précédent',
     next: 'Suivant',
+    days: 'Jours',
 
     // View Options
     cardView: 'Vue Carte',

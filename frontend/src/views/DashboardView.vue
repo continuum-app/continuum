@@ -63,6 +63,7 @@ const summaryData = ref({
   rating: []
 })
 const isFetchingSummary = ref(false)
+const summaryDays = ref(30)
 
 
 // Computed property for dynamic years
@@ -127,6 +128,7 @@ const closeLanguageDropdown = (event) => {
     isLanguageDropdownOpen.value = false
   }
 }
+
 // Helper function to fill missing dates with 0 values
 const fillMissingDates = (data) => {
   if (!data || data.length === 0) return data
@@ -183,16 +185,42 @@ const setYearRange = (year) => {
 }
 
 // Set date range to all available data
-const setAllDataRange = () => {
-  graphStartDate.value = '2020-01-01'
-  graphEndDate.value = new Date().toISOString().split('T')[0]
+const setAllDataRange = async () => {
+  try {
+    const response = await api.get('habits/date_range/')
+    if (response.data.start_date && response.data.end_date) {
+      graphStartDate.value = response.data.start_date
+      graphEndDate.value = response.data.end_date
+    } else {
+      // Fallback if no data available
+      graphStartDate.value = new Date().toISOString().split('T')[0]
+      graphEndDate.value = new Date().toISOString().split('T')[0]
+    }
+  } catch (err) {
+    console.error('Failed to fetch date range:', err)
+    // Fallback on error
+    graphStartDate.value = '2020-01-01'
+    graphEndDate.value = new Date().toISOString().split('T')[0]
+  }
 }
 
-// Fetch summary data from API
+// Fetch summary data from API (last 30 days)
 const fetchSummaryData = async () => {
   isFetchingSummary.value = true
   try {
-    const response = await api.get('habits/summary/')
+    const endDate = new Date()
+    const startDate = new Date()
+    startDate.setDate(startDate.getDate() - 30)
+
+    // Calculate number of days in range
+    summaryDays.value = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24))
+
+    const response = await api.get('habits/summary/', {
+      params: {
+        start_date: startDate.toISOString().split('T')[0],
+        end_date: endDate.toISOString().split('T')[0]
+      }
+    })
     summaryData.value = {
       boolean: response.data.boolean || [],
       counter: response.data.counter || [],
@@ -559,9 +587,16 @@ const getStrengthLabel = (strength) => {
       <!-- Summary Tab -->
       <div v-show="activeTab === 'summary'" class="space-y-6">
         <!-- Header -->
-        <div class="bg-linear-to-r from-indigo-500 to-purple-600 rounded-[3rem] p-12 shadow-xl">
-          <h2 class="text-3xl font-black text-white mb-2">{{ t('summaryView') }}</h2>
-          <p class="text-indigo-100 font-medium">{{ t('retrospectiveAnalysis') }}</p>
+        <div
+          class="bg-linear-to-r from-indigo-500 to-purple-600 rounded-[3rem] p-12 shadow-xl flex justify-between items-center">
+          <div>
+            <h2 class="text-3xl font-black text-white mb-2">{{ t('summaryView') }}</h2>
+            <p class="text-indigo-100 font-medium">{{ t('retrospectiveAnalysis') }}</p>
+          </div>
+          <div class="text-right">
+            <p class="text-5xl font-black text-white">{{ summaryDays }}</p>
+            <p class="text-indigo-100 font-bold uppercase tracking-wide">{{ t('days') }}</p>
+          </div>
         </div>
 
         <!-- Loading State -->
@@ -623,6 +658,10 @@ const getStrengthLabel = (strength) => {
                       </div>
                       <div class="text-xs font-bold text-slate-400 uppercase tracking-wide">Day Streak</div>
                     </div>
+                  </div>
+
+                  <div class="text-center text-xs text-slate-400 font-bold">
+                    Last {{ habit.metrics.days_in_range }} days
                   </div>
                 </div>
               </div>

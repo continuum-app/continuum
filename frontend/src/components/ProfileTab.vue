@@ -190,6 +190,7 @@ const handleDeleteActiveHabit = async (habitId) => {
 
 const handleUnarchive = async (habitId) => {
     await unarchiveHabit(habitId)
+    await fetchHabits(new Date().toISOString().split('T')[0])
 }
 
 const handleDelete = async (habitId) => {
@@ -233,7 +234,7 @@ onMounted(() => {
                 <!-- Username (read-only) -->
                 <div class="space-y-2">
                     <label class="text-xs font-black uppercase tracking-widest text-slate-400 ml-2">{{ t('username')
-                        }}</label>
+                    }}</label>
                     <div
                         class="bg-slate-100 dark:bg-slate-700 rounded-2xl px-6 py-4 font-bold text-slate-600 dark:text-slate-300">
                         {{ userInfo.username }}
@@ -243,7 +244,7 @@ onMounted(() => {
                 <!-- Email -->
                 <div class="space-y-2">
                     <label class="text-xs font-black uppercase tracking-widest text-slate-400 ml-2">{{ t('email')
-                        }}</label>
+                    }}</label>
                     <div class="flex gap-3">
                         <input v-model="profileEmail" type="email"
                             class="flex-1 bg-slate-50 dark:bg-slate-700 border-2 border-slate-100 dark:border-slate-600 rounded-2xl px-6 py-4 font-bold outline-none focus:border-indigo-500 transition text-slate-900 dark:text-white" />
@@ -561,7 +562,7 @@ onMounted(() => {
                                         class="w-16 h-10 rounded-2xl cursor-pointer border-none" />
                                     <span class="font-mono text-sm text-slate-600 dark:text-slate-400">{{
                                         editingHabitData.color
-                                    }}</span>
+                                        }}</span>
                                 </div>
                             </div>
 
