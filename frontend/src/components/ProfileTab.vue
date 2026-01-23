@@ -5,11 +5,11 @@ import { useLanguage } from '@/composables/useLanguage'
 import { useHabits } from '@/composables/useHabits'
 import { useCategories } from '@/composables/useCategories'
 import * as LucideIcons from 'lucide-vue-next'
-import { User, Mail, Lock, Save, RefreshCw, Plus, Trash2, Pencil, X, Check, ArchiveRestore, Archive } from 'lucide-vue-next'
+import { User, Mail, Lock, Save, RefreshCw, Plus, Trash2, Pencil, X, Check, ArchiveRestore, Archive, CheckCircle2 } from 'lucide-vue-next'
 import IconPicker from './IconPicker.vue'
 
 const { t } = useLanguage()
-const { archivedHabits, fetchArchivedHabits, unarchiveHabit, deleteHabit, updateHabit } = useHabits()
+const { habits, archivedHabits, fetchHabits, fetchArchivedHabits, archiveHabit, unarchiveHabit, deleteHabit, updateHabit } = useHabits()
 const { categories, isSavingCategory, isDeletingCategory, fetchCategories, addCategory, deleteCategory, updateCategory } = useCategories()
 
 // User info state
@@ -43,7 +43,8 @@ const editingHabitData = ref({
     color: '',
     habit_type: '',
     max_value: 5,
-    unit: ''
+    unit: '',
+    category: null
 })
 const isSavingHabit = ref(false)
 
@@ -145,7 +146,8 @@ const startEditHabit = (habit) => {
         color: habit.color,
         habit_type: habit.habit_type,
         max_value: habit.max_value || 5,
-        unit: habit.unit || ''
+        unit: habit.unit || '',
+        category: habit.category?.id || null
     }
 }
 
@@ -156,10 +158,13 @@ const saveEditHabit = async () => {
             name: editingHabitData.value.name,
             icon: editingHabitData.value.icon,
             color: editingHabitData.value.color,
+            habit_type: editingHabitData.value.habit_type,
             max_value: editingHabitData.value.max_value,
-            unit: editingHabitData.value.unit
+            unit: editingHabitData.value.unit,
+            category: editingHabitData.value.category
         })
         editingHabit.value = null
+        await fetchHabits(new Date().toISOString().split('T')[0])
         await fetchArchivedHabits()
     } catch (err) {
         console.error('Failed to update habit:', err)
@@ -170,6 +175,17 @@ const saveEditHabit = async () => {
 
 const cancelEditHabit = () => {
     editingHabit.value = null
+}
+
+const handleArchiveHabit = async (habitId) => {
+    await archiveHabit(habitId)
+}
+
+const handleDeleteActiveHabit = async (habitId) => {
+    if (confirm(t('confirmDeletePermanent'))) {
+        await deleteHabit(habitId)
+        await fetchHabits(new Date().toISOString().split('T')[0])
+    }
 }
 
 const handleUnarchive = async (habitId) => {
@@ -196,6 +212,7 @@ const getIcon = (iconName) => {
 onMounted(() => {
     fetchUserInfo()
     fetchCategories()
+    fetchHabits(new Date().toISOString().split('T')[0])
     fetchArchivedHabits()
 })
 </script>
@@ -302,7 +319,7 @@ onMounted(() => {
                     <component :is="LucideIcons.FolderOpen" :size="24" class="text-purple-600 dark:text-purple-400"
                         stroke-width="2.5" />
                 </div>
-                <h2 class="text-2xl font-black text-slate-900 dark:text-white">{{ t('categories') }}
+                <h2 class="text-2xl font-black text-slate-900 dark:text-white">{{ t('yourCategories') }}
                 </h2>
             </div>
 
@@ -328,23 +345,23 @@ onMounted(() => {
                             class="flex-1 bg-white dark:bg-slate-600 border-2 border-indigo-500 rounded-xl px-4 py-2 font-bold outline-none text-slate-900 dark:text-white"
                             @keyup.enter="saveEditCategory(category.id)" />
                         <button @click="saveEditCategory(category.id)"
-                            class="p-2 rounded-xl bg-green-500 text-white hover:bg-green-600 transition-all">
+                            class="p-2 rounded-xl bg-green-500 text-white hover:bg-green-600 transition-all hover:scale-120">
                             <Check :size="20" />
                         </button>
                         <button @click="cancelEditCategory"
-                            class="p-2 rounded-xl bg-slate-300 dark:bg-slate-500 text-slate-700 dark:text-white hover:bg-slate-400 transition-all">
+                            class="p-2 rounded-xl bg-slate-300 dark:bg-slate-500 text-slate-700 dark:text-white hover:bg-slate-400 transition-all hover:scale-120">
                             <X :size="20" />
                         </button>
                     </template>
                     <template v-else>
                         <span class="flex-1 font-bold text-slate-900 dark:text-white">{{ category.name }}</span>
                         <button @click="startEditCategory(category)"
-                            class="p-2 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-600 transition-all">
+                            class="p-2 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-600 transition-all hover:scale-120">
                             <Pencil :size="18" class="text-slate-400 hover:text-indigo-500" />
                         </button>
                         <button @click="handleDeleteCategory(category.id)"
                             :disabled="isDeletingCategory === category.id"
-                            class="p-2 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-600 transition-all">
+                            class="p-2 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-600 transition-all hover:scale-120">
                             <RefreshCw v-if="isDeletingCategory === category.id" :size="18"
                                 class="animate-spin text-slate-400" />
                             <Trash2 v-else :size="18" class="text-slate-400 hover:text-red-500" />
@@ -358,7 +375,66 @@ onMounted(() => {
             </div>
         </div>
 
-        
+        <!-- Manage Habits -->
+        <div
+            class="bg-white dark:bg-slate-800 rounded-[3rem] p-8 shadow-lg border border-slate-100 dark:border-slate-700">
+            <div class="flex items-center gap-3 mb-6">
+                <div class="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-2xl">
+                    <CheckCircle2 :size="24" class="text-blue-600 dark:text-blue-400" stroke-width="2.5" />
+                </div>
+                <h2 class="text-2xl font-black text-slate-900 dark:text-white">{{ t('yourHabits') }}</h2>
+            </div>
+
+            <!-- Existing Habits -->
+            <div class="space-y-3">
+                <p class="text-xs font-black uppercase tracking-widest text-slate-400 ml-2 mb-3">
+                    Your Habits ({{ habits.length }})
+                </p>
+
+                <div v-if="habits.length === 0" class="text-center py-8 text-slate-400 dark:text-slate-500">
+                    No habits yet. Create your first habit using the "+ Add Habit" button at the top.
+                </div>
+
+                <div v-for="habit in habits" :key="habit.id"
+                    class="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-700 rounded-2xl hover:shadow-md transition-all">
+                    <div class="flex items-center gap-4 flex-1">
+                        <div class="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center"
+                            :style="{ backgroundColor: habit.color + '20' }">
+                            <component :is="getIcon(habit.icon)" :size="20" :style="{ color: habit.color }"
+                                stroke-width="2.5" />
+                        </div>
+                        <div class="flex-1">
+                            <p class="font-bold text-slate-900 dark:text-white">{{ habit.name }}</p>
+                            <div class="flex gap-2 mt-1">
+                                <span
+                                    class="text-xs px-2 py-1 rounded-full bg-slate-200 dark:bg-slate-600 text-slate-700 dark:text-slate-300 font-bold">
+                                    {{ habit.habit_type }}
+                                </span>
+                                <span v-if="habit.category"
+                                    class="text-xs px-2 py-1 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 font-bold">
+                                    {{ habit.category.name }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-2 ml-4">
+                        <button @click="startEditHabit(habit)" :title="t('editHabit')"
+                            class="p-2 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-600 transition-all hover:scale-120">
+                            <Pencil :size="18" class="text-slate-400 hover:text-blue-500" />
+                        </button>
+                        <button @click="handleArchiveHabit(habit.id)" :title="t('archiveHabit')"
+                            class="p-2 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-600 transition-all hover:scale-120">
+                            <Archive :size="18" class="text-slate-400 hover:text-yellow-500" />
+                        </button>
+                        <button @click="handleDeleteActiveHabit(habit.id)" :title="t('deleteHabitPermanently')"
+                            class="p-2 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-600 transition-all hover:scale-120">
+                            <Trash2 :size="18" class="text-slate-400 hover:text-red-500" />
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <!-- Archived Habits -->
         <div
@@ -373,7 +449,7 @@ onMounted(() => {
 
             <div class="space-y-4">
                 <div v-for="habit in archivedHabits" :key="habit.id"
-                    class="flex items-center gap-4 p-4 bg-slate-50 dark:bg-slate-700 rounded-2xl">
+                    class="flex items-center gap-2 p-4 bg-slate-50 dark:bg-slate-700 rounded-2xl">
                     <!-- Icon -->
                     <div class="p-3 rounded-xl" :style="{ backgroundColor: habit.color + '20' }">
                         <component :is="getIcon(habit.icon)" :size="24" :style="{ color: habit.color }"
@@ -387,20 +463,20 @@ onMounted(() => {
                     </div>
 
                     <!-- Actions -->
-                    <button @click="handleUnarchive(habit.id)"
-                        class="p-3 rounded-xl bg-green-100 dark:bg-green-900 hover:bg-green-200 dark:hover:bg-green-800 transition-all"
-                        :title="t('unarchive') || 'Restore'">
-                        <ArchiveRestore :size="20" class="text-green-600 dark:text-green-400" />
-                    </button>
                     <button @click="startEditHabit(habit)"
-                        class="p-3 rounded-xl bg-indigo-100 dark:bg-indigo-900 hover:bg-indigo-200 dark:hover:bg-indigo-800 transition-all"
+                        class="p-2 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-600 transition-all hover:scale-120"
                         :title="t('edit') || 'Edit'">
-                        <Pencil :size="20" class="text-indigo-600 dark:text-indigo-400" />
+                        <Pencil :size="18" class="text-slate-400 hover:text-blue-500" />
+                    </button>
+                    <button @click="handleUnarchive(habit.id)"
+                        class="p-2 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-600 transition-all hover:scale-120"
+                        :title="t('unarchive') || 'Restore'">
+                        <ArchiveRestore :size="18" class="text-slate-400 hover:text-green-500" />
                     </button>
                     <button @click="handleDelete(habit.id)"
-                        class="p-3 rounded-xl bg-red-100 dark:bg-red-900 hover:bg-red-200 dark:hover:bg-red-800 transition-all"
+                        class="p-2 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-600 transition-all hover:scale-120"
                         :title="t('deletePermanently') || 'Delete permanently'">
-                        <Trash2 :size="20" class="text-red-600 dark:text-red-400" />
+                        <Trash2 :size="18" class="text-slate-400 hover:text-red-500" />
                     </button>
                 </div>
 
@@ -442,11 +518,23 @@ onMounted(() => {
                                 <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2">{{
                                     t('type')
                                     || 'Type' }}</label>
-                                <div
-                                    class="bg-slate-100 dark:bg-slate-700 rounded-2xl px-6 py-4 font-bold text-slate-500 dark:text-slate-400">
-                                    {{ editingHabitData.habit_type }}
-                                    <span class="text-xs ml-2">({{ t('cannotChange') }})</span>
-                                </div>
+                                <select v-model="editingHabitData.habit_type"
+                                    class="w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-50 dark:border-slate-700 rounded-3xl px-6 py-4 focus:bg-white dark:focus:bg-slate-600 focus:border-indigo-500 transition outline-none font-bold text-slate-900 dark:text-white appearance-none cursor-pointer">
+                                    <option value="boolean">{{ t('typeBoolean') || 'Yes/No' }}</option>
+                                    <option value="value">{{ t('typeValue') || 'Value' }}</option>
+                                    <option value="rating">{{ t('typeRating') || 'Rating' }}</option>
+                                </select>
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2">{{
+                                    t('category') || 'Category' }}</label>
+                                <select v-model="editingHabitData.category"
+                                    class="w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-50 dark:border-slate-700 rounded-3xl px-6 py-4 focus:bg-white dark:focus:bg-slate-600 focus:border-indigo-500 transition outline-none font-bold text-slate-900 dark:text-white appearance-none cursor-pointer">
+                                    <option :value="null">{{ t('noCategory') || 'No category' }}</option>
+                                    <option v-for="cat in categories" :key="cat.id" :value="cat.id">{{ cat.name }}
+                                    </option>
+                                </select>
                             </div>
 
                             <div v-if="editingHabitData.habit_type === 'value'" class="space-y-2">

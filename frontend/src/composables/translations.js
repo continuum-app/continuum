@@ -27,7 +27,7 @@ export const translations = {
     uncategorized: 'Uncategorized',
     habit: 'habit',
     habits: 'habits',
-    categories: 'Categories',
+    yourCategories: 'Your Categories',
     newCategoryName: 'New category name',
     add: 'Add',
     confirmDeleteCategory: 'Delete this category? Habits will become uncategorized.',
@@ -106,6 +106,7 @@ export const translations = {
     archivedHabits: 'Archived Habits',
     archived: 'Archived',
     noArchivedHabits: 'No archived habits yet.',
+    yourHabits: 'Your Habits',
 
     // Date Navigation
     today: 'Today',
@@ -172,7 +173,7 @@ export const translations = {
     uncategorized: 'Non catégorisé',
     habit: 'habitude',
     habits: 'habitudes',
-    categories: 'Catégories',
+    yourCategories: 'Vos Catégories',
     newCategoryName: 'Nom de la catégorie',
     add: 'Ajouter',
 
@@ -251,6 +252,7 @@ export const translations = {
     archivedHabits: 'Habitudes Archivées',
     archived: 'Archivé',
     noArchivedHabits: 'Aucune habitude archivée.',
+    yourHabits: 'Vos Habitudes',
 
     // Date Navigation
     today: 'Aujourd\'hui',
