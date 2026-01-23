@@ -8,7 +8,7 @@ import { useLanguage } from '@/composables/useLanguage'
 import { useHabits } from '@/composables/useHabits'
 import { useCategories } from '@/composables/useCategories'
 import * as LucideIcons from 'lucide-vue-next'
-import { Plus, X, ChevronDown, RefreshCw, Moon, Sun, BarChart3, FileText, Download, Calendar, Settings, Languages, Check, User } from 'lucide-vue-next'
+import { Plus, X, ChevronDown, RefreshCw, Moon, Sun, BarChart3, FileText, Download, Calendar, Settings, Languages, Check, User, LogOut } from 'lucide-vue-next'
 import { Chart, registerables } from 'chart.js'
 import 'chartjs-adapter-date-fns'
 import IconPicker from '@/components/IconPicker.vue'
@@ -527,8 +527,8 @@ const getStrengthLabel = (strength) => {
           </button>
 
           <button @click="handleLogout"
-            class="bg-red-600 text-white px-8 py-4 rounded-2xl font-bold hover:bg-red-700 transition-all shadow-md active:scale-95">
-            {{ t('logout') }}
+            class="bg-red-600 text-white px-6 py-4 rounded-2xl font-bold hover:bg-red-700 transition-all shadow-md active:scale-95">
+            <LogOut :size="20" stroke-width="2.5" />
           </button>
         </div>
       </header>

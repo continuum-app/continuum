@@ -308,6 +308,11 @@ const handleDrop = (e, targetCategoryId) => {
 
             <div class="text-center flex-1">
                 <h2 class="text-2xl font-black text-slate-900 dark:text-white">{{ formattedTrackingDate }}</h2>
+                <p class="text-xs text-slate-400 dark:text-slate-500 mt-0.5 font-bold">
+                    {{ currentTrackingDate.toLocaleDateString('fr', {
+                        day: '2-digit', month: '2-digit', year: 'numeric'
+                    }) }}
+                </p>
                 <!-- Today Button (only show if not on today) -->
                 <button v-if="formattedTrackingDate !== t('today')" @click="goToToday"
                     class="shrink-0 px-3 py-1 mt-1 bg-indigo-600 text-white rounded-xl font-bold text-xs md:text-sm hover:bg-indigo-700 transition-all active:scale-95 whitespace-nowrap self-center">
