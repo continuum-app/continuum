@@ -1,4 +1,6 @@
-# 🌌 HabitsFactory *(In Development)*
+<p align="center">
+<img src="https://github.com/habitsfactory/habitsfactory-app/blob/main/res/logo.png?raw=true" width="256">
+</p>
 
 **HabitsFactory** is a **power-user–oriented habit-tracking engine** built for precision, insight, and long-term behavioral optimization.
 It enables granular tracking of daily routines, deep visualization of trends, and data-driven habit refinement.
