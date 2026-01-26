@@ -22,31 +22,37 @@ const goToExport = () => {
     <footer class="dark:bg-gray-900 dark:text-gray-300 py-12 px-6">
         <div class="dark:text-white max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             <div class="flex flex-col gap-4">
-                <div class="flex items-center gap-3">
-                    <img src="/logo.png" alt="Habits Factory Logo" class="h-10 w-10 object-contain" />
-                    <span class="text-xl font-bold tracking-tight">Habits Factory</span>
-                </div>
+                <img src="/logo.png" alt="Habits Factory Logo" class="h-32 w-32 object-contain center" />
+                <span class="text-xl font-bold tracking-tight">Habits Factory</span>
                 <p class="text-sm text-gray-400">Building better routines, one day at a time.</p>
             </div>
             <div>
                 <h3 class="font-semibold mb-4 uppercase text-xs tracking-wider">Management</h3>
-                <ul class="space-y-2 text-sm">
+                <ul class="space-y-0 text-sm">
                     <li>
                         <button @click="goToAdminSettings"
                             class="hover:text-primary-400 transition-colors flex items-center gap-2 pl-0">
                             <span>{{ t('adminSettings') }}</span>
                         </button>
                     </li>
+                    <li>
+                        <button @click="goToAdminSettings"
+                            class="hover:text-primary-400 transition-colors flex items-center gap-2 pl-0">
+                            <span>{{ t('profile') }}</span>
+                        </button>
+                    </li>
                 </ul>
             </div>
             <div>
                 <h3 class="font-semibold mb-4 uppercase text-xs tracking-wider">Data</h3>
-                <ul class="space-y-2 text-sm">
+                <ul class="space-y-0 text-sm">
                     <li>
                         <button @click="goToExport"
                             class="hover:text-primary-400 transition-colors flex items-center gap-2 pl-0">
                             <span>{{ t('importData') }}</span>
                         </button>
+                    </li>
+                    <li>
                         <button @click="goToExport"
                             class="hover:text-primary-400 transition-colors flex items-center gap-2 pl-0">
                             <span>{{ t('exportData') }}</span>
@@ -57,7 +63,8 @@ const goToExport = () => {
             <div>
                 <h3 class="font-semibold mb-4 uppercase text-xs tracking-wider">Support</h3>
                 <ul class="space-y-2 text-sm">
-                    <li><a href="https://github.com/habitsfactory/habitsfactory-app" target="_blank"
+                    <li>
+                        <a href="https://github.com/habitsfactory/habitsfactory-app" target="_blank"
                             rel="noopener noreferrer"
                             class="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors font-medium flex items-center gap-2 group">
                             <svg class="w-5 h-5 group-hover:scale-110 transition-transform" fill="currentColor"
@@ -67,13 +74,16 @@ const goToExport = () => {
                                     clip-rule="evenodd" />
                             </svg>
                             <span class="text-sm font-bold">{{ t('viewOnGithub') }}</span>
-                        </a></li>
-                    <li><a href="https://ko-fi.com/joeydev" target="_blank"><img src="/support_me_on_kofi_dark.png"
-                                alt="Support me on Ko-Fi" style="width: 160px;"></img></a></li>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://ko-fi.com/joeydev" target="_blank"><img src="/support_me_on_kofi_dark.png"
+                                alt="Support me on Ko-Fi" style="width: 160px;"></img></a>
+                    </li>
                 </ul>
             </div>
         </div>
-        <div class="max-w-7xl mx-auto mt-12 pt-8 border-t border-gray-800 text-center text-xs text-gray-500">
+        <div class="max-w-7xl mx-auto mt-12 pt-8 border-t border-gray-500 text-center text-xs text-gray-500">
             © {{ new Date().getFullYear() }} {{ t('appName') }}. {{ t('allRightsReserved') }}
         </div>
     </footer>
