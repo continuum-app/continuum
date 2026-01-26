@@ -2,7 +2,7 @@
     <div class="min-h-screen bg-[#f8fafc] flex items-center justify-center p-6">
         <div class="bg-white rounded-[3rem] p-12 shadow-2xl w-full max-w-md">
             <div class="text-center mb-10">
-                <h1 class="text-4xl font-black tracking-tighter text-slate-900 uppercase italic mb-2">Continuum</h1>
+                <h1 class="text-4xl font-black tracking-tighter text-slate-900 uppercase italic mb-2">HabitsFactory</h1>
                 <p class="text-slate-400 font-medium">Sign in to continue</p>
             </div>
 

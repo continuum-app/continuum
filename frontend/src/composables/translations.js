@@ -1,7 +1,7 @@
 export const translations = {
   en: {
     // Header
-    appName: 'Continuum',
+    appName: 'Habits Factory',
     tagline: 'Daily evolution, quantified.',
     newHabit: 'New Habit',
     logout: 'Logout',
@@ -148,7 +148,7 @@ export const translations = {
 
   fr: {
     // Header
-    appName: 'Continuum',
+    appName: 'Habits Factory',
     tagline: 'Évolution quotidienne, quantifiée.',
     newHabit: 'Nouvelle Habitude',
     logout: 'Déconnexion',

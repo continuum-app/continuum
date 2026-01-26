@@ -1,6 +1,6 @@
 # Deployment Guide
 
-This guide covers deploying the Continuum application using Docker Compose with PostgreSQL and Gunicorn.
+This guide covers deploying the HabitsFactory application using Docker Compose with PostgreSQL and Gunicorn.
 
 ## Prerequisites
 
@@ -25,7 +25,7 @@ SECRET_KEY=your-very-secret-key-min-50-chars
 DEBUG=False
 ALLOWED_HOSTS=yourdomain.com,www.yourdomain.com
 
-DB_NAME=continuum
+DB_NAME=habitsfactory
 DB_USER=postgres
 DB_PASSWORD=your-secure-db-password
 DB_HOST=db
@@ -90,7 +90,7 @@ For production, add an Nginx service to handle SSL termination and reverse proxy
 # Add to docker-compose.yml
 nginx:
   image: nginx:alpine
-  container_name: continuum_nginx
+  container_name: habitsfactory_nginx
   ports:
     - "80:80"
     - "443:443"
@@ -101,7 +101,7 @@ nginx:
     - backend
     - frontend
   networks:
-    - continuum_network
+    - habitsfactory_network
 ```
 
 ### SSL Certificates
@@ -156,13 +156,13 @@ docker-compose build --no-cache
 ### Backup
 
 ```bash
-docker-compose exec db pg_dump -U postgres continuum > backup.sql
+docker-compose exec db pg_dump -U postgres habitsfactory > backup.sql
 ```
 
 ### Restore
 
 ```bash
-docker-compose exec -T db psql -U postgres continuum < backup.sql
+docker-compose exec -T db psql -U postgres habitsfactory < backup.sql
 ```
 
 ## Troubleshooting

@@ -3,9 +3,9 @@ version: '3.9'
 services:
   db:
     image: postgres:16-alpine
-    container_name: continuum_db
+    container_name: habitsfactory_db
     environment:
-      POSTGRES_DB: ${DB_NAME:-continuum}
+      POSTGRES_DB: ${DB_NAME:-habitsfactory}
       POSTGRES_USER: ${DB_USER:-postgres}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
     volumes:
@@ -18,19 +18,19 @@ services:
       timeout: 5s
       retries: 5
     networks:
-      - continuum_network
+      - habitsfactory_network
 
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: continuum_backend
+    container_name: habitsfactory_backend
     environment:
       DJANGO_SETTINGS_MODULE: app.settings.production
       SECRET_KEY: ${SECRET_KEY}
       DEBUG: "False"
       ALLOWED_HOSTS: ${ALLOWED_HOSTS:-localhost,127.0.0.1}
-      DB_NAME: ${DB_NAME:-continuum}
+      DB_NAME: ${DB_NAME:-habitsfactory}
       DB_USER: ${DB_USER:-postgres}
       DB_PASSWORD: ${DB_PASSWORD}
       DB_HOST: db
@@ -49,11 +49,11 @@ services:
              python manage.py collectstatic --noinput &&
              gunicorn --bind 0.0.0.0:8000 --workers 4 --timeout 120 --access-logfile - --error-logfile - app.wsgi:application"
     networks:
-      - continuum_network
+      - habitsfactory_network
 
   nginx:
     image: nginx:alpine
-    container_name: continuum_nginx
+    container_name: habitsfactory_nginx
     ports:
       - "80:80"
       - "443:443"
@@ -66,13 +66,13 @@ services:
     depends_on:
       - backend
     networks:
-      - continuum_network
+      - habitsfactory_network
 
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    container_name: continuum_frontend
+    container_name: habitsfactory_frontend
     ports:
       - "5173:5173"
     environment:
@@ -80,11 +80,11 @@ services:
     depends_on:
       - backend
     networks:
-      - continuum_network
+      - habitsfactory_network
 
 volumes:
   postgres_data:
 
 networks:
-  continuum_network:
+  habitsfactory_network:
     driver: bridge

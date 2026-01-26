@@ -1076,7 +1076,7 @@ const getStrengthLabel = (strength) => {
       <div class="flex flex-col md:flex-row justify-between items-center gap-6">
         <!-- GitHub Link -->
         <div class="flex items-center gap-3">
-          <a href="https://github.com/continuum-app/continuum" target="_blank" rel="noopener noreferrer"
+          <a href="https://github.com/habitsfactory/habitsfactory-app" target="_blank" rel="noopener noreferrer"
             class="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors font-medium flex items-center gap-2 group">
             <svg class="w-5 h-5 group-hover:scale-110 transition-transform" fill="currentColor" viewBox="0 0 24 24">
               <path fill-rule="evenodd"

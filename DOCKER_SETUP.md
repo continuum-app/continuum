@@ -87,7 +87,7 @@ docker-compose up -d
 | `SECRET_KEY` | Django secret key | Generated via Python |
 | `DEBUG` | Django debug mode | `False` for production |
 | `ALLOWED_HOSTS` | Allowed hostnames | `yourdomain.com` |
-| `DB_NAME` | Database name | `continuum` |
+| `DB_NAME` | Database name | `habitsfactory` |
 | `DB_USER` | Database user | `postgres` |
 | `DB_PASSWORD` | Database password | Secure password |
 | `CORS_ALLOWED_ORIGINS` | Allowed CORS origins | `https://yourdomain.com` |

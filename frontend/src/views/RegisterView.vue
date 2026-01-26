@@ -88,7 +88,7 @@ onMounted(() => {
                 <div class="text-center mb-8">
                     <h1
                         class="text-4xl font-black tracking-tighter text-slate-900 dark:text-white uppercase italic mb-2">
-                        Continuum
+                        HabitsFactory
                     </h1>
                     <p class="text-slate-500 dark:text-slate-400 font-medium">Create your account</p>
                 </div>
