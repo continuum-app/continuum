@@ -53,9 +53,12 @@ export const translations = {
 
     // Export
     quickSelectYear: 'Quick Select Year',
-    exportData: 'Export Data',
+    exportData: 'Export',
     exportDescription: 'Export all habit completion data for the selected date range as a CSV file. Each row represents a habit, and each column represents a day.',
     exporting: 'Exporting...',
+
+    // Import
+    importData: 'Import',
 
     // Footer
     viewOnGithub: 'View on GitHub',
@@ -199,9 +202,12 @@ export const translations = {
 
     // Export
     quickSelectYear: 'Sélection Rapide Année',
-    exportData: 'Exporter les Données',
+    exportData: 'Exporter',
     exportDescription: 'Exportez toutes les données de complétion d\'habitudes pour la plage de dates sélectionnée sous forme de fichier CSV. Chaque ligne représente une habitude et chaque colonne représente un jour.',
     exporting: 'Export en cours...',
+
+    // Import
+    importData: 'Importer',
 
     // Footer
     viewOnGithub: 'Voir sur GitHub',
