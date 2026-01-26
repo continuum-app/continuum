@@ -81,7 +81,7 @@ onMounted(() => {
 </script>
 
 <template>
-    <div class="min-h-screen bg-[#f8fafc] dark:bg-slate-900 flex items-center justify-center p-6">
+    <div class="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center p-6">
         <div class="w-full max-w-md">
             <div
                 class="bg-white dark:bg-slate-800 rounded-[3rem] p-12 shadow-2xl border border-slate-100 dark:border-slate-700">

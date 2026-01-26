@@ -315,7 +315,7 @@ const handleDrop = (e, targetCategoryId) => {
                 </p>
                 <!-- Today Button (only show if not on today) -->
                 <button v-if="formattedTrackingDate !== t('today')" @click="goToToday"
-                    class="shrink-0 px-3 py-1 mt-1 bg-indigo-600 text-white rounded-xl font-bold text-xs md:text-sm hover:bg-indigo-700 transition-all active:scale-95 whitespace-nowrap self-center">
+                    class="shrink-0 px-3 py-1 mt-1 bg-primary-600 text-white rounded-xl font-bold text-xs md:text-sm hover:bg-primary-800 transition-all active:scale-95 whitespace-nowrap self-center">
                     {{ t('today') }}
                 </button>
             </div>

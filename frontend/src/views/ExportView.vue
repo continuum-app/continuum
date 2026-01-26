@@ -108,7 +108,7 @@ onMounted(() => {
 
 <template>
     <div
-        class="min-h-screen bg-[#f8fafc] dark:bg-slate-900 p-6 md:p-12 font-sans text-slate-900 dark:text-slate-100 transition-colors duration-300">
+        class="min-h-screen bg-slate-50 dark:bg-slate-900 p-6 md:p-12 font-sans text-slate-900 dark:text-slate-100 transition-colors duration-300">
         <div class="max-w-4xl mx-auto">
             <!-- Header -->
             <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12">

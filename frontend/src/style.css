@@ -1,4 +1,46 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap');
 @import "tailwindcss";
+
+/* Custom theme color palette - Industrial/Steampunk inspired by Habits Factory */
+@theme {
+  --color-background: #faf9f7;
+  --color-surface: #ffffff;
+  --color-primary-50: #fffbeb;
+  --color-primary-100: #fef3c7;
+  --color-primary-200: #fde68a;
+  --color-primary-300: #fcd34d;
+  --color-primary-400: #fbbf24;
+  --color-primary-500: #f59e0b;
+  --color-primary-600: #d97706;
+  --color-primary-700: #b45309;
+  --color-primary-800: #92400e;
+  --color-primary-900: #78350f;
+  --color-primary-950: #451a03;
+  --color-primary-hover: #b45309;
+  --color-secondary: #92400e;
+  --color-accent: #f59e0b;
+  --color-text: #1c1917;
+  --color-text-muted: #57534e;
+  --color-border: #d6d3d1;
+  --color-success: #b45309;
+  --color-warning: #f59e0b;
+  --color-error: #dc2626;
+}
+
+.dark {
+  --color-background: #1c1917;
+  --color-surface: #292524;
+  --color-primary: #fbbf24;
+  --color-primary-hover: #fcd34d;
+  --color-secondary: #f59e0b;
+  --color-accent: #fb923c;
+  --color-text: #fafaf9;
+  --color-text-muted: #a8a29e;
+  --color-border: #44403c;
+  --color-success: #fbbf24;
+  --color-warning: #fb923c;
+  --color-error: #f87171;
+}
 
 /* Base button reset so Tailwind can style them without interference */
 @layer base {
@@ -17,7 +59,7 @@
 }
 
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: 'Roboto', system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
   /* Use Tailwind's strategy: handles light/dark via classes, not just system pref */

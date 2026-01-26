@@ -224,8 +224,8 @@ onMounted(() => {
         <div
             class="bg-white dark:bg-slate-800 rounded-[3rem] p-8 shadow-lg border border-slate-100 dark:border-slate-700">
             <div class="flex items-center gap-3 mb-6">
-                <div class="p-3 rounded-2xl bg-indigo-100 dark:bg-indigo-900">
-                    <User :size="24" class="text-indigo-600 dark:text-indigo-400" stroke-width="2.5" />
+                <div class="p-3 rounded-2xl bg-primary-100 dark:bg-primary-900">
+                    <User :size="24" class="text-primary-600 dark:text-primary-400" stroke-width="2.5" />
                 </div>
                 <h2 class="text-2xl font-black text-slate-900 dark:text-white">{{ t('accountInformation') }}</h2>
             </div>
@@ -247,9 +247,9 @@ onMounted(() => {
                     }}</label>
                     <div class="flex gap-3">
                         <input v-model="profileEmail" type="email"
-                            class="flex-1 bg-slate-50 dark:bg-slate-700 border-2 border-slate-100 dark:border-slate-600 rounded-2xl px-6 py-4 font-bold outline-none focus:border-indigo-500 transition text-slate-900 dark:text-white" />
+                            class="flex-1 bg-slate-50 dark:bg-slate-700 border-2 border-slate-100 dark:border-slate-600 rounded-2xl px-6 py-4 font-bold outline-none focus:border-primary-500 transition text-slate-900 dark:text-white" />
                         <button @click="updateProfile" :disabled="isSavingProfile"
-                            class="px-6 py-4 bg-indigo-600 text-white rounded-2xl font-bold hover:bg-indigo-700 transition-all disabled:opacity-50 flex items-center gap-2">
+                            class="px-6 py-4 bg-primary-600 text-white rounded-2xl font-bold hover:bg-primary-700 transition-all disabled:opacity-50 flex items-center gap-2">
                             <RefreshCw v-if="isSavingProfile" :size="20" class="animate-spin" />
                             <Save v-else :size="20" />
                             {{ profileSaved ? (t('saved')) : (t('save')) }}
@@ -274,7 +274,7 @@ onMounted(() => {
                     <label class="text-xs font-black uppercase tracking-widest text-slate-400 ml-2">{{
                         t('currentPassword') || 'Current Password' }}</label>
                     <input v-model="currentPassword" type="password"
-                        class="w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-100 dark:border-slate-600 rounded-2xl px-6 py-4 font-bold outline-none focus:border-indigo-500 transition text-slate-900 dark:text-white" />
+                        class="w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-100 dark:border-slate-600 rounded-2xl px-6 py-4 font-bold outline-none focus:border-primary-500 transition text-slate-900 dark:text-white" />
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -282,13 +282,13 @@ onMounted(() => {
                         <label class="text-xs font-black uppercase tracking-widest text-slate-400 ml-2">{{
                             t('newPassword') || 'New Password' }}</label>
                         <input v-model="newPassword" type="password"
-                            class="w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-100 dark:border-slate-600 rounded-2xl px-6 py-4 font-bold outline-none focus:border-indigo-500 transition text-slate-900 dark:text-white" />
+                            class="w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-100 dark:border-slate-600 rounded-2xl px-6 py-4 font-bold outline-none focus:border-primary-500 transition text-slate-900 dark:text-white" />
                     </div>
                     <div class="space-y-2">
                         <label class="text-xs font-black uppercase tracking-widest text-slate-400 ml-2">{{
                             t('confirmNewPassword') || 'Confirm Password' }}</label>
                         <input v-model="confirmPassword" type="password"
-                            class="w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-100 dark:border-slate-600 rounded-2xl px-6 py-4 font-bold outline-none focus:border-indigo-500 transition text-slate-900 dark:text-white" />
+                            class="w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-100 dark:border-slate-600 rounded-2xl px-6 py-4 font-bold outline-none focus:border-primary-500 transition text-slate-900 dark:text-white" />
                     </div>
                 </div>
 
@@ -328,7 +328,7 @@ onMounted(() => {
             <div class="flex gap-3 mb-6">
                 <input v-model="newCategoryName" type="text"
                     :placeholder="t('newCategoryName') || 'New category name...'" @keyup.enter="handleAddCategory"
-                    class="flex-1 bg-slate-50 dark:bg-slate-700 border-2 border-slate-100 dark:border-slate-600 rounded-2xl px-6 py-4 font-bold outline-none focus:border-indigo-500 transition text-slate-900 dark:text-white" />
+                    class="flex-1 bg-slate-50 dark:bg-slate-700 border-2 border-slate-100 dark:border-slate-600 rounded-2xl px-6 py-4 font-bold outline-none focus:border-primary-500 transition text-slate-900 dark:text-white" />
                 <button @click="handleAddCategory" :disabled="isSavingCategory || !newCategoryName.trim()"
                     class="px-6 py-4 bg-purple-600 text-white rounded-2xl font-bold hover:bg-purple-700 transition-all disabled:opacity-50 flex items-center gap-2">
                     <RefreshCw v-if="isSavingCategory" :size="20" class="animate-spin" />
@@ -343,7 +343,7 @@ onMounted(() => {
                     class="flex items-center gap-4 p-4 bg-slate-50 dark:bg-slate-700 rounded-2xl">
                     <template v-if="editingCategory === category.id">
                         <input v-model="editingCategoryName" type="text"
-                            class="flex-1 bg-white dark:bg-slate-600 border-2 border-indigo-500 rounded-xl px-4 py-2 font-bold outline-none text-slate-900 dark:text-white"
+                            class="flex-1 bg-white dark:bg-slate-600 border-2 border-primary-500 rounded-xl px-4 py-2 font-bold outline-none text-slate-900 dark:text-white"
                             @keyup.enter="saveEditCategory(category.id)" />
                         <button @click="saveEditCategory(category.id)"
                             class="p-2 rounded-xl bg-green-500 text-white hover:bg-green-600 transition-all hover:scale-120">
@@ -358,7 +358,7 @@ onMounted(() => {
                         <span class="flex-1 font-bold text-slate-900 dark:text-white">{{ category.name }}</span>
                         <button @click="startEditCategory(category)"
                             class="p-2 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-600 transition-all hover:scale-120">
-                            <Pencil :size="18" class="text-slate-400 hover:text-indigo-500" />
+                            <Pencil :size="18" class="text-slate-400 hover:text-primary-500" />
                         </button>
                         <button @click="handleDeleteCategory(category.id)"
                             :disabled="isDeletingCategory === category.id"
@@ -412,7 +412,7 @@ onMounted(() => {
                                     {{ habit.habit_type }}
                                 </span>
                                 <span v-if="habit.category"
-                                    class="text-xs px-2 py-1 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 font-bold">
+                                    class="text-xs px-2 py-1 rounded-full bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 font-bold">
                                     {{ habit.category.name }}
                                 </span>
                             </div>
@@ -510,7 +510,7 @@ onMounted(() => {
                                 <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2">{{
                                     t('habitName') || 'Habit Name' }}</label>
                                 <input v-model="editingHabitData.name" type="text" required
-                                    class="w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-50 dark:border-slate-700 rounded-3xl px-6 py-4 focus:bg-white dark:focus:bg-slate-600 focus:border-indigo-500 transition outline-none font-bold text-lg text-slate-900 dark:text-white" />
+                                    class="w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-50 dark:border-slate-700 rounded-3xl px-6 py-4 focus:bg-white dark:focus:bg-slate-600 focus:border-primary-500 transition outline-none font-bold text-lg text-slate-900 dark:text-white" />
                             </div>
 
                             <IconPicker v-model="editingHabitData.icon" :label="t('icon') || 'Icon'" />
@@ -520,7 +520,7 @@ onMounted(() => {
                                     t('type')
                                     || 'Type' }}</label>
                                 <select v-model="editingHabitData.habit_type"
-                                    class="w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-50 dark:border-slate-700 rounded-3xl px-6 py-4 focus:bg-white dark:focus:bg-slate-600 focus:border-indigo-500 transition outline-none font-bold text-slate-900 dark:text-white appearance-none cursor-pointer">
+                                    class="w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-50 dark:border-slate-700 rounded-3xl px-6 py-4 focus:bg-white dark:focus:bg-slate-600 focus:border-primary-500 transition outline-none font-bold text-slate-900 dark:text-white appearance-none cursor-pointer">
                                     <option value="boolean">{{ t('typeBoolean') || 'Yes/No' }}</option>
                                     <option value="value">{{ t('typeValue') || 'Value' }}</option>
                                     <option value="rating">{{ t('typeRating') || 'Rating' }}</option>
@@ -531,7 +531,7 @@ onMounted(() => {
                                 <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2">{{
                                     t('category') || 'Category' }}</label>
                                 <select v-model="editingHabitData.category"
-                                    class="w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-50 dark:border-slate-700 rounded-3xl px-6 py-4 focus:bg-white dark:focus:bg-slate-600 focus:border-indigo-500 transition outline-none font-bold text-slate-900 dark:text-white appearance-none cursor-pointer">
+                                    class="w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-50 dark:border-slate-700 rounded-3xl px-6 py-4 focus:bg-white dark:focus:bg-slate-600 focus:border-primary-500 transition outline-none font-bold text-slate-900 dark:text-white appearance-none cursor-pointer">
                                     <option :value="null">{{ t('noCategory') || 'No category' }}</option>
                                     <option v-for="cat in categories" :key="cat.id" :value="cat.id">{{ cat.name }}
                                     </option>
@@ -544,14 +544,14 @@ onMounted(() => {
                                     || 'Unit' }}</label>
                                 <input v-model="editingHabitData.unit" type="text"
                                     :placeholder="t('unitPlaceholder') || 'e.g., km, hours, pages'"
-                                    class="w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-50 dark:border-slate-700 rounded-3xl px-6 py-4 focus:bg-white dark:focus:bg-slate-600 focus:border-indigo-500 transition outline-none font-bold text-slate-900 dark:text-white" />
+                                    class="w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-50 dark:border-slate-700 rounded-3xl px-6 py-4 focus:bg-white dark:focus:bg-slate-600 focus:border-primary-500 transition outline-none font-bold text-slate-900 dark:text-white" />
                             </div>
 
                             <div v-if="editingHabitData.habit_type === 'rating'" class="space-y-2">
                                 <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2">{{
                                     t('maxRating') || 'Max Rating' }}</label>
                                 <input v-model.number="editingHabitData.max_value" type="number" min="1" max="10"
-                                    class="w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-50 dark:border-slate-700 rounded-3xl px-6 py-4 focus:bg-white dark:focus:bg-slate-600 focus:border-indigo-500 transition outline-none font-bold text-lg text-slate-900 dark:text-white" />
+                                    class="w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-50 dark:border-slate-700 rounded-3xl px-6 py-4 focus:bg-white dark:focus:bg-slate-600 focus:border-primary-500 transition outline-none font-bold text-lg text-slate-900 dark:text-white" />
                             </div>
 
                             <div class="space-y-2">

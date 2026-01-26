@@ -35,7 +35,7 @@ const activeTab = ref('tracking')
 const newHabitName = ref('')
 const newHabitType = ref('boolean')
 const newHabitIcon = ref('calendar')
-const newHabitColor = ref('#1F85DE')
+const newHabitColor = ref('#d97706')
 const newHabitCategoryId = ref(null)
 const newHabitMaxValue = ref(5)
 
@@ -108,7 +108,7 @@ const addHabit = async () => {
     newHabitName.value = ''
     newHabitType.value = 'boolean'
     newHabitIcon.value = 'calendar'
-    newHabitColor.value = '#1F85DE'
+    newHabitColor.value = '#d97706'
     newHabitCategoryId.value = null
     newHabitMaxValue.value = 5
     isModalOpen.value = false
@@ -329,7 +329,7 @@ const renderCharts = async () => {
             display: true,
             position: 'top',
             labels: {
-              color: isDark.value ? '#cbd5e1' : '#334155',
+              color: isDark.value ? '#a8a29e' : '#57534e',
               font: {
                 family: 'system-ui',
                 weight: 'bold'
@@ -340,10 +340,10 @@ const renderCharts = async () => {
             }
           },
           tooltip: {
-            backgroundColor: isDark.value ? '#1e293b' : '#ffffff',
-            titleColor: isDark.value ? '#f1f5f9' : '#0f172a',
-            bodyColor: isDark.value ? '#cbd5e1' : '#475569',
-            borderColor: isDark.value ? '#334155' : '#e2e8f0',
+            backgroundColor: isDark.value ? '#292524' : '#ffffff',
+            titleColor: isDark.value ? '#fafaf9' : '#1c1917',
+            bodyColor: isDark.value ? '#a8a29e' : '#57534e',
+            borderColor: isDark.value ? '#44403c' : '#d6d3d1',
             borderWidth: 1,
             padding: 12,
             displayColors: true,
@@ -371,10 +371,10 @@ const renderCharts = async () => {
               }
             },
             grid: {
-              color: isDark.value ? '#334155' : '#e2e8f0'
+              color: isDark.value ? '#44403c' : '#d6d3d1'
             },
             ticks: {
-              color: isDark.value ? '#94a3b8' : '#64748b',
+              color: isDark.value ? '#a8a29e' : '#57534e',
               font: {
                 weight: '600'
               }
@@ -384,10 +384,10 @@ const renderCharts = async () => {
             beginAtZero: true,
             grace: '5%',
             grid: {
-              color: isDark.value ? '#334155' : '#e2e8f0'
+              color: isDark.value ? '#44403c' : '#d6d3d1'
             },
             ticks: {
-              color: isDark.value ? '#94a3b8' : '#64748b',
+              color: isDark.value ? '#a8a29e' : '#57534e',
               font: {
                 weight: '600'
               }
@@ -485,12 +485,11 @@ const getStrengthLabel = (strength) => {
 
 <template>
   <div
-    class="min-h-screen bg-[#f8fafc] dark:bg-slate-900 p-6 md:p-12 font-sans text-slate-900 dark:text-slate-100 transition-colors duration-300">
+    class="min-h-screen bg-slate-50 dark:bg-slate-900 p-6 md:p-12 text-slate-900 dark:text-slate-100 transition-colors duration-300">
     <div class="max-w-7xl mx-auto">
-
       <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
         <div class="flex items-center gap-4">
-          <img src="/logo.svg" alt="App Logo" class="h-14 w-14" />
+          <img src="/logo.png" alt="App Logo" class="h-22 w-22" />
           <div>
             <h1 class="text-4xl font-black tracking-tighter text-slate-900 dark:text-white uppercase italic">
               {{ t('appName') }}
@@ -532,7 +531,7 @@ const getStrengthLabel = (strength) => {
           </button>
 
           <button @click="isModalOpen = true"
-            class="bg-indigo-500 text-white px-8 py-4 rounded-2xl font-bold flex items-center gap-3 hover:bg-indigo-600 transition-all shadow-md active:scale-95">
+            class="bg-primary-600 text-white px-8 py-4 rounded-2xl font-bold flex items-center gap-3 hover:bg-primary-800 transition-all shadow-md active:scale-95">
             <Plus :size="20" stroke-width="3" /> {{ t('newHabit') }}
           </button>
 
@@ -550,7 +549,7 @@ const getStrengthLabel = (strength) => {
           <button @click="activeTab = 'tracking'" :class="[
             'flex-1 flex items-center justify-center gap-2 px-6 py-4 rounded-2xl font-bold transition-all',
             activeTab === 'tracking'
-              ? 'bg-indigo-500 text-white shadow-lg'
+              ? 'bg-primary-600 text-white shadow-lg'
               : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700'
           ]">
             <Calendar :size="20" stroke-width="2.5" />
@@ -560,7 +559,7 @@ const getStrengthLabel = (strength) => {
           <button @click="activeTab = 'summary'" :class="[
             'flex-1 flex items-center justify-center gap-2 px-6 py-4 rounded-2xl font-bold transition-all',
             activeTab === 'summary'
-              ? 'bg-indigo-500 text-white shadow-lg'
+              ? 'bg-primary-600 text-white shadow-lg'
               : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700'
           ]">
             <FileText :size="20" stroke-width="2.5" />
@@ -570,7 +569,7 @@ const getStrengthLabel = (strength) => {
           <button @click="activeTab = 'graph'" :class="[
             'flex-1 flex items-center justify-center gap-2 px-6 py-4 rounded-2xl font-bold transition-all',
             activeTab === 'graph'
-              ? 'bg-indigo-500 text-white shadow-lg'
+              ? 'bg-primary-600 text-white shadow-lg'
               : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700'
           ]">
             <BarChart3 :size="20" stroke-width="2.5" />
@@ -580,7 +579,7 @@ const getStrengthLabel = (strength) => {
           <button @click="activeTab = 'profile'" :class="[
             'flex-1 flex items-center justify-center gap-2 px-6 py-4 rounded-2xl font-bold transition-all',
             activeTab === 'profile'
-              ? 'bg-indigo-500 text-white shadow-lg'
+              ? 'bg-primary-600 text-white shadow-lg'
               : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700'
           ]">
             <User :size="20" stroke-width="2.5" />
@@ -598,7 +597,7 @@ const getStrengthLabel = (strength) => {
       <div v-show="activeTab === 'summary'" class="space-y-6">
         <!-- Header -->
         <div
-          class="bg-linear-to-r from-indigo-500 to-purple-600 rounded-[3rem] p-12 shadow-xl flex justify-between items-center">
+          class="bg-linear-to-r from-primary-600 to-primary-950 rounded-[3rem] p-12 shadow-xl flex justify-between items-center">
           <div>
             <h2 class="text-3xl font-black text-white mb-2">{{ t('summaryView') }}</h2>
             <p class="text-indigo-100 font-medium">{{ t('retrospectiveAnalysis') }}</p>
@@ -611,7 +610,7 @@ const getStrengthLabel = (strength) => {
 
         <!-- Loading State -->
         <div v-if="isFetchingSummary" class="flex items-center justify-center py-20">
-          <RefreshCw :size="40" class="animate-spin text-indigo-500" />
+          <RefreshCw :size="40" class="animate-spin text-primary-500" />
         </div>
 
         <!-- Summary Content -->
@@ -848,7 +847,7 @@ const getStrengthLabel = (strength) => {
             v-if="!isFetchingSummary && (summaryData.boolean.length > 0 || summaryData.counter.length > 0 || summaryData.value.length > 0 || summaryData.rating.length > 0)"
             class="mt-12">
             <!-- Insights Header -->
-            <div class="bg-linear-to-r from-indigo-500 to-purple-600 rounded-[3rem] p-12 shadow-xl mb-6">
+            <div class="bg-linear-to-r from-primary-600 to-primary-950 rounded-[3rem] p-12 shadow-xl mb-6">
               <h2 class="text-3xl font-black text-white mb-2">{{ t('insights') }}</h2>
               <p class="text-indigo-100 font-medium">{{ t('discoverCorrelations') }}</p>
             </div>
@@ -899,7 +898,7 @@ const getStrengthLabel = (strength) => {
 
                     <!-- Connection Arrow -->
                     <div class="flex justify-center">
-                      <div class="bg-linear-to-r from-indigo-500 to-purple-600 text-white p-3 rounded-full">
+                      <div class="bg-linear-to-r from-primary-600 to-primary-950 text-white p-3 rounded-full">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
                           stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                           <line x1="12" y1="5" x2="12" y2="19"></line>
@@ -1096,7 +1095,7 @@ const getStrengthLabel = (strength) => {
 
         <!-- Export Button -->
         <button @click="goToExport"
-          class="flex items-center gap-2 px-6 py-3 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl font-bold transition-all shadow-sm active:scale-95">
+          class="flex items-center gap-2 px-6 py-3 bg-primary-600 hover:bg-indigo-600 text-white rounded-xl font-bold transition-all shadow-sm active:scale-95">
           <Download :size="18" stroke-width="2.5" />
           <span class="text-sm">{{ t('export') }}</span>
         </button>
@@ -1116,7 +1115,7 @@ const getStrengthLabel = (strength) => {
         <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-md" @click="isModalOpen = false"></div>
         <div
           class="relative bg-white dark:bg-slate-800 w-full max-w-lg rounded-[3rem] p-12 shadow-2xl overflow-visible">
-          <div class="absolute top-0 left-0 right-0 h-2 bg-indigo-500 rounded-t-[3rem]"></div>
+          <div class="absolute top-0 left-0 right-0 h-2 bg-primary-600 rounded-t-[3rem]"></div>
 
           <div class="flex justify-between items-center mb-10">
             <h2 class="text-3xl font-black text-slate-900 dark:text-white">{{ t('newHabit') }}</h2>

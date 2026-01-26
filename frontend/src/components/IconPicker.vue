@@ -8,7 +8,7 @@
     <button ref="toggleButton" type="button" @click="togglePicker"
       class="w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-50 dark:border-slate-700 rounded-3xl px-6 py-4 font-bold outline-none text-slate-900 dark:text-white hover:border-indigo-500 transition-colors flex items-center justify-between">
       <div class="flex items-center gap-3">
-        <component v-if="selectedIconComponent" :is="selectedIconComponent" :size="24" class="text-indigo-500" />
+        <component v-if="selectedIconComponent" :is="selectedIconComponent" :size="24" class="text-primary-600" />
         <span>{{ modelValue || 'Select an icon' }}</span>
       </div>
       <ChevronDown :size="20" :class="{ 'rotate-180': isPickerOpen }" class="transition-transform" />
@@ -30,9 +30,9 @@
             <div class="grid grid-cols-6 gap-2 px-2">
               <button v-for="iconName in filteredIcons" :key="iconName" type="button" @click="selectIcon(iconName)"
                 :class="[
-                  'flex flex-col items-center justify-center p-3 rounded-xl hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-colors border-2',
+                  'flex flex-col items-center justify-center p-3 rounded-xl hover:bg-indigo-50 dark:hover:bg-primary-900/30 transition-colors border-2',
                   modelValue === iconName
-                    ? 'bg-indigo-100 dark:bg-indigo-900/50 border-indigo-500'
+                    ? 'bg-indigo-100 dark:bg-indigo-900/50 border-primary-500'
                     : 'border-transparent'
                 ]" :title="iconName">
                 <component :is="getIconComponent(iconName)" :size="24" class="text-slate-700 dark:text-slate-300" />
@@ -228,19 +228,19 @@ onUnmounted(() => {
 }
 
 .overflow-y-auto::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: #d6d3d1;
   border-radius: 4px;
 }
 
 .dark .overflow-y-auto::-webkit-scrollbar-thumb {
-  background: #475569;
+  background: #57534e;
 }
 
 .overflow-y-auto::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: #a8a29e;
 }
 
 .dark .overflow-y-auto::-webkit-scrollbar-thumb:hover {
-  background: #64748b;
+  background: #92400e;
 }
 </style>
