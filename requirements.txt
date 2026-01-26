@@ -12,7 +12,6 @@ dtaidistance==2.3.13
 gunicorn==23.0.0
 idna==3.11
 numpy==2.4.1
-psycopg2-binary==2.9.9
 PyJWT==2.10.1
 python-dotenv==1.0.0
 requests==2.32.5
