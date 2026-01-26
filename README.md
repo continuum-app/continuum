@@ -188,7 +188,7 @@ If you’re interested in contributing:
 
 ## ⭐ Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=continuum-app/continuum&type=date&legend=top-left)](https://www.star-history.com/#continuum-app/continuum&type=date&legend=top-left)
+[![Star History Chart](https://api.star-history.com/svg?repos=habitsfactory/habitsfactory-app&type=date&legend=top-left)](https://www.star-history.com/#habitsfactory/habitsfactory-app&type=date&legend=top-left)
 
 ---
 
