@@ -1,9 +1,9 @@
-# 🌌 Continuum *(In Development)*
+# 🌌 HabitsFactory *(In Development)*
 
-**Continuum** is a **power-user–oriented habit-tracking engine** built for precision, insight, and long-term behavioral optimization.
+**HabitsFactory** is a **power-user–oriented habit-tracking engine** built for precision, insight, and long-term behavioral optimization.
 It enables granular tracking of daily routines, deep visualization of trends, and data-driven habit refinement.
 
-Designed with **correctness, extensibility, and performance** in mind, Continuum targets both:
+Designed with **correctness, extensibility, and performance** in mind, HabitsFactory targets both:
 - 🧠 End users who want meaningful analytics
 - 🛠️ Developers who value clean, scalable architecture
 
@@ -11,7 +11,7 @@ Designed with **correctness, extensibility, and performance** in mind, Continuum
 
 ## 🧭 Project Philosophy
 
-Continuum is built around a few core principles:
+HabitsFactory is built around a few core principles:
 
 - ✅ **Correctness first** — predictable behavior and validated data
 - 🧩 **Composable architecture** — modular, extensible components
@@ -22,7 +22,7 @@ Continuum is built around a few core principles:
 
 ## 🏗️ Architecture Overview
 
-Continuum follows a **decoupled, API-first architecture**:
+HabitsFactory follows a **decoupled, API-first architecture**:
 
 - 🔌 Frontend and backend evolve independently
 - 📜 Explicit, versionable data contracts
@@ -95,7 +95,7 @@ This ensures:
 
 ## 🔍 Habit Insights & Correlation Analysis
 
-Continuum uses **multiple correlation algorithms** to discover meaningful relationships between your habits:
+HabitsFactory uses **multiple correlation algorithms** to discover meaningful relationships between your habits:
 
 ### 📐 Correlation Methods
 
@@ -192,4 +192,4 @@ If you’re interested in contributing:
 
 ---
 
-> 🌱 **Continuum** — *Build habits. Measure progress. Master consistency.*
+> 🌱 **HabitsFactory** — *Build habits. Measure progress. Master consistency.*
