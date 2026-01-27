@@ -66,7 +66,7 @@ const goToExport = () => {
                     <li>
                         <a href="https://github.com/habitsfactory/habitsfactory-app" target="_blank"
                             rel="noopener noreferrer"
-                            class="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors font-medium flex items-center gap-2 group">
+                            class="text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors font-medium flex items-center gap-2 group">
                             <svg class="w-5 h-5 group-hover:scale-110 transition-transform" fill="currentColor"
                                 viewBox="0 0 24 24">
                                 <path fill-rule="evenodd"

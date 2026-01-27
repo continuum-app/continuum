@@ -1,12 +1,12 @@
 <template>
   <div class="space-y-2 relative">
-    <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2">
+    <label class="text-[10px] font-black uppercase tracking-widest text-neutral-400 ml-2">
       {{ label }}
     </label>
 
     <!-- Selected Icon Display & Button -->
     <button ref="toggleButton" type="button" @click="togglePicker"
-      class="w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-50 dark:border-slate-700 rounded-3xl px-6 py-4 font-bold outline-none text-slate-900 dark:text-white hover:border-indigo-500 transition-colors flex items-center justify-between">
+      class="w-full bg-neutral-50 dark:bg-neutral-700 border-2 border-neutral-50 dark:border-neutral-700 rounded-3xl px-6 py-4 font-bold outline-none text-neutral-900 dark:text-white hover:border-yellow-500 transition-colors flex items-center justify-between">
       <div class="flex items-center gap-3">
         <component v-if="selectedIconComponent" :is="selectedIconComponent" :size="24" class="text-primary-600" />
         <span>{{ modelValue || 'Select an icon' }}</span>
@@ -18,11 +18,11 @@
     <Teleport to="body">
       <Transition name="fade">
         <div v-if="isPickerOpen" ref="dropdown" @click.stop :style="dropdownStyle"
-          class="fixed z-9999 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-3xl p-6 shadow-2xl max-h-96 overflow-hidden flex flex-col">
+          class="fixed z-9999 bg-white dark:bg-neutral-800 border-2 border-neutral-200 dark:border-neutral-700 rounded-3xl p-6 shadow-2xl max-h-96 overflow-hidden flex flex-col">
           <!-- Search Input -->
           <div class="mb-4">
             <input ref="searchInput" v-model="searchQuery" type="text" placeholder="Search icons..."
-              class="w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-50 dark:border-slate-700 rounded-2xl px-4 py-3 font-bold text-slate-900 dark:text-white focus:border-indigo-500 transition outline-none" />
+              class="w-full bg-neutral-50 dark:bg-neutral-700 border-2 border-neutral-50 dark:border-neutral-700 rounded-2xl px-4 py-3 font-bold text-neutral-900 dark:text-white focus:border-yellow-500 transition outline-none" />
           </div>
 
           <!-- Icons Grid -->
@@ -30,20 +30,20 @@
             <div class="grid grid-cols-6 gap-2 px-2">
               <button v-for="iconName in filteredIcons" :key="iconName" type="button" @click="selectIcon(iconName)"
                 :class="[
-                  'flex flex-col items-center justify-center p-3 rounded-xl hover:bg-indigo-50 dark:hover:bg-primary-900/30 transition-colors border-2',
+                  'flex flex-col items-center justify-center p-3 rounded-xl hover:bg-yellow-50 dark:hover:bg-primary-900/30 transition-colors border-2',
                   modelValue === iconName
-                    ? 'bg-indigo-100 dark:bg-indigo-900/50 border-primary-500'
+                    ? 'bg-yellow-100 dark:bg-yellow-900/50 border-primary-500'
                     : 'border-transparent'
                 ]" :title="iconName">
-                <component :is="getIconComponent(iconName)" :size="24" class="text-slate-700 dark:text-slate-300" />
-                <span class="text-[8px] mt-1 text-slate-500 dark:text-slate-400 truncate w-full text-center">
+                <component :is="getIconComponent(iconName)" :size="24" class="text-neutral-700 dark:text-neutral-300" />
+                <span class="text-[8px] mt-1 text-neutral-500 dark:text-neutral-400 truncate w-full text-center">
                   {{ iconName }}
                 </span>
               </button>
             </div>
 
             <!-- No Results Message -->
-            <div v-if="filteredIcons.length === 0" class="text-center py-8 text-slate-400">
+            <div v-if="filteredIcons.length === 0" class="text-center py-8 text-neutral-400">
               No icons found
             </div>
           </div>

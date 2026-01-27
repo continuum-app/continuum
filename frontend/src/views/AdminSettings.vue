@@ -115,20 +115,20 @@ onMounted(() => {
 
 <template>
     <div
-        class="min-h-screen bg-slate-50 dark:bg-slate-900 p-6 md:p-12 font-sans text-slate-900 dark:text-slate-100 transition-colors duration-300">
+        class="min-h-screen bg-neutral-50 dark:bg-neutral-900 p-6 md:p-12 font-sans text-neutral-900 dark:text-neutral-100 transition-colors duration-300">
         <div class="max-w-5xl mx-auto">
             <!-- Header -->
             <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12">
                 <div>
                     <button @click="goBack"
-                        class="flex items-center gap-2 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors mb-4 font-bold">
+                        class="flex items-center gap-2 text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors mb-4 font-bold">
                         <ArrowLeft :size="20" stroke-width="2.5" />
                         Back to Dashboard
                     </button>
-                    <h1 class="text-4xl font-black tracking-tighter text-slate-900 dark:text-white uppercase italic">
+                    <h1 class="text-4xl font-black tracking-tighter text-neutral-900 dark:text-white uppercase italic">
                         Admin Settings
                     </h1>
-                    <p class="text-slate-400 dark:text-slate-500 font-medium">Site-wide settings for administrators</p>
+                    <p class="text-neutral-400 dark:text-neutral-500 font-medium">Site-wide settings for administrators</p>
                 </div>
             </header>
 
@@ -136,34 +136,34 @@ onMounted(() => {
 
                 <!-- Site-Wide Settings (Admin Only) -->
                 <div v-if="userInfo.is_staff || userInfo.is_superuser"
-                    class="bg-white dark:bg-slate-800 rounded-[3rem] p-8 shadow-lg border border-slate-100 dark:border-slate-700">
+                    class="bg-white dark:bg-neutral-800 rounded-[3rem] p-8 shadow-lg border border-neutral-100 dark:border-neutral-700">
                     <div class="flex items-center gap-3 mb-6">
                         <div class="p-3 bg-emerald-100 dark:bg-emerald-900/30 rounded-2xl">
                             <Settings :size="24" class="text-emerald-600 dark:text-emerald-400" stroke-width="2.5" />
                         </div>
                         <div class="flex-1">
-                            <h2 class="text-2xl font-black text-slate-900 dark:text-white">Site-Wide Settings</h2>
-                            <p class="text-sm text-slate-500 dark:text-slate-400 font-medium">Admin only - affects all
+                            <h2 class="text-2xl font-black text-neutral-900 dark:text-white">Site-Wide Settings</h2>
+                            <p class="text-sm text-neutral-500 dark:text-neutral-400 font-medium">Admin only - affects all
                                 users</p>
                         </div>
                     </div>
 
                     <div class="space-y-6">
                         <!-- Registration Toggle -->
-                        <div class="flex items-center justify-between p-6 bg-slate-50 dark:bg-slate-700 rounded-2xl">
+                        <div class="flex items-center justify-between p-6 bg-neutral-50 dark:bg-neutral-700 rounded-2xl">
                             <div class="flex-1">
-                                <h3 class="font-black text-slate-900 dark:text-white text-lg mb-1">User Registration
+                                <h3 class="font-black text-neutral-900 dark:text-white text-lg mb-1">User Registration
                                 </h3>
-                                <p class="text-sm text-slate-500 dark:text-slate-400">
+                                <p class="text-sm text-neutral-500 dark:text-neutral-400">
                                     Allow new users to register accounts on the site
                                 </p>
                             </div>
                             <label class="relative inline-flex items-center cursor-pointer ml-4">
                                 <input type="checkbox" v-model="siteSettings.allow_registration" class="sr-only peer">
                                 <div
-                                    class="w-14 h-7 bg-slate-300 dark:bg-slate-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-300 dark:peer-focus:ring-emerald-800 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-1 after:bg-white after:border-slate-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all dark:border-slate-600 peer-checked:bg-emerald-600">
+                                    class="w-14 h-7 bg-neutral-300 dark:bg-neutral-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-300 dark:peer-focus:ring-emerald-800 rounded-full peer peer-checked:after:tranneutral-x-full rtl:peer-checked:after:-tranneutral-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-1 after:bg-white after:border-neutral-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all dark:border-neutral-600 peer-checked:bg-emerald-600">
                                 </div>
-                                <span class="ml-3 text-sm font-bold text-slate-900 dark:text-white">
+                                <span class="ml-3 text-sm font-bold text-neutral-900 dark:text-white">
                                     {{ siteSettings.allow_registration ? 'Enabled' : 'Disabled' }}
                                 </span>
                             </label>

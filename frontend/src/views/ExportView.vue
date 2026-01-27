@@ -109,20 +109,20 @@ onMounted(() => {
 
 <template>
     <div
-        class="min-h-screen bg-slate-50 dark:bg-slate-900 p-6 md:p-12 font-sans text-slate-900 dark:text-slate-100 transition-colors duration-300">
+        class="min-h-screen bg-neutral-50 dark:bg-neutral-900 p-6 md:p-12 font-sans text-neutral-900 dark:text-neutral-100 transition-colors duration-300">
         <div class="max-w-4xl mx-auto">
             <!-- Header -->
             <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12">
                 <div>
                     <button @click="goBack"
-                        class="flex items-center gap-2 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors mb-4 font-bold">
+                        class="flex items-center gap-2 text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors mb-4 font-bold">
                         <ArrowLeft :size="20" stroke-width="2.5" />
                         Back to Dashboard
                     </button>
-                    <h1 class="text-4xl font-black tracking-tighter text-slate-900 dark:text-white uppercase italic">
+                    <h1 class="text-4xl font-black tracking-tighter text-neutral-900 dark:text-white uppercase italic">
                         Export Data
                     </h1>
-                    <p class="text-slate-400 dark:text-slate-500 font-medium">Export your habit data to CSV</p>
+                    <p class="text-neutral-400 dark:text-neutral-500 font-medium">Export your habit data to CSV</p>
                 </div>
             </header>
 
@@ -130,33 +130,33 @@ onMounted(() => {
             <div class="space-y-6">
                 <!-- Date Range Selector -->
                 <div
-                    class="bg-white dark:bg-slate-800 rounded-[3rem] p-8 shadow-lg border border-slate-100 dark:border-slate-700">
-                    <h2 class="text-2xl font-black text-slate-900 dark:text-white mb-6">Date Range</h2>
+                    class="bg-white dark:bg-neutral-800 rounded-[3rem] p-8 shadow-lg border border-neutral-100 dark:border-neutral-700">
+                    <h2 class="text-2xl font-black text-neutral-900 dark:text-white mb-6">Date Range</h2>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                         <div>
-                            <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Start
+                            <label class="block text-sm font-bold text-neutral-700 dark:text-neutral-300 mb-2">Start
                                 Date</label>
                             <input v-model="exportStartDate" type="date"
-                                class="w-full px-4 py-3 rounded-2xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                                class="w-full px-4 py-3 rounded-2xl border border-neutral-200 dark:border-neutral-600 bg-white dark:bg-neutral-700 text-neutral-900 dark:text-white font-medium focus:outline-none focus:ring-2 focus:ring-yellow-500" />
                         </div>
                         <div>
-                            <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">End
+                            <label class="block text-sm font-bold text-neutral-700 dark:text-neutral-300 mb-2">End
                                 Date</label>
                             <input v-model="exportEndDate" type="date"
-                                class="w-full px-4 py-3 rounded-2xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                                class="w-full px-4 py-3 rounded-2xl border border-neutral-200 dark:border-neutral-600 bg-white dark:bg-neutral-700 text-neutral-900 dark:text-white font-medium focus:outline-none focus:ring-2 focus:ring-yellow-500" />
                         </div>
                     </div>
 
                     <!-- Quick Select Buttons -->
-                    <div class="pt-4 border-t border-slate-100 dark:border-slate-700">
-                        <p class="text-sm font-bold text-slate-700 dark:text-slate-300 mb-3">Quick Select</p>
+                    <div class="pt-4 border-t border-neutral-100 dark:border-neutral-700">
+                        <p class="text-sm font-bold text-neutral-700 dark:text-neutral-300 mb-3">Quick Select</p>
                         <div class="flex flex-wrap gap-2">
                             <button @click="setAllExportDataRange"
-                                class="px-4 py-2 bg-slate-100 dark:bg-slate-700 hover:bg-indigo-500 hover:text-white dark:hover:bg-indigo-600 rounded-full text-sm font-bold transition-colors">
+                                class="px-4 py-2 bg-neutral-100 dark:bg-neutral-700 hover:bg-yellow-500 hover:text-white dark:hover:bg-yellow-600 rounded-full text-sm font-bold transition-colors">
                                 All Data
                             </button>
                             <button v-for="year in quickSelectYears" :key="year" @click="setExportYearRange(year)"
-                                class="px-4 py-2 bg-slate-100 dark:bg-slate-700 hover:bg-indigo-500 hover:text-white dark:hover:bg-indigo-600 rounded-full text-sm font-bold transition-colors">
+                                class="px-4 py-2 bg-neutral-100 dark:bg-neutral-700 hover:bg-yellow-500 hover:text-white dark:hover:bg-yellow-600 rounded-full text-sm font-bold transition-colors">
                                 {{ year }}
                             </button>
                         </div>
@@ -164,14 +164,14 @@ onMounted(() => {
                 </div>
 
                 <!-- Export Button -->
-                <div class="bg-linear-to-r from-indigo-500 to-purple-600 rounded-[3rem] p-8 shadow-lg">
+                <div class="bg-linear-to-r from-yellow-600 to-neutral-900 rounded-[3rem] p-8 shadow-lg">
                     <div class="flex flex-col md:flex-row items-center justify-between gap-4">
                         <div>
                             <h3 class="text-xl font-black text-white mb-1">Ready to Export?</h3>
-                            <p class="text-indigo-100 font-medium">Download your habit data as a CSV file</p>
+                            <p class="text-yellow-100 font-medium">Download your habit data as a CSV file</p>
                         </div>
                         <button @click="exportToCSV" :disabled="isExporting"
-                            class="flex items-center gap-2 px-8 py-4 bg-white text-indigo-600 rounded-2xl font-black hover:bg-indigo-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                            class="flex items-center gap-2 px-8 py-4 bg-white text-yellow-600 rounded-2xl font-black hover:bg-yellow-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                             <Download :size="20" />
                             {{ isExporting ? 'Exporting...' : 'Export CSV' }}
                         </button>

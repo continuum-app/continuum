@@ -300,15 +300,15 @@ const handleDrop = (e, targetCategoryId) => {
     <div class="space-y-8">
         <!-- Date Navigation -->
         <div
-            class="bg-white dark:bg-slate-800 rounded-[3rem] p-6 shadow-lg border border-slate-100 dark:border-slate-700 flex items-center justify-between">
+            class="bg-white dark:bg-neutral-800 rounded-[3rem] p-6 shadow-lg border border-neutral-100 dark:border-neutral-700 flex items-center justify-between">
             <button @click="goToPreviousDay"
-                class="p-4 rounded-2xl bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 transition-all active:scale-95">
-                <ChevronLeft :size="24" class="text-slate-600 dark:text-slate-300" stroke-width="2.5" />
+                class="p-4 rounded-2xl bg-neutral-100 dark:bg-neutral-700 hover:bg-neutral-200 dark:hover:bg-neutral-600 transition-all active:scale-95">
+                <ChevronLeft :size="24" class="text-neutral-600 dark:text-neutral-300" stroke-width="2.5" />
             </button>
 
             <div class="text-center flex-1">
-                <h2 class="text-2xl font-black text-slate-900 dark:text-white">{{ formattedTrackingDate }}</h2>
-                <p class="text-xs text-slate-400 dark:text-slate-500 mt-0.5 font-bold">
+                <h2 class="text-2xl font-black text-neutral-900 dark:text-white">{{ formattedTrackingDate }}</h2>
+                <p class="text-xs text-neutral-400 dark:text-neutral-500 mt-0.5 font-bold">
                     {{ currentTrackingDate.toLocaleDateString('fr', {
                         day: '2-digit', month: '2-digit', year: 'numeric'
                     }) }}
@@ -323,45 +323,45 @@ const handleDrop = (e, targetCategoryId) => {
             <div class="flex items-center gap-3">
                 <!-- View Toggle -->
                 <button @click="isCardView = !isCardView"
-                    class="p-4 rounded-2xl bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 transition-all active:scale-95">
-                    <LayoutGrid v-if="!isCardView" :size="24" class="text-slate-600 dark:text-slate-300"
+                    class="p-4 rounded-2xl bg-neutral-100 dark:bg-neutral-700 hover:bg-neutral-200 dark:hover:bg-neutral-600 transition-all active:scale-95">
+                    <LayoutGrid v-if="!isCardView" :size="24" class="text-neutral-600 dark:text-neutral-300"
                         stroke-width="2.5" />
-                    <List v-else :size="24" class="text-slate-600 dark:text-slate-300" stroke-width="2.5" />
+                    <List v-else :size="24" class="text-neutral-600 dark:text-neutral-300" stroke-width="2.5" />
                 </button>
 
                 <button @click="goToNextDay" :disabled="!canGoToNextDay" :class="[
                     'p-4 rounded-2xl transition-all active:scale-95',
                     canGoToNextDay
-                        ? 'bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600'
-                        : 'bg-slate-50 dark:bg-slate-800 cursor-not-allowed opacity-50'
+                        ? 'bg-neutral-100 dark:bg-neutral-700 hover:bg-neutral-200 dark:hover:bg-neutral-600'
+                        : 'bg-neutral-50 dark:bg-neutral-800 cursor-not-allowed opacity-50'
                 ]">
-                    <ChevronRight :size="24" class="text-slate-600 dark:text-slate-300" stroke-width="2.5" />
+                    <ChevronRight :size="24" class="text-neutral-600 dark:text-neutral-300" stroke-width="2.5" />
                 </button>
             </div>
         </div>
 
         <!-- Loading State -->
         <div v-if="isLoadingHabits" class="flex items-center justify-center py-20">
-            <RefreshCw :size="40" class="animate-spin text-indigo-500" />
+            <RefreshCw :size="40" class="animate-spin text-yellow-500" />
         </div>
 
         <!-- Habit Groups -->
         <template v-else>
             <div v-for="group in groupedHabits" :key="group.id" class="space-y-4 category-group"
-                :class="{ 'opacity-50': draggedCategoryId === group.id, 'ring-2 ring-indigo-500 ring-offset-2 rounded-2xl': dragOverCategoryId === group.id && draggedCategoryId !== group.id }"
+                :class="{ 'opacity-50': draggedCategoryId === group.id, 'ring-2 ring-yellow-500 ring-offset-2 rounded-2xl': dragOverCategoryId === group.id && draggedCategoryId !== group.id }"
                 draggable="true" @dragstart="handleDragStart($event, group.id)" @dragend="handleDragEnd"
                 @dragover="handleDragOver($event, group.id)" @dragenter="handleDragEnter($event, group.id)"
                 @dragleave="handleDragLeave" @drop="handleDrop($event, group.id)">
                 <!-- Group Header -->
                 <div class="flex items-center gap-3 px-2 cursor-grab active:cursor-grabbing">
                     <GripVertical :size="20"
-                        class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 shrink-0" />
-                    <div class="w-2 h-6 bg-indigo-500 rounded-full shrink-0"></div>
-                    <h3 class="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight shrink-0">
+                        class="text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 shrink-0" />
+                    <div class="w-2 h-6 bg-yellow-500 rounded-full shrink-0"></div>
+                    <h3 class="text-xl font-black text-neutral-900 dark:text-white uppercase tracking-tight shrink-0">
                         {{ group.name }}
                     </h3>
-                    <div class="flex-1 h-px bg-linear-to-r from-slate-300 dark:from-slate-600 to-transparent"></div>
-                    <span class="text-sm font-medium text-slate-400 dark:text-slate-500 shrink-0">
+                    <div class="flex-1 h-px bg-linear-to-r from-neutral-300 dark:from-neutral-600 to-transparent"></div>
+                    <span class="text-sm font-medium text-neutral-400 dark:text-neutral-500 shrink-0">
                         {{ group.habits.length }} {{ group.habits.length === 1 ? (t('habit')) : (t('habits')) }}
                     </span>
                 </div>
@@ -369,7 +369,7 @@ const handleDrop = (e, targetCategoryId) => {
                 <!-- Card View -->
                 <div v-if="isCardView" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     <div v-for="habit in group.habits" :key="habit.id"
-                        class="bg-white dark:bg-slate-800 rounded-4xl p-6 shadow-lg border border-slate-100 dark:border-slate-700 hover:shadow-xl transition-all">
+                        class="bg-white dark:bg-neutral-800 rounded-4xl p-6 shadow-lg border border-neutral-100 dark:border-neutral-700 hover:shadow-xl transition-all">
                         <!-- Habit Header -->
                         <div class="flex items-center gap-3 mb-4">
                             <div class="p-3 rounded-2xl" :style="{ backgroundColor: habit.color + '20' }">
@@ -377,13 +377,13 @@ const handleDrop = (e, targetCategoryId) => {
                                     stroke-width="2.5" />
                             </div>
                             <div class="flex-1">
-                                <h4 class="font-black text-slate-900 dark:text-white text-lg">{{ habit.name }}</h4>
-                                <p v-if="habit.unit" class="text-xs font-bold text-slate-400 uppercase tracking-wide">
+                                <h4 class="font-black text-neutral-900 dark:text-white text-lg">{{ habit.name }}</h4>
+                                <p v-if="habit.unit" class="text-xs font-bold text-neutral-400 uppercase tracking-wide">
                                     {{ habit.unit }}
                                 </p>
                             </div>
                             <div v-if="habit.is_saving">
-                                <RefreshCw :size="20" class="animate-spin text-indigo-500" />
+                                <RefreshCw :size="20" class="animate-spin text-yellow-500" />
                             </div>
                         </div>
 
@@ -393,7 +393,7 @@ const handleDrop = (e, targetCategoryId) => {
                                 'w-full py-4 rounded-2xl font-black text-lg transition-all active:scale-95',
                                 habit.is_completed_today
                                     ? 'bg-green-500 text-white'
-                                    : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
+                                    : 'bg-neutral-100 dark:bg-neutral-700 text-neutral-600 dark:text-neutral-300'
                             ]">
                                 <CheckCircle2 v-if="habit.is_completed_today" :size="24" class="mx-auto" />
                                 <span v-else>{{ t('markComplete') }}</span>
@@ -403,15 +403,15 @@ const handleDrop = (e, targetCategoryId) => {
                         <!-- Counter Habit -->
                         <div v-else-if="habit.habit_type === 'counter'" class="flex items-center justify-center gap-4">
                             <button @click="decrementCounter(habit)"
-                                class="p-3 rounded-xl bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 transition-all active:scale-95">
-                                <Minus :size="20" class="text-slate-600 dark:text-slate-300" />
+                                class="p-3 rounded-xl bg-neutral-100 dark:bg-neutral-700 hover:bg-neutral-200 dark:hover:bg-neutral-600 transition-all active:scale-95">
+                                <Minus :size="20" class="text-neutral-600 dark:text-neutral-300" />
                             </button>
                             <span class="text-4xl font-black" :style="{ color: habit.color }">
                                 {{ habit.today_value || 0 }}
                             </span>
                             <button @click="incrementCounter(habit)"
-                                class="p-3 rounded-xl bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 transition-all active:scale-95">
-                                <Plus :size="20" class="text-slate-600 dark:text-slate-300" />
+                                class="p-3 rounded-xl bg-neutral-100 dark:bg-neutral-700 hover:bg-neutral-200 dark:hover:bg-neutral-600 transition-all active:scale-95">
+                                <Plus :size="20" class="text-neutral-600 dark:text-neutral-300" />
                             </button>
                         </div>
 
@@ -419,9 +419,9 @@ const handleDrop = (e, targetCategoryId) => {
                         <div v-else-if="habit.habit_type === 'value'" class="space-y-2">
                             <input :value="habit.today_value || ''" @change="updateValue(habit, $event.target.value)"
                                 type="number" step="0.1" placeholder="0"
-                                class="w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-100 dark:border-slate-600 rounded-2xl px-4 py-3 text-center text-2xl font-black outline-none focus:border-indigo-500 transition text-slate-900 dark:text-white"
+                                class="w-full bg-neutral-50 dark:bg-neutral-700 border-2 border-neutral-100 dark:border-neutral-600 rounded-2xl px-4 py-3 text-center text-2xl font-black outline-none focus:border-yellow-500 transition text-neutral-900 dark:text-white"
                                 :style="{ color: habit.color }" />
-                            <p v-if="habit.unit" class="text-center text-sm font-bold text-slate-400">{{ habit.unit }}
+                            <p v-if="habit.unit" class="text-center text-sm font-bold text-neutral-400">{{ habit.unit }}
                             </p>
                         </div>
 
@@ -439,7 +439,7 @@ const handleDrop = (e, targetCategoryId) => {
                 <!-- Row View -->
                 <div v-else class="space-y-3">
                     <div v-for="habit in group.habits" :key="habit.id"
-                        class="bg-white dark:bg-slate-800 rounded-2xl p-4 shadow-md border border-slate-100 dark:border-slate-700 flex items-center gap-4">
+                        class="bg-white dark:bg-neutral-800 rounded-2xl p-4 shadow-md border border-neutral-100 dark:border-neutral-700 flex items-center gap-4">
                         <!-- Icon -->
                         <div class="p-2 rounded-xl" :style="{ backgroundColor: habit.color + '20' }">
                             <component :is="getIcon(habit.icon)" :size="20" :style="{ color: habit.color }"
@@ -448,20 +448,20 @@ const handleDrop = (e, targetCategoryId) => {
 
                         <!-- Name -->
                         <div class="flex-1">
-                            <h4 class="font-bold text-slate-900 dark:text-white">{{ habit.name }}</h4>
+                            <h4 class="font-bold text-neutral-900 dark:text-white">{{ habit.name }}</h4>
                         </div>
 
                         <!-- Compact Controls -->
                         <div class="flex items-center gap-3">
                             <!-- Loading -->
-                            <RefreshCw v-if="habit.is_saving" :size="16" class="animate-spin text-indigo-500" />
+                            <RefreshCw v-if="habit.is_saving" :size="16" class="animate-spin text-yellow-500" />
 
                             <!-- Boolean -->
                             <button v-if="habit.habit_type === 'boolean'" @click="toggleBoolean(habit)" :class="[
                                 'px-4 py-2 rounded-xl font-bold transition-all active:scale-95',
                                 habit.is_completed_today
                                     ? 'bg-green-500 text-white'
-                                    : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
+                                    : 'bg-neutral-100 dark:bg-neutral-700 text-neutral-600 dark:text-neutral-300'
                             ]">
                                 <CheckCircle2 v-if="habit.is_completed_today" :size="20" />
                                 <span v-else>{{ t('done') }}</span>
@@ -470,14 +470,14 @@ const handleDrop = (e, targetCategoryId) => {
                             <!-- Counter -->
                             <template v-else-if="habit.habit_type === 'counter'">
                                 <button @click="decrementCounter(habit)"
-                                    class="p-2 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 transition-all">
+                                    class="p-2 rounded-lg bg-neutral-100 dark:bg-neutral-700 hover:bg-neutral-200 dark:hover:bg-neutral-600 transition-all">
                                     <Minus :size="16" />
                                 </button>
                                 <span class="text-xl font-black min-w-12 text-center" :style="{ color: habit.color }">
                                     {{ habit.today_value || 0 }}
                                 </span>
                                 <button @click="incrementCounter(habit)"
-                                    class="p-2 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 transition-all">
+                                    class="p-2 rounded-lg bg-neutral-100 dark:bg-neutral-700 hover:bg-neutral-200 dark:hover:bg-neutral-600 transition-all">
                                     <Plus :size="16" />
                                 </button>
                             </template>
@@ -486,7 +486,7 @@ const handleDrop = (e, targetCategoryId) => {
                             <input v-else-if="habit.habit_type === 'value'" :value="habit.today_value || ''"
                                 @change="updateValue(habit, $event.target.value)" type="number" step="0.1"
                                 placeholder="0"
-                                class="w-24 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl px-3 py-2 text-center font-bold outline-none focus:border-indigo-500 transition text-slate-900 dark:text-white" />
+                                class="w-24 bg-neutral-50 dark:bg-neutral-700 border border-neutral-200 dark:border-neutral-600 rounded-xl px-3 py-2 text-center font-bold outline-none focus:border-yellow-500 transition text-neutral-900 dark:text-white" />
 
                             <!-- Rating -->
                             <div v-else-if="habit.habit_type === 'rating'" class="flex gap-0.5">
@@ -504,11 +504,11 @@ const handleDrop = (e, targetCategoryId) => {
 
             <!-- Empty State -->
             <div v-if="groupedHabits.length === 0"
-                class="bg-white dark:bg-slate-800 rounded-[3rem] p-16 shadow-lg border border-slate-100 dark:border-slate-700 text-center">
+                class="bg-white dark:bg-neutral-800 rounded-[3rem] p-16 shadow-lg border border-neutral-100 dark:border-neutral-700 text-center">
                 <div class="text-6xl mb-4">🎯</div>
-                <h3 class="text-2xl font-black text-slate-900 dark:text-white mb-2">{{ t('noHabitsYet') }}
+                <h3 class="text-2xl font-black text-neutral-900 dark:text-white mb-2">{{ t('noHabitsYet') }}
                 </h3>
-                <p class="text-slate-500 dark:text-slate-400">{{ t('createFirstHabit') }}</p>
+                <p class="text-neutral-500 dark:text-neutral-400">{{ t('createFirstHabit') }}</p>
             </div>
         </template>
     </div>

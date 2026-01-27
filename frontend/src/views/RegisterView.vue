@@ -81,24 +81,24 @@ onMounted(() => {
 </script>
 
 <template>
-    <div class="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center p-6">
+    <div class="min-h-screen bg-neutral-50 dark:bg-neutral-900 flex items-center justify-center p-6">
         <div class="w-full max-w-md">
             <div
-                class="bg-white dark:bg-slate-800 rounded-[3rem] p-12 shadow-2xl border border-slate-100 dark:border-slate-700">
+                class="bg-white dark:bg-neutral-800 rounded-[3rem] p-12 shadow-2xl border border-neutral-100 dark:border-neutral-700">
                 <div class="text-center mb-8">
                     <h1
-                        class="text-4xl font-black tracking-tighter text-slate-900 dark:text-white uppercase italic mb-2">
+                        class="text-4xl font-black tracking-tighter text-neutral-900 dark:text-white uppercase italic mb-2">
                         HabitsFactory
                     </h1>
-                    <p class="text-slate-500 dark:text-slate-400 font-medium">Create your account</p>
+                    <p class="text-neutral-500 dark:text-neutral-400 font-medium">Create your account</p>
                 </div>
 
                 <!-- Loading state while checking registration status -->
                 <div v-if="isCheckingSettings" class="text-center py-8">
                     <div
-                        class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-slate-300 border-t-indigo-600">
+                        class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-neutral-300 border-t-yellow-600">
                     </div>
-                    <p class="mt-4 text-slate-500 dark:text-slate-400">Checking registration status...</p>
+                    <p class="mt-4 text-neutral-500 dark:text-neutral-400">Checking registration status...</p>
                 </div>
 
                 <!-- Registration disabled message -->
@@ -116,7 +116,7 @@ onMounted(() => {
                     </div>
 
                     <button @click="router.push('/login')"
-                        class="w-full bg-slate-600 text-white py-4 rounded-2xl font-bold hover:bg-slate-700 transition-all shadow-lg">
+                        class="w-full bg-neutral-600 text-white py-4 rounded-2xl font-bold hover:bg-neutral-700 transition-all shadow-lg">
                         Back to Login
                     </button>
                 </div>
@@ -129,44 +129,44 @@ onMounted(() => {
                     </div>
 
                     <div class="space-y-2">
-                        <label class="text-xs font-black uppercase tracking-widest text-slate-400 ml-2">Username</label>
+                        <label class="text-xs font-black uppercase tracking-widest text-neutral-400 ml-2">Username</label>
                         <input v-model="username" type="text" required
-                            class="w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-50 dark:border-slate-700 rounded-2xl px-6 py-4 focus:bg-white dark:focus:bg-slate-600 focus:border-indigo-500 transition outline-none font-bold text-slate-900 dark:text-white"
+                            class="w-full bg-neutral-50 dark:bg-neutral-700 border-2 border-neutral-50 dark:border-neutral-700 rounded-2xl px-6 py-4 focus:bg-white dark:focus:bg-neutral-600 focus:border-yellow-500 transition outline-none font-bold text-neutral-900 dark:text-white"
                             placeholder="Enter username" />
                     </div>
 
                     <div class="space-y-2">
-                        <label class="text-xs font-black uppercase tracking-widest text-slate-400 ml-2">Email</label>
+                        <label class="text-xs font-black uppercase tracking-widest text-neutral-400 ml-2">Email</label>
                         <input v-model="email" type="email" required
-                            class="w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-50 dark:border-slate-700 rounded-2xl px-6 py-4 focus:bg-white dark:focus:bg-slate-600 focus:border-indigo-500 transition outline-none font-bold text-slate-900 dark:text-white"
+                            class="w-full bg-neutral-50 dark:bg-neutral-700 border-2 border-neutral-50 dark:border-neutral-700 rounded-2xl px-6 py-4 focus:bg-white dark:focus:bg-neutral-600 focus:border-yellow-500 transition outline-none font-bold text-neutral-900 dark:text-white"
                             placeholder="Enter email" />
                     </div>
 
                     <div class="space-y-2">
-                        <label class="text-xs font-black uppercase tracking-widest text-slate-400 ml-2">Password</label>
+                        <label class="text-xs font-black uppercase tracking-widest text-neutral-400 ml-2">Password</label>
                         <input v-model="password1" type="password" required
-                            class="w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-50 dark:border-slate-700 rounded-2xl px-6 py-4 focus:bg-white dark:focus:bg-slate-600 focus:border-indigo-500 transition outline-none font-bold text-slate-900 dark:text-white"
+                            class="w-full bg-neutral-50 dark:bg-neutral-700 border-2 border-neutral-50 dark:border-neutral-700 rounded-2xl px-6 py-4 focus:bg-white dark:focus:bg-neutral-600 focus:border-yellow-500 transition outline-none font-bold text-neutral-900 dark:text-white"
                             placeholder="Enter password" />
                     </div>
 
                     <div class="space-y-2">
-                        <label class="text-xs font-black uppercase tracking-widest text-slate-400 ml-2">Confirm
+                        <label class="text-xs font-black uppercase tracking-widest text-neutral-400 ml-2">Confirm
                             Password</label>
                         <input v-model="password2" type="password" required
-                            class="w-full bg-slate-50 dark:bg-slate-700 border-2 border-slate-50 dark:border-slate-700 rounded-2xl px-6 py-4 focus:bg-white dark:focus:bg-slate-600 focus:border-indigo-500 transition outline-none font-bold text-slate-900 dark:text-white"
+                            class="w-full bg-neutral-50 dark:bg-neutral-700 border-2 border-neutral-50 dark:border-neutral-700 rounded-2xl px-6 py-4 focus:bg-white dark:focus:bg-neutral-600 focus:border-yellow-500 transition outline-none font-bold text-neutral-900 dark:text-white"
                             placeholder="Confirm password" />
                     </div>
 
                     <button type="submit" :disabled="isLoading"
-                        class="w-full bg-indigo-600 text-white py-4 rounded-2xl font-bold hover:bg-indigo-700 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">
+                        class="w-full bg-yellow-600 text-white py-4 rounded-2xl font-bold hover:bg-yellow-700 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">
                         {{ isLoading ? 'Creating Account...' : 'Register' }}
                     </button>
 
                     <div class="text-center">
-                        <p class="text-sm text-slate-500 dark:text-slate-400">
+                        <p class="text-sm text-neutral-500 dark:text-neutral-400">
                             Already have an account?
                             <router-link to="/login"
-                                class="text-indigo-600 dark:text-indigo-400 font-bold hover:underline">
+                                class="text-yellow-600 dark:text-yellow-400 font-bold hover:underline">
                                 Login here
                             </router-link>
                         </p>
