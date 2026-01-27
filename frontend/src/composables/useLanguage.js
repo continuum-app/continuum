@@ -1,5 +1,5 @@
 import { ref, computed } from 'vue'
-import { translations } from './translations'
+import { translations } from '@/composables/translations'
 
 const currentLanguage = ref(localStorage.getItem('language') || 'en')
 

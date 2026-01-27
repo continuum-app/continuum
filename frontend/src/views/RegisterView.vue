@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import api from '../services/api'
+import api from '@/services/api'
 import { AlertCircle } from 'lucide-vue-next'
 
 const router = useRouter()

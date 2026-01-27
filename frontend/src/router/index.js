@@ -1,13 +1,17 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import LoginView from '../views/LoginView.vue'
-import RegisterView from '../views/RegisterView.vue'
-import DashboardView from '../views/DashboardView.vue'
-import AdminSettings from '../views/AdminSettings.vue'
-import ExportView from '../views/ExportView.vue'
-import authService from '../services/auth'
+import LoginView from '@/views/LoginView.vue'
+import RegisterView from '@/views/RegisterView.vue'
+import DashboardView from '@/views/DashboardView.vue'
+import AdminSettings from '@/views/AdminSettings.vue'
+import ProfileView from '@/views/ProfileView.vue'
+import ExportView from '@/views/ExportView.vue'
+import authService from '@/services/auth'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
+  scrollBehavior() {
+    return { top: 0 }
+  },
   routes: [
     {
       path: '/login',
@@ -31,6 +35,12 @@ const router = createRouter({
       path: '/admin-settings',
       name: 'admin-settings',
       component: AdminSettings,
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/profile',
+      name: 'profile',
+      component: ProfileView,
       meta: { requiresAuth: true }
     },
     {

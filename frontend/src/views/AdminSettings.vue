@@ -1,9 +1,9 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import api from '../services/api'
-import authService from '../services/auth'
-import { useDarkMode } from '../composables/useDarkMode'
+import api from '@/services/api'
+import authService from '@/services/auth'
+import { useDarkMode } from '@/composables/useDarkMode'
 import { useLanguage } from '@/composables/useLanguage'
 import { ArrowLeft, Save, Moon, Sun, Settings, RefreshCw, CheckCircle2 } from 'lucide-vue-next'
 import SiteFooter from '@/components/SiteFooter.vue'
@@ -123,7 +123,7 @@ onMounted(() => {
                     <button @click="goBack"
                         class="flex items-center gap-2 text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors mb-4 font-bold">
                         <ArrowLeft :size="20" stroke-width="2.5" />
-                        Back to Dashboard
+                        {{ t('returnDashboard') }}
                     </button>
                     <h1 class="text-4xl font-black tracking-tighter text-neutral-900 dark:text-white uppercase italic">
                         Admin Settings

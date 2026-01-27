@@ -12,6 +12,10 @@ const goToAdminSettings = () => {
     router.push('/admin-settings')
 }
 
+const goToProfile = () => {
+    router.push('/profile')
+}
+
 const goToExport = () => {
     router.push('/export')
 }
@@ -36,7 +40,7 @@ const goToExport = () => {
                         </button>
                     </li>
                     <li>
-                        <button @click="goToAdminSettings"
+                        <button @click="goToProfile"
                             class="hover:text-primary-400 transition-colors flex items-center gap-2 pl-0">
                             <span>{{ t('profile') }}</span>
                         </button>

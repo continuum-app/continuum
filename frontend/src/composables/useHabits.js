@@ -1,6 +1,6 @@
 // composables/useHabits.js
 import { ref } from 'vue'
-import api from '../services/api'
+import api from '@/services/api'
 
 export function useHabits() {
     const habits = ref([])

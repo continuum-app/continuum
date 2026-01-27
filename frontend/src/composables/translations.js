@@ -22,6 +22,7 @@ export const translations = {
     markComplete: 'Mark Complete',
     completed: 'Completed',
     save: 'Save',
+    returnDashboard: 'Back to Dashboard',
 
     // Category
     uncategorized: 'Uncategorized',
@@ -71,6 +72,7 @@ export const translations = {
 
     // Profile
     profile: 'Profile',
+    profileDescription: 'Edit your habits, tags and categories.',
     accountInformation: 'Account Information',
     username: 'Username',
     email: 'Email',
@@ -172,6 +174,7 @@ export const translations = {
     markComplete: 'Marquer Terminé',
     completed: 'Terminé',
     save: 'Sauvegarder',
+    returnDashboard: 'Retour au Tableau de Bord',
 
     // Category
     uncategorized: 'Non catégorisé',
@@ -220,6 +223,7 @@ export const translations = {
 
     // Profile
     profile: 'Profil',
+    profileDescription: 'Modifiez vos habitudes, étiquettes et catégories.',
     accountInformation: 'Informations du Compte',
     username: 'Nom d\'utilisateur',
     email: 'Email',
