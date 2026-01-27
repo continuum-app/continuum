@@ -490,7 +490,7 @@ onUnmounted(() => {
           </button>
 
           <button @click="handleLogout"
-            class="bg-red-600 text-white px-6 py-4 rounded-2xl font-bold hover:bg-red-700 transition-all shadow-md active:scale-95">
+            class="bg-red-500 text-white px-6 py-4 rounded-2xl font-bold hover:bg-red-700 transition-all shadow-md active:scale-95">
             <LogOut :size="20" stroke-width="2.5" />
           </button>
         </div>
