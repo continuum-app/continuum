@@ -19,7 +19,7 @@ const goToExport = () => {
 
 <template>
     <!-- Footer -->
-    <footer class="dark:bg-gray-900 dark:text-gray-300 py-12 px-6">
+    <footer class="py-12 px-6">
         <div class="dark:text-white max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             <div class="flex flex-col gap-4">
                 <img src="/logo.png" alt="Habits Factory Logo" class="h-32 w-32 object-contain center" />
@@ -83,7 +83,7 @@ const goToExport = () => {
                 </ul>
             </div>
         </div>
-        <div class="max-w-7xl mx-auto mt-12 pt-8 border-t border-gray-500 text-center text-xs text-gray-500">
+        <div class="max-w-7xl mx-auto mt-12 pt-8 border-t border-gray-300 text-center text-xs text-gray-500">
             © {{ new Date().getFullYear() }} {{ t('appName') }}. {{ t('allRightsReserved') }}
         </div>
     </footer>
