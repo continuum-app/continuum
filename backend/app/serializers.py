@@ -22,6 +22,14 @@ class HabitSerializer(serializers.ModelSerializer):
         required=False,
         allow_null=True,
     )
+    tags = TagSerializer(many=True, read_only=True)
+    tag_ids = serializers.PrimaryKeyRelatedField(
+        queryset=Tag.objects.all(),
+        source="tags",
+        write_only=True,
+        required=False,
+        many=True,
+    )
     today_value = serializers.SerializerMethodField()
     max_value = serializers.IntegerField(required=False, allow_null=True)
 
@@ -33,6 +41,8 @@ class HabitSerializer(serializers.ModelSerializer):
             "habit_type",
             "category",
             "category_id",
+            "tags",
+            "tag_ids",
             "icon",
             "color",
             "max_value",
@@ -49,6 +59,12 @@ class HabitSerializer(serializers.ModelSerializer):
     def validate_category_id(self, value):
         if value and value.user != self.context["request"].user:
             raise serializers.ValidationError("You can only use your own categories")
+        return value
+
+    def validate_tag_ids(self, value):
+        for tag in value:
+            if tag.user != self.context["request"].user:
+                raise serializers.ValidationError("You can only use your own tags")
         return value
 
 

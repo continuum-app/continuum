@@ -38,6 +38,8 @@ export const translations = {
     newTagName: 'New tag name',
     noTags: 'No tags yet.',
     confirmDeleteTag: 'Delete this tag? It will be removed from all habits.',
+    searchTags: 'Search tags...',
+    noTagsFound: 'No tags found',
 
     // Modal
     objectiveName: 'Objective Name',
@@ -195,6 +197,8 @@ export const translations = {
     newTagName: 'Nouveau nom d\'étiquette',
     noTags: 'Aucune étiquette pour le moment.',
     confirmDeleteTag: 'Supprimer cette étiquette ? Elle sera retirée de toutes les habitudes.',
+    searchTags: 'Rechercher des étiquettes...',
+    noTagsFound: 'Aucune étiquette trouvée',
 
     // Modal
     objectiveName: 'Nom de l\'Objectif',

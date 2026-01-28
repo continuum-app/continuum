@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useLanguage } from '@/composables/useLanguage'
 import { useHabits } from '@/composables/useHabits'
 import { useCategories } from '@/composables/useCategories'
@@ -65,6 +65,62 @@ const editingHabitData = ref({
     category: null
 })
 const isSavingHabit = ref(false)
+
+// Habit tag management
+const addingTagToHabit = ref(null)
+const tagSearchQuery = ref('')
+const filteredTags = ref([])
+
+const openTagSearch = (habitId) => {
+    addingTagToHabit.value = habitId
+    tagSearchQuery.value = ''
+    updateFilteredTags(habitId)
+}
+
+const closeTagSearch = () => {
+    addingTagToHabit.value = null
+    tagSearchQuery.value = ''
+}
+
+const updateFilteredTags = (habitId) => {
+    const habit = habits.value.find(h => h.id === habitId)
+    const habitTagIds = habit?.tags?.map(t => t.id) || []
+    filteredTags.value = tags.value.filter(tag =>
+        !habitTagIds.includes(tag.id) &&
+        tag.name.toLowerCase().includes(tagSearchQuery.value.toLowerCase())
+    )
+}
+
+const addTagToHabit = async (habitId, tagId) => {
+    const habit = habits.value.find(h => h.id === habitId)
+    if (!habit) return
+
+    const currentTagIds = habit.tags?.map(t => t.id) || []
+    const newTagIds = [...currentTagIds, tagId]
+
+    try {
+        await updateHabit(habitId, { tag_ids: newTagIds })
+        await fetchHabits(new Date().toISOString().split('T')[0])
+        closeTagSearch()
+    } catch (err) {
+        console.error('Failed to add tag to habit:', err)
+    }
+}
+
+const removeTagFromHabit = async (habitId, tagId) => {
+    const habit = habits.value.find(h => h.id === habitId)
+    if (!habit) return
+
+    const currentTagIds = habit.tags?.map(t => t.id) || []
+    const newTagIds = currentTagIds.filter(id => id !== tagId)
+
+    try {
+        await updateHabit(habitId, { tag_ids: newTagIds })
+        await fetchHabits(new Date().toISOString().split('T')[0])
+    } catch (err) {
+        console.error('Failed to remove tag from habit:', err)
+    }
+}
 
 // Fetch user info
 const fetchUserInfo = async () => {
@@ -263,12 +319,27 @@ const getIcon = (iconName) => {
     return LucideIcons[pascalCase] || LucideIcons.Calendar
 }
 
+// Click outside handler to close tag search dropdown
+const handleClickOutside = (event) => {
+    if (addingTagToHabit.value !== null) {
+        const dropdown = event.target.closest('.relative')
+        if (!dropdown || !dropdown.contains(event.target)) {
+            closeTagSearch()
+        }
+    }
+}
+
 onMounted(() => {
     fetchUserInfo()
     fetchCategories()
     fetchTags()
     fetchHabits(new Date().toISOString().split('T')[0])
     fetchArchivedHabits()
+    document.addEventListener('click', handleClickOutside)
+})
+
+onUnmounted(() => {
+    document.removeEventListener('click', handleClickOutside)
 })
 </script>
 
@@ -303,7 +374,7 @@ onMounted(() => {
                                 <User :size="24" class="text-primary-600 dark:text-primary-400" stroke-width="2.5" />
                             </div>
                             <h2 class="text-2xl font-black text-neutral-900 dark:text-white">{{ t('accountInformation')
-                                }}</h2>
+                            }}</h2>
                         </div>
 
                         <div class="space-y-6">
@@ -311,7 +382,7 @@ onMounted(() => {
                             <div class="space-y-2">
                                 <label class="text-xs font-black uppercase tracking-widest text-neutral-400 ml-2">{{
                                     t('username')
-                                    }}</label>
+                                }}</label>
                                 <div
                                     class="bg-neutral-100 dark:bg-neutral-700 rounded-2xl px-6 py-4 font-bold text-neutral-600 dark:text-neutral-300">
                                     {{ userInfo.username }}
@@ -322,7 +393,7 @@ onMounted(() => {
                             <div class="space-y-2">
                                 <label class="text-xs font-black uppercase tracking-widest text-neutral-400 ml-2">{{
                                     t('email')
-                                    }}</label>
+                                }}</label>
                                 <div class="flex gap-3">
                                     <input v-model="profileEmail" type="email"
                                         class="flex-1 bg-neutral-50 dark:bg-neutral-700 border-2 border-neutral-100 dark:border-neutral-600 rounded-2xl px-6 py-4 font-bold outline-none focus:border-primary-500 transition text-neutral-900 dark:text-white" />
@@ -435,7 +506,7 @@ onMounted(() => {
                                 </template>
                                 <template v-else>
                                     <span class="flex-1 font-bold text-neutral-900 dark:text-white">{{ category.name
-                                        }}</span>
+                                    }}</span>
                                     <button @click="startEditCategory(category)"
                                         class="p-2 rounded-xl hover:bg-neutral-200 dark:hover:bg-neutral-600 transition-all hover:scale-120">
                                         <Pencil :size="18" class="text-neutral-400 hover:text-primary-500" />
@@ -508,7 +579,7 @@ onMounted(() => {
                                     <div class="w-6 h-6 rounded-full shrink-0" :style="{ backgroundColor: tag.color }">
                                     </div>
                                     <span class="flex-1 font-bold text-neutral-900 dark:text-white">{{ tag.name
-                                    }}</span>
+                                        }}</span>
                                     <button @click="startEditTag(tag)"
                                         class="p-2 rounded-xl hover:bg-neutral-200 dark:hover:bg-neutral-600 transition-all hover:scale-120">
                                         <Pencil :size="18" class="text-neutral-400 hover:text-primary-500" />
@@ -559,7 +630,7 @@ onMounted(() => {
                                     </div>
                                     <div class="flex-1">
                                         <p class="font-bold text-neutral-900 dark:text-white">{{ habit.name }}</p>
-                                        <div class="flex gap-2 mt-1">
+                                        <div class="flex flex-wrap gap-2 mt-1 items-center">
                                             <span
                                                 class="text-xs px-2 py-1 rounded-full bg-neutral-200 dark:bg-neutral-600 text-neutral-700 dark:text-neutral-300 font-bold">
                                                 {{ habit.habit_type }}
@@ -568,6 +639,49 @@ onMounted(() => {
                                                 class="text-xs px-2 py-1 rounded-full bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 font-bold">
                                                 {{ habit.category.name }}
                                             </span>
+                                            <!-- Tags -->
+                                            <span v-for="tag in habit.tags" :key="tag.id"
+                                                class="text-xs px-2 py-1 rounded-full font-bold flex items-center gap-1 group"
+                                                :style="{
+                                                    backgroundColor: tag.color + '20',
+                                                    color: tag.color
+                                                }">
+                                                {{ tag.name }}
+                                                <button @click.stop="removeTagFromHabit(habit.id, tag.id)"
+                                                    class="opacity-0 group-hover:opacity-100 hover:bg-black/10 rounded-full p-0.5 transition-opacity">
+                                                    <X :size="12" />
+                                                </button>
+                                            </span>
+                                            <!-- Add Tag Button -->
+                                            <div class="relative">
+                                                <button @click.stop="openTagSearch(habit.id)"
+                                                    class="text-xs px-2 py-1 rounded-full bg-neutral-100 dark:bg-neutral-600 text-neutral-500 dark:text-neutral-400 font-bold hover:bg-neutral-200 dark:hover:bg-neutral-500 transition-colors flex items-center gap-1">
+                                                    <Plus :size="12" />
+                                                </button>
+                                                <!-- Tag Search Dropdown -->
+                                                <div v-if="addingTagToHabit === habit.id"
+                                                    class="absolute top-full left-0 mt-1 w-48 bg-white dark:bg-neutral-700 rounded-xl shadow-lg border border-neutral-200 dark:border-neutral-600 z-20 overflow-hidden">
+                                                    <input v-model="tagSearchQuery"
+                                                        @input="updateFilteredTags(habit.id)"
+                                                        type="text"
+                                                        :placeholder="t('searchTags')"
+                                                        class="w-full px-3 py-2 text-sm bg-neutral-50 dark:bg-neutral-800 border-b border-neutral-200 dark:border-neutral-600 outline-none text-neutral-900 dark:text-white"
+                                                        @click.stop />
+                                                    <div class="max-h-32 overflow-y-auto">
+                                                        <button v-for="tag in filteredTags" :key="tag.id"
+                                                            @click.stop="addTagToHabit(habit.id, tag.id)"
+                                                            class="w-full px-3 py-2 text-sm text-left hover:bg-neutral-100 dark:hover:bg-neutral-600 flex items-center gap-2 transition-colors">
+                                                            <span class="w-3 h-3 rounded-full shrink-0"
+                                                                :style="{ backgroundColor: tag.color }"></span>
+                                                            <span class="text-neutral-900 dark:text-white">{{ tag.name }}</span>
+                                                        </button>
+                                                        <div v-if="filteredTags.length === 0"
+                                                            class="px-3 py-2 text-sm text-neutral-400 dark:text-neutral-500">
+                                                            {{ t('noTagsFound') }}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -614,7 +728,7 @@ onMounted(() => {
                                 <!-- Info -->
                                 <div class="flex-1">
                                     <h4 class="font-bold text-neutral-900 dark:text-white">{{ habit.name }}</h4>
-                                    <div class="flex gap-2 mt-1">
+                                    <div class="flex flex-wrap gap-2 mt-1">
                                         <span
                                             class="text-xs px-2 py-1 rounded-full bg-neutral-200 dark:bg-neutral-600 text-neutral-700 dark:text-neutral-300 font-bold">
                                             {{ habit.habit_type }}
@@ -622,6 +736,15 @@ onMounted(() => {
                                         <span v-if="habit.category"
                                             class="text-xs px-2 py-1 rounded-full bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 font-bold">
                                             {{ habit.category.name }}
+                                        </span>
+                                        <!-- Tags -->
+                                        <span v-for="tag in habit.tags" :key="tag.id"
+                                            class="text-xs px-2 py-1 rounded-full font-bold"
+                                            :style="{
+                                                backgroundColor: tag.color + '20',
+                                                color: tag.color
+                                            }">
+                                            {{ tag.name }}
                                         </span>
                                     </div>
                                 </div>
@@ -637,11 +760,10 @@ onMounted(() => {
                                     :title="t('unarchive')">
                                     <ArchiveRestore :size="18" class="text-neutral-400 hover:text-green-500" />
                                 </button>
-                                    <button @click="handleArchivedDelete(habit.id)"
-                                        :title="t('deleteHabitPermanently')"
-                                        class="p-2 rounded-xl hover:bg-neutral-200 dark:hover:bg-neutral-600 transition-all hover:scale-120">
-                                        <Trash2 :size="18" class="text-neutral-400 hover:text-red-500" />
-                                    </button>
+                                <button @click="handleArchivedDelete(habit.id)" :title="t('deleteHabitPermanently')"
+                                    class="p-2 rounded-xl hover:bg-neutral-200 dark:hover:bg-neutral-600 transition-all hover:scale-120">
+                                    <Trash2 :size="18" class="text-neutral-400 hover:text-red-500" />
+                                </button>
                             </div>
 
                             <div v-if="archivedHabits.length === 0"
@@ -685,7 +807,7 @@ onMounted(() => {
                                         <div class="space-y-2">
                                             <label
                                                 class="text-[10px] font-black uppercase tracking-widest text-neutral-400 ml-2">{{
-                                                t('type') }}</label>
+                                                    t('type') }}</label>
                                             <select v-model="editingHabitData.habit_type"
                                                 class="w-full bg-neutral-50 dark:bg-neutral-700 border-2 border-neutral-50 dark:border-neutral-700 rounded-3xl px-6 py-4 focus:bg-white dark:focus:bg-neutral-600 focus:border-primary-500 transition outline-none font-bold text-neutral-900 dark:text-white appearance-none cursor-pointer">
                                                 <option value="boolean">{{ t('typeBoolean') }}</option>
@@ -710,7 +832,7 @@ onMounted(() => {
                                         <div v-if="editingHabitData.habit_type === 'value'" class="space-y-2">
                                             <label
                                                 class="text-[10px] font-black uppercase tracking-widest text-neutral-400 ml-2">{{
-                                                t('unit') }}</label>
+                                                    t('unit') }}</label>
                                             <input v-model="editingHabitData.unit" type="text"
                                                 :placeholder="t('unitPlaceholder')"
                                                 class="w-full bg-neutral-50 dark:bg-neutral-700 border-2 border-neutral-50 dark:border-neutral-700 rounded-3xl px-6 py-4 focus:bg-white dark:focus:bg-neutral-600 focus:border-primary-500 transition outline-none font-bold text-neutral-900 dark:text-white" />
