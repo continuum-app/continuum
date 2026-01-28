@@ -74,16 +74,6 @@ export function useHabits() {
         }
     }
 
-    const deleteHabit = async (habitId) => {
-        try {
-            await api.delete(`habits/${habitId}/`)
-            habits.value = habits.value.filter(h => h.id !== habitId)
-        } catch (err) {
-            console.error('Failed to delete habit:', err)
-            throw err
-        }
-    }
-
     const updateHabit = async (habitId, payload) => {
         try {
             await api.patch(`habits/${habitId}/`, payload)
@@ -123,7 +113,24 @@ export function useHabits() {
         addHabit,
         archiveHabit,
         unarchiveHabit,
-        deleteHabit,
+        deleteActiveHabit: async (habitId) => {
+            try {
+                await api.delete(`habits/${habitId}/`)
+                habits.value = habits.value.filter(h => h.id !== habitId)
+            } catch (err) {
+                console.error('Failed to delete habit:', err)
+                throw err
+            }
+        },
+        deleteArchivedHabit: async (habitId) => {
+            try {
+                await api.delete(`habits/${habitId}/`)
+                archivedHabits.value = archivedHabits.value.filter(h => h.id !== habitId)
+            } catch (err) {
+                console.error('Failed to delete habit:', err)
+                throw err
+            }
+        },
         updateHabit,
         saveCompletion
     }

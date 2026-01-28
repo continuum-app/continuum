@@ -146,6 +146,17 @@ class HabitViewSet(viewsets.ModelViewSet):
         habit.save()
         return Response({"status": "unarchived", "id": habit.id})
 
+    def destroy(self, request, pk=None):
+        """Delete a habit (works for both active and archived habits)."""
+        # Fetch habit directly without relying on get_queryset() which filters by archived status
+        try:
+            habit = Habit.objects.get(id=pk, user=request.user)
+        except Habit.DoesNotExist:
+            return Response({"error": "Habit not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        habit.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
     @action(detail=False, methods=["get"])
     def graph_data(self, request):
         """

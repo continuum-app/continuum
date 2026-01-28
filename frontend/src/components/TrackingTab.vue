@@ -8,7 +8,7 @@ import * as LucideIcons from 'lucide-vue-next'
 import { RefreshCw, ChevronLeft, ChevronRight, LayoutGrid, List, Star, Plus, Minus, Archive, Trash2, Pencil, CheckCircle2, GripVertical } from 'lucide-vue-next'
 
 const { t } = useLanguage()
-const { habits, isLoadingHabits, fetchHabits, archiveHabit, deleteHabit, saveCompletion } = useHabits()
+const { habits, isLoadingHabits, fetchHabits, archiveHabit, deleteActiveHabit, deleteArchivedHabit, saveCompletion } = useHabits()
 const { categories, categoryOrder, fetchCategories, saveLayoutToServer } = useCategories()
 const { setCookie, getCookie } = useCookies()
 
@@ -199,7 +199,7 @@ const handleArchive = async (habitId) => {
 
 const handleDelete = async (habitId) => {
     if (confirm(t('confirmDeletePermanent'))) {
-        await deleteHabit(habitId)
+        await deleteActiveHabit(habitId)
     }
 }
 

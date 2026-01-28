@@ -1,58 +1,3 @@
-<template>
-  <div class="space-y-2 relative">
-    <label class="text-[10px] font-black uppercase tracking-widest text-neutral-400 ml-2">
-      {{ label }}
-    </label>
-
-    <!-- Selected Icon Display & Button -->
-    <button ref="toggleButton" type="button" @click="togglePicker"
-      class="w-full bg-neutral-50 dark:bg-neutral-700 border-2 border-neutral-50 dark:border-neutral-700 rounded-3xl px-6 py-4 font-bold outline-none text-neutral-900 dark:text-white hover:border-yellow-500 transition-colors flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <component v-if="selectedIconComponent" :is="selectedIconComponent" :size="24" class="text-primary-600" />
-        <span>{{ modelValue || 'Select an icon' }}</span>
-      </div>
-      <ChevronDown :size="20" :class="{ 'rotate-180': isPickerOpen }" class="transition-transform" />
-    </button>
-
-    <!-- Icon Picker Dropdown - Teleported to body -->
-    <Teleport to="body">
-      <Transition name="fade">
-        <div v-if="isPickerOpen" ref="dropdown" @click.stop :style="dropdownStyle"
-          class="fixed z-9999 bg-white dark:bg-neutral-800 border-2 border-neutral-200 dark:border-neutral-700 rounded-3xl p-6 shadow-2xl max-h-96 overflow-hidden flex flex-col">
-          <!-- Search Input -->
-          <div class="mb-4">
-            <input ref="searchInput" v-model="searchQuery" type="text" placeholder="Search icons..."
-              class="w-full bg-neutral-50 dark:bg-neutral-700 border-2 border-neutral-50 dark:border-neutral-700 rounded-2xl px-4 py-3 font-bold text-neutral-900 dark:text-white focus:border-yellow-500 transition outline-none" />
-          </div>
-
-          <!-- Icons Grid -->
-          <div class="overflow-y-auto flex-1 -mx-2">
-            <div class="grid grid-cols-6 gap-2 px-2">
-              <button v-for="iconName in filteredIcons" :key="iconName" type="button" @click="selectIcon(iconName)"
-                :class="[
-                  'flex flex-col items-center justify-center p-3 rounded-xl hover:bg-yellow-50 dark:hover:bg-primary-900/30 transition-colors border-2',
-                  modelValue === iconName
-                    ? 'bg-yellow-100 dark:bg-yellow-900/50 border-primary-500'
-                    : 'border-transparent'
-                ]" :title="iconName">
-                <component :is="getIconComponent(iconName)" :size="24" class="text-neutral-700 dark:text-neutral-300" />
-                <span class="text-[8px] mt-1 text-neutral-500 dark:text-neutral-400 truncate w-full text-center">
-                  {{ iconName }}
-                </span>
-              </button>
-            </div>
-
-            <!-- No Results Message -->
-            <div v-if="filteredIcons.length === 0" class="text-center py-8 text-neutral-400">
-              No icons found
-            </div>
-          </div>
-        </div>
-      </Transition>
-    </Teleport>
-  </div>
-</template>
-
 <script setup>
 import { ref, computed, nextTick, onMounted, onUnmounted } from 'vue'
 import * as LucideIcons from 'lucide-vue-next'
@@ -81,30 +26,37 @@ const dropdownStyle = ref({})
 // Get all available Lucide icon names
 const allIcons = computed(() => {
   // Filter out non-icon exports
+  const excluded = ['createElement', 'createIcons', 'default', 'icons', 'Icon', 'createLucideIcon']
   return Object.keys(LucideIcons)
     .filter(key => {
-      // Exclude non-component exports like 'createIcons', 'createElement', etc.
-      const excluded = ['createElement', 'createIcons', 'default', 'icons']
-      return !excluded.includes(key) && key[0] === key[0].toUpperCase()
+      if (excluded.includes(key)) return false
+      if (key[0] !== key[0].toUpperCase()) return false
+      // Ensure it's a valid component (object or function)
+      const component = LucideIcons[key]
+      return component && (typeof component === 'object' || typeof component === 'function')
     })
     .sort()
 })
 
-// Filter icons based on search query
+// Filter icons based on search query (limited to 100 for performance)
 const filteredIcons = computed(() => {
-  if (!searchQuery.value) {
-    return allIcons.value
+  let icons = allIcons.value
+
+  if (searchQuery.value) {
+    const query = searchQuery.value.toLowerCase()
+    icons = icons.filter(iconName => iconName.toLowerCase().includes(query))
   }
 
-  const query = searchQuery.value.toLowerCase()
-  return allIcons.value.filter(iconName =>
-    iconName.toLowerCase().includes(query)
-  )
+  return icons.slice(0, 100)
 })
 
 // Get the component for a given icon name
 const getIconComponent = (iconName) => {
-  return LucideIcons[iconName]
+  const component = LucideIcons[iconName]
+  if (component && (typeof component === 'object' || typeof component === 'function')) {
+    return component
+  }
+  return null
 }
 
 // Get the currently selected icon component
@@ -207,17 +159,62 @@ onUnmounted(() => {
 })
 </script>
 
+<template>
+  <div class="space-y-2 relative">
+    <label class="text-[10px] font-black uppercase tracking-widest text-neutral-400 ml-2">
+      {{ label }}
+    </label>
+
+    <!-- Selected Icon Display & Button -->
+    <button ref="toggleButton" type="button" @click="togglePicker"
+      class="w-full bg-neutral-50 dark:bg-neutral-700 border-2 border-neutral-50 dark:border-neutral-700 rounded-3xl px-6 py-4 font-bold outline-none text-neutral-900 dark:text-white hover:border-yellow-500 transition-colors flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <component v-if="selectedIconComponent" :is="selectedIconComponent" :size="24" class="text-primary-600" />
+        <span>{{ modelValue || 'Select an icon' }}</span>
+      </div>
+      <ChevronDown :size="20" :class="{ 'rotate-180': isPickerOpen }" class="transition-transform" />
+    </button>
+
+    <!-- Icon Picker Dropdown - Teleported to body -->
+    <Teleport to="body">
+      <div v-if="isPickerOpen" ref="dropdown" @click.stop :style="dropdownStyle"
+        class="fixed z-9999 bg-white dark:bg-neutral-800 border-2 border-neutral-200 dark:border-neutral-700 rounded-3xl p-6 shadow-2xl max-h-96 overflow-hidden flex flex-col animate-in fade-in duration-200">
+        <!-- Search Input -->
+        <div class="mb-4">
+          <input ref="searchInput" v-model="searchQuery" type="text" placeholder="Search icons..."
+            class="w-full bg-neutral-50 dark:bg-neutral-700 border-2 border-neutral-50 dark:border-neutral-700 rounded-2xl px-4 py-3 font-bold text-neutral-900 dark:text-white focus:border-yellow-500 transition outline-none" />
+        </div>
+
+        <!-- Icons Grid -->
+        <div class="overflow-y-auto flex-1 -mx-2">
+          <div class="grid grid-cols-6 gap-2 px-2">
+            <button v-for="iconName in filteredIcons" :key="iconName" type="button" @click="selectIcon(iconName)"
+              :class="[
+                'flex flex-col items-center justify-center p-3 rounded-xl hover:bg-yellow-50 dark:hover:bg-primary-900/30 transition-colors border-2',
+                modelValue === iconName
+                  ? 'bg-yellow-100 dark:bg-yellow-900/50 border-primary-500'
+                  : 'border-transparent'
+              ]" :title="iconName">
+              <component v-if="getIconComponent(iconName)" :is="getIconComponent(iconName)" :size="24"
+                class="text-neutral-700 dark:text-neutral-300" />
+              <span class="text-[8px] mt-1 text-neutral-500 dark:text-neutral-400 truncate w-full text-center">
+                {{ iconName }}
+              </span>
+            </button>
+          </div>
+
+          <!-- No Results Message -->
+          <div v-if="filteredIcons.length === 0" class="text-center py-8 text-neutral-400">
+            No icons found
+          </div>
+        </div>
+      </div>
+    </Teleport>
+  </div>
+</template>
+
+
 <style scoped>
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.2s ease;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-}
-
 /* Custom scrollbar */
 .overflow-y-auto::-webkit-scrollbar {
   width: 8px;

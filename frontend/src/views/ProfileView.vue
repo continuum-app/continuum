@@ -19,7 +19,7 @@ const goBack = () => {
     router.push('/dashboard')
 }
 const { t } = useLanguage()
-const { habits, archivedHabits, fetchHabits, fetchArchivedHabits, archiveHabit, unarchiveHabit, deleteHabit, updateHabit } = useHabits()
+const { habits, archivedHabits, fetchHabits, fetchArchivedHabits, archiveHabit, unarchiveHabit, deleteActiveHabit, deleteArchivedHabit, updateHabit } = useHabits()
 const { categories, isSavingCategory, isDeletingCategory, fetchCategories, addCategory, deleteCategory, updateCategory } = useCategories()
 const { tags, isSavingTag, isDeletingTag, fetchTags, addTag, deleteTag, updateTag } = useTags()
 
@@ -185,7 +185,7 @@ const cancelEditTag = () => {
 }
 
 const handleDeleteTag = async (tagId) => {
-    if (confirm(t('confirmDeleteTag') || 'Are you sure you want to delete this tag?')) {
+    if (confirm(t('confirmDeleteTag'))) {
         await deleteTag(tagId)
     }
 }
@@ -236,7 +236,7 @@ const handleArchiveHabit = async (habitId) => {
 
 const handleDeleteActiveHabit = async (habitId) => {
     if (confirm(t('confirmDeletePermanent'))) {
-        await deleteHabit(habitId)
+        await deleteActiveHabit(habitId)
         await fetchHabits(new Date().toISOString().split('T')[0])
     }
 }
@@ -246,9 +246,9 @@ const handleUnarchive = async (habitId) => {
     await fetchHabits(new Date().toISOString().split('T')[0])
 }
 
-const handleDelete = async (habitId) => {
+const handleArchivedDelete = async (habitId) => {
     if (confirm(t('confirmDeletePermanent'))) {
-        await deleteHabit(habitId)
+        await deleteArchivedHabit(habitId)
         await fetchArchivedHabits()
     }
 }
@@ -351,7 +351,7 @@ onMounted(() => {
                         <div class="space-y-4">
                             <div class="space-y-2">
                                 <label class="text-xs font-black uppercase tracking-widest text-neutral-400 ml-2">{{
-                                    t('currentPassword') || 'Current Password' }}</label>
+                                    t('currentPassword') }}</label>
                                 <input v-model="currentPassword" type="password"
                                     class="w-full bg-neutral-50 dark:bg-neutral-700 border-2 border-neutral-100 dark:border-neutral-600 rounded-2xl px-6 py-4 font-bold outline-none focus:border-primary-500 transition text-neutral-900 dark:text-white" />
                             </div>
@@ -359,13 +359,13 @@ onMounted(() => {
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div class="space-y-2">
                                     <label class="text-xs font-black uppercase tracking-widest text-neutral-400 ml-2">{{
-                                        t('newPassword') || 'New Password' }}</label>
+                                        t('newPassword') }}</label>
                                     <input v-model="newPassword" type="password"
                                         class="w-full bg-neutral-50 dark:bg-neutral-700 border-2 border-neutral-100 dark:border-neutral-600 rounded-2xl px-6 py-4 font-bold outline-none focus:border-primary-500 transition text-neutral-900 dark:text-white" />
                                 </div>
                                 <div class="space-y-2">
                                     <label class="text-xs font-black uppercase tracking-widest text-neutral-400 ml-2">{{
-                                        t('confirmNewPassword') || 'Confirm Password' }}</label>
+                                        t('confirmNewPassword') }}</label>
                                     <input v-model="confirmPassword" type="password"
                                         class="w-full bg-neutral-50 dark:bg-neutral-700 border-2 border-neutral-100 dark:border-neutral-600 rounded-2xl px-6 py-4 font-bold outline-none focus:border-primary-500 transition text-neutral-900 dark:text-white" />
                                 </div>
@@ -405,8 +405,7 @@ onMounted(() => {
 
                         <!-- Add Category -->
                         <div class="flex gap-3 mb-6">
-                            <input v-model="newCategoryName" type="text"
-                                :placeholder="t('newCategoryName') || 'New category name...'"
+                            <input v-model="newCategoryName" type="text" :placeholder="t('newCategoryName')"
                                 @keyup.enter="handleAddCategory"
                                 class="flex-1 bg-neutral-50 dark:bg-neutral-700 border-2 border-neutral-100 dark:border-neutral-600 rounded-2xl px-6 py-4 font-bold outline-none focus:border-primary-500 transition text-neutral-900 dark:text-white" />
                             <button @click="handleAddCategory" :disabled="isSavingCategory || !newCategoryName.trim()"
@@ -464,13 +463,12 @@ onMounted(() => {
                             <div class="p-3 rounded-2xl bg-teal-100 dark:bg-teal-900">
                                 <Tags :size="24" class="text-teal-600 dark:text-teal-400" stroke-width="2.5" />
                             </div>
-                            <h2 class="text-2xl font-black text-neutral-900 dark:text-white">{{ t('yourTags') || 'Your Tags' }}</h2>
+                            <h2 class="text-2xl font-black text-neutral-900 dark:text-white">{{ t('yourTags') }}</h2>
                         </div>
 
                         <!-- Add Tag -->
                         <div class="flex gap-3 mb-6">
-                            <input v-model="newTagName" type="text"
-                                :placeholder="t('newTagName') || 'New tag name...'"
+                            <input v-model="newTagName" type="text" :placeholder="t('newTagName')"
                                 @keyup.enter="handleAddTag"
                                 class="flex-1 bg-neutral-50 dark:bg-neutral-700 border-2 border-neutral-100 dark:border-neutral-600 rounded-2xl px-6 py-4 font-bold outline-none focus:border-primary-500 transition text-neutral-900 dark:text-white" />
                             <div class="flex items-center gap-2 bg-neutral-50 dark:bg-neutral-700 rounded-2xl px-4">
@@ -490,7 +488,8 @@ onMounted(() => {
                             <div v-for="tag in tags" :key="tag.id"
                                 class="flex items-center gap-4 p-4 bg-neutral-50 dark:bg-neutral-700 rounded-2xl">
                                 <template v-if="editingTag === tag.id">
-                                    <div class="w-6 h-6 rounded-full shrink-0" :style="{ backgroundColor: editingTagColor }"></div>
+                                    <div class="w-6 h-6 rounded-full shrink-0"
+                                        :style="{ backgroundColor: editingTagColor }"></div>
                                     <input v-model="editingTagName" type="text"
                                         class="flex-1 bg-white dark:bg-neutral-600 border-2 border-primary-500 rounded-xl px-4 py-2 font-bold outline-none text-neutral-900 dark:text-white"
                                         @keyup.enter="saveEditTag(tag.id)" />
@@ -506,14 +505,15 @@ onMounted(() => {
                                     </button>
                                 </template>
                                 <template v-else>
-                                    <div class="w-6 h-6 rounded-full shrink-0" :style="{ backgroundColor: tag.color }"></div>
-                                    <span class="flex-1 font-bold text-neutral-900 dark:text-white">{{ tag.name }}</span>
+                                    <div class="w-6 h-6 rounded-full shrink-0" :style="{ backgroundColor: tag.color }">
+                                    </div>
+                                    <span class="flex-1 font-bold text-neutral-900 dark:text-white">{{ tag.name
+                                    }}</span>
                                     <button @click="startEditTag(tag)"
                                         class="p-2 rounded-xl hover:bg-neutral-200 dark:hover:bg-neutral-600 transition-all hover:scale-120">
                                         <Pencil :size="18" class="text-neutral-400 hover:text-primary-500" />
                                     </button>
-                                    <button @click="handleDeleteTag(tag.id)"
-                                        :disabled="isDeletingTag === tag.id"
+                                    <button @click="handleDeleteTag(tag.id)" :disabled="isDeletingTag === tag.id"
                                         class="p-2 rounded-xl hover:bg-neutral-200 dark:hover:bg-neutral-600 transition-all hover:scale-120">
                                         <RefreshCw v-if="isDeletingTag === tag.id" :size="18"
                                             class="animate-spin text-neutral-400" />
@@ -523,7 +523,7 @@ onMounted(() => {
                             </div>
 
                             <div v-if="tags.length === 0" class="text-center py-8 text-neutral-400 font-medium">
-                                {{ t('noTags') || 'No tags yet. Create your first tag above.' }}
+                                {{ t('noTags') }}
                             </div>
                         </div>
                     </div>
@@ -614,25 +614,34 @@ onMounted(() => {
                                 <!-- Info -->
                                 <div class="flex-1">
                                     <h4 class="font-bold text-neutral-900 dark:text-white">{{ habit.name }}</h4>
-                                    <p class="text-sm text-neutral-400">{{ habit.habit_type }}</p>
+                                    <div class="flex gap-2 mt-1">
+                                        <span
+                                            class="text-xs px-2 py-1 rounded-full bg-neutral-200 dark:bg-neutral-600 text-neutral-700 dark:text-neutral-300 font-bold">
+                                            {{ habit.habit_type }}
+                                        </span>
+                                        <span v-if="habit.category"
+                                            class="text-xs px-2 py-1 rounded-full bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 font-bold">
+                                            {{ habit.category.name }}
+                                        </span>
+                                    </div>
                                 </div>
 
                                 <!-- Actions -->
                                 <button @click="startEditHabit(habit)"
                                     class="p-2 rounded-xl hover:bg-neutral-200 dark:hover:bg-neutral-600 transition-all hover:scale-120"
-                                    :title="t('edit') || 'Edit'">
+                                    :title="t('edit')">
                                     <Pencil :size="18" class="text-neutral-400 hover:text-blue-500" />
                                 </button>
                                 <button @click="handleUnarchive(habit.id)"
                                     class="p-2 rounded-xl hover:bg-neutral-200 dark:hover:bg-neutral-600 transition-all hover:scale-120"
-                                    :title="t('unarchive') || 'Restore'">
+                                    :title="t('unarchive')">
                                     <ArchiveRestore :size="18" class="text-neutral-400 hover:text-green-500" />
                                 </button>
-                                <button @click="handleDelete(habit.id)"
-                                    class="p-2 rounded-xl hover:bg-neutral-200 dark:hover:bg-neutral-600 transition-all hover:scale-120"
-                                    :title="t('deletePermanently') || 'Delete permanently'">
-                                    <Trash2 :size="18" class="text-neutral-400 hover:text-red-500" />
-                                </button>
+                                    <button @click="handleArchivedDelete(habit.id)"
+                                        :title="t('deleteHabitPermanently')"
+                                        class="p-2 rounded-xl hover:bg-neutral-200 dark:hover:bg-neutral-600 transition-all hover:scale-120">
+                                        <Trash2 :size="18" class="text-neutral-400 hover:text-red-500" />
+                                    </button>
                             </div>
 
                             <div v-if="archivedHabits.length === 0"
@@ -649,8 +658,8 @@ onMounted(() => {
                                 <div class="absolute inset-0 bg-neutral-900/60 backdrop-blur-md"
                                     @click="cancelEditHabit"></div>
                                 <div
-                                    class="relative bg-white dark:bg-neutral-800 w-full max-w-lg rounded-[3rem] p-12 shadow-2xl overflow-visible">
-                                    <div class="absolute top-0 left-0 right-0 h-2 bg-blue-500 rounded-t-[3rem]"></div>
+                                    class="relative z-10 bg-white dark:bg-neutral-800 w-full max-w-lg rounded-[3rem] p-12 shadow-2xl overflow-hidden">
+                                    <div class="absolute top-0 left-0 right-0 h-2 bg-blue-500"></div>
 
                                     <div class="flex justify-between items-center mb-10">
                                         <h2 class="text-3xl font-black text-neutral-900 dark:text-white">{{
@@ -676,23 +685,22 @@ onMounted(() => {
                                         <div class="space-y-2">
                                             <label
                                                 class="text-[10px] font-black uppercase tracking-widest text-neutral-400 ml-2">{{
-                                                    t('type')
-                                                    || 'Type' }}</label>
+                                                t('type') }}</label>
                                             <select v-model="editingHabitData.habit_type"
                                                 class="w-full bg-neutral-50 dark:bg-neutral-700 border-2 border-neutral-50 dark:border-neutral-700 rounded-3xl px-6 py-4 focus:bg-white dark:focus:bg-neutral-600 focus:border-primary-500 transition outline-none font-bold text-neutral-900 dark:text-white appearance-none cursor-pointer">
-                                                <option value="boolean">{{ t('typeBoolean') || 'Yes/No' }}</option>
-                                                <option value="value">{{ t('typeValue') || 'Value' }}</option>
-                                                <option value="rating">{{ t('typeRating') || 'Rating' }}</option>
+                                                <option value="boolean">{{ t('typeBoolean') }}</option>
+                                                <option value="value">{{ t('typeValue') }}</option>
+                                                <option value="rating">{{ t('typeRating') }}</option>
                                             </select>
                                         </div>
 
                                         <div class="space-y-2">
                                             <label
                                                 class="text-[10px] font-black uppercase tracking-widest text-neutral-400 ml-2">{{
-                                                    t('category') || 'Category' }}</label>
+                                                    t('category') }}</label>
                                             <select v-model="editingHabitData.category"
                                                 class="w-full bg-neutral-50 dark:bg-neutral-700 border-2 border-neutral-50 dark:border-neutral-700 rounded-3xl px-6 py-4 focus:bg-white dark:focus:bg-neutral-600 focus:border-primary-500 transition outline-none font-bold text-neutral-900 dark:text-white appearance-none cursor-pointer">
-                                                <option :value="null">{{ t('noCategory') || 'No category' }}</option>
+                                                <option :value="null">{{ t('noCategory') }}</option>
                                                 <option v-for="cat in categories" :key="cat.id" :value="cat.id">{{
                                                     cat.name }}
                                                 </option>
@@ -702,17 +710,16 @@ onMounted(() => {
                                         <div v-if="editingHabitData.habit_type === 'value'" class="space-y-2">
                                             <label
                                                 class="text-[10px] font-black uppercase tracking-widest text-neutral-400 ml-2">{{
-                                                    t('unit')
-                                                    || 'Unit' }}</label>
+                                                t('unit') }}</label>
                                             <input v-model="editingHabitData.unit" type="text"
-                                                :placeholder="t('unitPlaceholder') || 'e.g., km, hours, pages'"
+                                                :placeholder="t('unitPlaceholder')"
                                                 class="w-full bg-neutral-50 dark:bg-neutral-700 border-2 border-neutral-50 dark:border-neutral-700 rounded-3xl px-6 py-4 focus:bg-white dark:focus:bg-neutral-600 focus:border-primary-500 transition outline-none font-bold text-neutral-900 dark:text-white" />
                                         </div>
 
                                         <div v-if="editingHabitData.habit_type === 'rating'" class="space-y-2">
                                             <label
                                                 class="text-[10px] font-black uppercase tracking-widest text-neutral-400 ml-2">{{
-                                                    t('maxRating') || 'Max Rating' }}</label>
+                                                    t('maxRating') }}</label>
                                             <input v-model.number="editingHabitData.max_value" type="number" min="1"
                                                 max="10"
                                                 class="w-full bg-neutral-50 dark:bg-neutral-700 border-2 border-neutral-50 dark:border-neutral-700 rounded-3xl px-6 py-4 focus:bg-white dark:focus:bg-neutral-600 focus:border-primary-500 transition outline-none font-bold text-lg text-neutral-900 dark:text-white" />
@@ -721,7 +728,7 @@ onMounted(() => {
                                         <div class="space-y-2">
                                             <label
                                                 class="text-[10px] font-black uppercase tracking-widest text-neutral-400 ml-2">{{
-                                                    t('color') || 'Color' }}</label>
+                                                    t('color') }}</label>
                                             <div
                                                 class="flex items-center gap-4 bg-neutral-50 dark:bg-neutral-700 p-4 rounded-3xl">
                                                 <input v-model="editingHabitData.color" type="color"
