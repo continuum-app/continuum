@@ -913,8 +913,8 @@ onUnmounted(() => {
       <div v-if="isModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4">
         <div class="absolute inset-0 bg-neutral-900/60 backdrop-blur-md" @click="isModalOpen = false"></div>
         <div
-          class="relative bg-white dark:bg-neutral-800 w-full max-w-lg rounded-[3rem] p-12 shadow-2xl overflow-visible">
-          <div class="absolute top-0 left-0 right-0 h-2 bg-primary-600 rounded-t-[3rem]"></div>
+          class="relative z-10 bg-white dark:bg-neutral-800 w-full max-w-lg rounded-[3rem] p-12 shadow-2xl overflow-hidden">
+          <div class="absolute top-0 left-0 right-0 h-2 bg-primary-600"></div>
 
           <div class="flex justify-between items-center mb-10">
             <h2 class="text-3xl font-black text-neutral-900 dark:text-white">{{ t('newHabit') }}</h2>
