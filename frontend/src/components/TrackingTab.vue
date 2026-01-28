@@ -644,7 +644,7 @@ const handleDrop = (e, targetCategoryId) => {
 
                             <!-- Value -->
                             <input v-else-if="habit.habit_type === 'value'" :value="habit.today_value || ''"
-                                @change="updateValue(habit, $event.target.value)" type="number" step="0.1"
+                                @change="updateValue(habit, $event.target.value)" type="number" step="1"
                                 placeholder="0"
                                 class="w-24 bg-neutral-50 dark:bg-neutral-700 border border-neutral-200 dark:border-neutral-600 rounded-xl px-3 py-2 text-center font-bold outline-none focus:border-yellow-500 transition text-neutral-900 dark:text-white" />
 

@@ -341,7 +341,7 @@ class HabitViewSet(viewsets.ModelViewSet):
         for habit in habits:
             # Get completions for this habit in the date range
             completions = Completion.objects.filter(
-                habit=habit, date__gte=start_date, date__lte=end_date
+                habit=habit, date__gte=start_date, date__lte=end_date, value__gt=0
             )
 
             completion_count = completions.count()
@@ -413,7 +413,7 @@ class HabitViewSet(viewsets.ModelViewSet):
         max_streak = 0
         while True:
             completion = Completion.objects.filter(
-                habit=habit, date=current_date
+                habit=habit, date=current_date, value=1
             ).first()
 
             if completion:
