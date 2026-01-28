@@ -641,16 +641,14 @@ onUnmounted(() => {
                                             </span>
                                             <!-- Tags -->
                                             <span v-for="tag in habit.tags" :key="tag.id"
-                                                class="text-xs px-2 py-1 rounded-full font-bold flex items-center gap-1 group"
+                                                class="text-xs px-2 py-1 rounded-full font-bold flex items-center justify-center group cursor-pointer min-w-8"
                                                 :style="{
                                                     backgroundColor: tag.color + '20',
                                                     color: tag.color
-                                                }">
-                                                {{ tag.name }}
-                                                <button @click.stop="removeTagFromHabit(habit.id, tag.id)"
-                                                    class="opacity-0 group-hover:opacity-100 hover:bg-black/10 rounded-full p-0.5 transition-opacity">
-                                                    <X :size="12" />
-                                                </button>
+                                                }"
+                                                @click.stop="removeTagFromHabit(habit.id, tag.id)">
+                                                <span class="group-hover:hidden">{{ tag.name }}</span>
+                                                <X :size="12" class="hidden group-hover:block" />
                                             </span>
                                             <!-- Add Tag Button -->
                                             <div class="relative">
@@ -811,6 +809,7 @@ onUnmounted(() => {
                                             <select v-model="editingHabitData.habit_type"
                                                 class="w-full bg-neutral-50 dark:bg-neutral-700 border-2 border-neutral-50 dark:border-neutral-700 rounded-3xl px-6 py-4 focus:bg-white dark:focus:bg-neutral-600 focus:border-primary-500 transition outline-none font-bold text-neutral-900 dark:text-white appearance-none cursor-pointer">
                                                 <option value="boolean">{{ t('typeBoolean') }}</option>
+                                                <option value="counter">{{ t('typeCounter') }}</option>
                                                 <option value="value">{{ t('typeValue') }}</option>
                                                 <option value="rating">{{ t('typeRating') }}</option>
                                             </select>

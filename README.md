@@ -160,7 +160,6 @@ Planned milestones include:
 - 📈 Graph: Add unique markers or patterns to distinguish habits with similar colors for better visual clarity
 - 🏷️ Graph: Per-graph card, add category and tag filters for focused analytics
 - 🔍 Graph: Enable interactive tooltips and zoom/pan for detailed data exploration
-- 🌙 Add dark theme logo (and light logo) for seamless theme switching
 - 🏷️ Add a flexible tag system for habits, supporting search, filtering, and analytics by tag
 - 🔽 In 'tracking': Add advanced filters (by category, tag, completion status), custom ordering, and quick search for efficient habit management
 - ⌚ Garmin Connect integration: Import activity and health data to enrich habit tracking and analytics

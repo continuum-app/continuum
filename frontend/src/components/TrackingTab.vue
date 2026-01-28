@@ -1,15 +1,17 @@
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useLanguage } from '@/composables/useLanguage'
 import { useHabits } from '@/composables/useHabits'
 import { useCategories } from '@/composables/useCategories'
+import { useTags } from '@/composables/useTags'
 import { useCookies } from '@/composables/useCookies'
 import * as LucideIcons from 'lucide-vue-next'
-import { RefreshCw, ChevronLeft, ChevronRight, LayoutGrid, List, Star, Plus, Minus, Archive, Trash2, Pencil, CheckCircle2, GripVertical } from 'lucide-vue-next'
+import { RefreshCw, ChevronLeft, ChevronRight, LayoutGrid, List, Star, Plus, Minus, Archive, Trash2, Pencil, CheckCircle2, GripVertical, Filter, ChevronDown, X } from 'lucide-vue-next'
 
 const { t } = useLanguage()
 const { habits, isLoadingHabits, fetchHabits, archiveHabit, deleteActiveHabit, deleteArchivedHabit, saveCompletion } = useHabits()
 const { categories, categoryOrder, fetchCategories, saveLayoutToServer } = useCategories()
+const { tags, fetchTags } = useTags()
 const { setCookie, getCookie } = useCookies()
 
 // Date navigation
@@ -21,6 +23,45 @@ const isCardView = ref(true)
 // Dragging for categories
 const draggedCategoryId = ref(null)
 const dragOverCategoryId = ref(null)
+
+// Filter state
+const isFilterExpanded = ref(false)
+const selectedCategories = ref([])
+const selectedTags = ref([])
+const filterSectionRef = ref(null)
+
+const handleClickOutside = (event) => {
+    if (isFilterExpanded.value && filterSectionRef.value && !filterSectionRef.value.contains(event.target)) {
+        isFilterExpanded.value = false
+    }
+}
+
+const hasActiveFilters = computed(() => {
+    return selectedCategories.value.length > 0 || selectedTags.value.length > 0
+})
+
+const toggleCategoryFilter = (categoryId) => {
+    const index = selectedCategories.value.indexOf(categoryId)
+    if (index === -1) {
+        selectedCategories.value.push(categoryId)
+    } else {
+        selectedCategories.value.splice(index, 1)
+    }
+}
+
+const toggleTagFilter = (tagId) => {
+    const index = selectedTags.value.indexOf(tagId)
+    if (index === -1) {
+        selectedTags.value.push(tagId)
+    } else {
+        selectedTags.value.splice(index, 1)
+    }
+}
+
+const clearFilters = () => {
+    selectedCategories.value = []
+    selectedTags.value = []
+}
 
 // Load view preference from cookie
 const loadViewPreference = () => {
@@ -78,11 +119,36 @@ const formattedTrackingDate = computed(() => {
     })
 })
 
+// Filter habits based on selected categories and tags
+const filteredHabits = computed(() => {
+    let result = habits.value
+
+    // Filter by categories
+    if (selectedCategories.value.length > 0) {
+        result = result.filter(h => {
+            if (selectedCategories.value.includes('uncategorized')) {
+                if (!h.category || h.category === null) return true
+            }
+            return h.category && selectedCategories.value.includes(h.category.id)
+        })
+    }
+
+    // Filter by tags
+    if (selectedTags.value.length > 0) {
+        result = result.filter(h => {
+            if (!h.tags || h.tags.length === 0) return false
+            return h.tags.some(tag => selectedTags.value.includes(tag.id))
+        })
+    }
+
+    return result
+})
+
 // Group habits by category
 const groupedHabits = computed(() => {
     const groups = []
 
-    if (habits.value.length === 0) {
+    if (filteredHabits.value.length === 0) {
         return groups
     }
 
@@ -91,7 +157,7 @@ const groupedHabits = computed(() => {
         categoryMap.set(cat.id, cat)
     })
 
-    const uncategorized = habits.value.filter(h => !h.category || h.category === null)
+    const uncategorized = filteredHabits.value.filter(h => !h.category || h.category === null)
     const hasUncategorized = uncategorized.length > 0
 
     let orderedCategoryIds
@@ -116,7 +182,7 @@ const groupedHabits = computed(() => {
         } else {
             const cat = categoryMap.get(id)
             if (cat) {
-                const categoryHabits = habits.value.filter(h => h.category && h.category.id === cat.id)
+                const categoryHabits = filteredHabits.value.filter(h => h.category && h.category.id === cat.id)
                 if (categoryHabits.length > 0) {
                     groups.push({
                         id: cat.id,
@@ -206,7 +272,13 @@ const handleDelete = async (habitId) => {
 onMounted(() => {
     loadViewPreference()
     fetchCategories()
+    fetchTags()
     fetchHabits(trackingDateString.value)
+    document.addEventListener('click', handleClickOutside)
+})
+
+onUnmounted(() => {
+    document.removeEventListener('click', handleClickOutside)
 })
 
 // Dragging of categories
@@ -340,6 +412,100 @@ const handleDrop = (e, targetCategoryId) => {
             </div>
         </div>
 
+        <!-- Filter Section -->
+        <div ref="filterSectionRef" class="space-y-4">
+            <!-- Filter Toggle Button -->
+            <button @click="isFilterExpanded = !isFilterExpanded"
+                :class="[
+                    'w-full flex items-center justify-between px-6 py-4 rounded-2xl font-bold transition-all',
+                    hasActiveFilters
+                        ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 border-2 border-primary-300 dark:border-primary-700'
+                        : 'bg-white dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 border border-neutral-100 dark:border-neutral-700 hover:bg-neutral-50 dark:hover:bg-neutral-700'
+                ]">
+                <div class="flex items-center gap-3">
+                    <Filter :size="20" stroke-width="2.5" />
+                    <span>{{ t('filters') }}</span>
+                    <span v-if="hasActiveFilters"
+                        class="px-2 py-0.5 text-xs rounded-full bg-primary-600 text-white font-bold">
+                        {{ selectedCategories.length + selectedTags.length }}
+                    </span>
+                </div>
+                <ChevronDown :size="20" :class="['transition-transform', isFilterExpanded ? 'rotate-180' : '']" />
+            </button>
+
+            <!-- Expanded Filter Panel -->
+            <Transition name="slide">
+                <div v-if="isFilterExpanded"
+                    class="bg-white dark:bg-neutral-800 rounded-3xl p-6 shadow-lg border border-neutral-100 dark:border-neutral-700 space-y-6">
+
+                    <!-- Clear Filters Button -->
+                    <div v-if="hasActiveFilters" class="flex justify-end">
+                        <button @click="clearFilters"
+                            class="flex items-center gap-2 px-4 py-2 text-sm font-bold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors">
+                            <X :size="16" />
+                            {{ t('clearFilters') }}
+                        </button>
+                    </div>
+
+                    <!-- Categories Filter -->
+                    <div class="space-y-3">
+                        <h4 class="text-xs font-black uppercase tracking-widest text-neutral-400">
+                            {{ t('categories') }}
+                        </h4>
+                        <div class="flex flex-wrap gap-2">
+                            <!-- Uncategorized option -->
+                            <button @click="toggleCategoryFilter('uncategorized')"
+                                :class="[
+                                    'px-4 py-2 rounded-xl font-bold text-sm transition-all',
+                                    selectedCategories.includes('uncategorized')
+                                        ? 'bg-primary-600 text-white'
+                                        : 'bg-neutral-100 dark:bg-neutral-700 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-600'
+                                ]">
+                                {{ t('uncategorized') }}
+                            </button>
+                            <button v-for="category in categories" :key="category.id"
+                                @click="toggleCategoryFilter(category.id)"
+                                :class="[
+                                    'px-4 py-2 rounded-xl font-bold text-sm transition-all',
+                                    selectedCategories.includes(category.id)
+                                        ? 'bg-primary-600 text-white'
+                                        : 'bg-neutral-100 dark:bg-neutral-700 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-600'
+                                ]">
+                                {{ category.name }}
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Tags Filter -->
+                    <div class="space-y-3">
+                        <h4 class="text-xs font-black uppercase tracking-widest text-neutral-400">
+                            {{ t('tags') }}
+                        </h4>
+                        <div class="flex flex-wrap gap-2">
+                            <button v-for="tag in tags" :key="tag.id"
+                                @click="toggleTagFilter(tag.id)"
+                                :class="[
+                                    'px-4 py-2 rounded-xl font-bold text-sm transition-all flex items-center gap-2',
+                                    selectedTags.includes(tag.id)
+                                        ? 'ring-2 ring-offset-2 ring-primary-500'
+                                        : 'hover:opacity-80'
+                                ]"
+                                :style="{
+                                    backgroundColor: tag.color + '20',
+                                    color: tag.color
+                                }">
+                                <span class="w-2 h-2 rounded-full" :style="{ backgroundColor: tag.color }"></span>
+                                {{ tag.name }}
+                            </button>
+                            <p v-if="tags.length === 0" class="text-sm text-neutral-400 dark:text-neutral-500">
+                                {{ t('noTags') }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </Transition>
+        </div>
+
         <!-- Loading State -->
         <div v-if="isLoadingHabits" class="flex items-center justify-center py-20">
             <RefreshCw :size="40" class="animate-spin text-yellow-500" />
@@ -418,7 +584,7 @@ const handleDrop = (e, targetCategoryId) => {
                         <!-- Value Habit -->
                         <div v-else-if="habit.habit_type === 'value'" class="space-y-2">
                             <input :value="habit.today_value || ''" @change="updateValue(habit, $event.target.value)"
-                                type="number" step="0.1" placeholder="0"
+                                type="number" step="1" placeholder="0"
                                 class="w-full bg-neutral-50 dark:bg-neutral-700 border-2 border-neutral-100 dark:border-neutral-600 rounded-2xl px-4 py-3 text-center text-2xl font-black outline-none focus:border-yellow-500 transition text-neutral-900 dark:text-white"
                                 :style="{ color: habit.color }" />
                             <p v-if="habit.unit" class="text-center text-sm font-bold text-neutral-400">{{ habit.unit }}
@@ -505,10 +671,25 @@ const handleDrop = (e, targetCategoryId) => {
             <!-- Empty State -->
             <div v-if="groupedHabits.length === 0"
                 class="bg-white dark:bg-neutral-800 rounded-[3rem] p-16 shadow-lg border border-neutral-100 dark:border-neutral-700 text-center">
-                <div class="text-6xl mb-4">🎯</div>
-                <h3 class="text-2xl font-black text-neutral-900 dark:text-white mb-2">{{ t('noHabitsYet') }}
-                </h3>
-                <p class="text-neutral-500 dark:text-neutral-400">{{ t('createFirstHabit') }}</p>
+                <template v-if="hasActiveFilters">
+                    <div class="text-6xl mb-4">🔍</div>
+                    <h3 class="text-2xl font-black text-neutral-900 dark:text-white mb-2">
+                        {{ t('noMatchingHabits') }}
+                    </h3>
+                    <p class="text-neutral-500 dark:text-neutral-400 mb-4">
+                        {{ t('noHabitsMatchFilters') }}
+                    </p>
+                    <button @click="clearFilters"
+                        class="px-6 py-3 bg-red-500 text-white rounded-2xl font-bold hover:bg-red-400 transition-all">
+                        {{ t('clearFilters') }}
+                    </button>
+                </template>
+                <template v-else>
+                    <div class="text-6xl mb-4">🎯</div>
+                    <h3 class="text-2xl font-black text-neutral-900 dark:text-white mb-2">{{ t('noHabitsYet') }}
+                    </h3>
+                    <p class="text-neutral-500 dark:text-neutral-400">{{ t('createFirstHabit') }}</p>
+                </template>
             </div>
         </template>
     </div>
@@ -522,5 +703,18 @@ const handleDrop = (e, targetCategoryId) => {
 
 .category-group[draggable="true"] {
     touch-action: none;
+}
+
+/* Filter panel slide transition */
+.slide-enter-active,
+.slide-leave-active {
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+.slide-enter-from,
+.slide-leave-to {
+    opacity: 0;
+    transform: translateY(-10px);
 }
 </style>

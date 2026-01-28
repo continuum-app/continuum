@@ -29,11 +29,13 @@ export const translations = {
     habit: 'habit',
     habits: 'habits',
     yourCategories: 'Your Categories',
+    categories: 'Categories',
     newCategoryName: 'New category name',
     add: 'Add',
     confirmDeleteCategory: 'Delete this category? Habits will become uncategorized.',
 
     // Tag
+    tags: 'Tags',
     yourTags: 'Your Tags',
     newTagName: 'New tag name',
     noTags: 'No tags yet.',
@@ -157,6 +159,12 @@ export const translations = {
     createFirstHabit: 'Create your first habit to get started!',
     done: 'Done',
     confirmHabitArchive: 'Archive this habit?',
+
+    // Filters
+    filters: 'Filters',
+    clearFilters: 'Clear Filters',
+    noMatchingHabits: 'No matching habits',
+    noHabitsMatchFilters: 'No habits match your current filters.',
   },
 
   fr: {
@@ -189,10 +197,12 @@ export const translations = {
     habit: 'habitude',
     habits: 'habitudes',
     yourCategories: 'Vos Catégories',
+    categories: 'Catégories',
     newCategoryName: 'Nom de la catégorie',
     add: 'Ajouter',
 
     // Tag
+    tags: 'Étiquettes',
     yourTags: 'Vos Étiquettes',
     newTagName: 'Nouveau nom d\'étiquette',
     noTags: 'Aucune étiquette pour le moment.',
@@ -304,5 +314,11 @@ export const translations = {
 
     // Units
     unitPlaceholder: 'ex: km, heures, pages',
+
+    // Filters
+    filters: 'Filtres',
+    clearFilters: 'Effacer les Filtres',
+    noMatchingHabits: 'Aucune habitude correspondante',
+    noHabitsMatchFilters: 'Aucune habitude ne correspond à vos filtres.',
   }
 }
