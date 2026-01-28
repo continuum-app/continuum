@@ -372,9 +372,9 @@ const handleDrop = (e, targetCategoryId) => {
     <div class="space-y-8">
         <!-- Date Navigation -->
         <div
-            class="bg-white dark:bg-neutral-800 rounded-[3rem] p-6 shadow-lg border border-neutral-100 dark:border-neutral-700 flex items-center justify-between">
+            class="bg-white dark:bg-neutral-800 rounded-[3rem] py-2 px-6 shadow-lg border border-neutral-100 dark:border-neutral-700 flex items-center justify-between">
             <button @click="goToPreviousDay"
-                class="p-4 rounded-2xl bg-neutral-100 dark:bg-neutral-700 hover:bg-neutral-200 dark:hover:bg-neutral-600 transition-all active:scale-95">
+                class="p-2 rounded-xl bg-neutral-100 dark:bg-neutral-700 hover:bg-neutral-200 dark:hover:bg-neutral-600 transition-all active:scale-95">
                 <ChevronLeft :size="24" class="text-neutral-600 dark:text-neutral-300" stroke-width="2.5" />
             </button>
 
@@ -395,14 +395,14 @@ const handleDrop = (e, targetCategoryId) => {
             <div class="flex items-center gap-3">
                 <!-- View Toggle -->
                 <button @click="isCardView = !isCardView"
-                    class="p-4 rounded-2xl bg-neutral-100 dark:bg-neutral-700 hover:bg-neutral-200 dark:hover:bg-neutral-600 transition-all active:scale-95">
+                    class="p-2 rounded-xl bg-neutral-100 dark:bg-neutral-700 hover:bg-neutral-200 dark:hover:bg-neutral-600 transition-all active:scale-95">
                     <LayoutGrid v-if="!isCardView" :size="24" class="text-neutral-600 dark:text-neutral-300"
                         stroke-width="2.5" />
                     <List v-else :size="24" class="text-neutral-600 dark:text-neutral-300" stroke-width="2.5" />
                 </button>
 
                 <button @click="goToNextDay" :disabled="!canGoToNextDay" :class="[
-                    'p-4 rounded-2xl transition-all active:scale-95',
+                    'p-2 rounded-xl transition-all active:scale-95',
                     canGoToNextDay
                         ? 'bg-neutral-100 dark:bg-neutral-700 hover:bg-neutral-200 dark:hover:bg-neutral-600'
                         : 'bg-neutral-50 dark:bg-neutral-800 cursor-not-allowed opacity-50'
