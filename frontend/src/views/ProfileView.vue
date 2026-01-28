@@ -3,7 +3,8 @@ import { ref, onMounted } from 'vue'
 import { useLanguage } from '@/composables/useLanguage'
 import { useHabits } from '@/composables/useHabits'
 import { useCategories } from '@/composables/useCategories'
-import { User, ArrowLeft, Lock, Save, RefreshCw, Plus, Trash2, Pencil, X, Check, ArchiveRestore, Archive, CheckCircle2, FolderOpen, Calendar } from 'lucide-vue-next'
+import { useTags } from '@/composables/useTags'
+import { User, ArrowLeft, Lock, Save, RefreshCw, Plus, Trash2, Pencil, X, Check, ArchiveRestore, Archive, CheckCircle2, FolderOpen, Calendar, Tags } from 'lucide-vue-next'
 import * as LucideIcons from 'lucide-vue-next'
 import IconPicker from '@/components/IconPicker.vue'
 import { useRouter } from 'vue-router'
@@ -20,6 +21,7 @@ const goBack = () => {
 const { t } = useLanguage()
 const { habits, archivedHabits, fetchHabits, fetchArchivedHabits, archiveHabit, unarchiveHabit, deleteHabit, updateHabit } = useHabits()
 const { categories, isSavingCategory, isDeletingCategory, fetchCategories, addCategory, deleteCategory, updateCategory } = useCategories()
+const { tags, isSavingTag, isDeletingTag, fetchTags, addTag, deleteTag, updateTag } = useTags()
 
 // User info state
 const userInfo = ref({
@@ -43,6 +45,13 @@ const passwordSuccess = ref(false)
 const newCategoryName = ref('')
 const editingCategory = ref(null)
 const editingCategoryName = ref('')
+
+// Tag management
+const newTagName = ref('')
+const newTagColor = ref('#6B7280')
+const editingTag = ref(null)
+const editingTagName = ref('')
+const editingTagColor = ref('')
 
 // Habit editing
 const editingHabit = ref(null)
@@ -146,6 +155,41 @@ const handleDeleteCategory = async (categoryId) => {
     }
 }
 
+// Tag management
+const handleAddTag = async () => {
+    if (!newTagName.value.trim()) return
+    await addTag(newTagName.value.trim(), newTagColor.value)
+    newTagName.value = ''
+    newTagColor.value = '#6B7280'
+}
+
+const startEditTag = (tag) => {
+    editingTag.value = tag.id
+    editingTagName.value = tag.name
+    editingTagColor.value = tag.color
+}
+
+const saveEditTag = async (tagId) => {
+    if (!editingTagName.value.trim()) return
+    await updateTag(tagId, {
+        name: editingTagName.value.trim(),
+        color: editingTagColor.value
+    })
+    editingTag.value = null
+}
+
+const cancelEditTag = () => {
+    editingTag.value = null
+    editingTagName.value = ''
+    editingTagColor.value = ''
+}
+
+const handleDeleteTag = async (tagId) => {
+    if (confirm(t('confirmDeleteTag') || 'Are you sure you want to delete this tag?')) {
+        await deleteTag(tagId)
+    }
+}
+
 // Habit editing (for archived habits)
 const startEditHabit = (habit) => {
     editingHabit.value = habit.id
@@ -222,6 +266,7 @@ const getIcon = (iconName) => {
 onMounted(() => {
     fetchUserInfo()
     fetchCategories()
+    fetchTags()
     fetchHabits(new Date().toISOString().split('T')[0])
     fetchArchivedHabits()
 })
@@ -408,6 +453,77 @@ onMounted(() => {
 
                             <div v-if="categories.length === 0" class="text-center py-8 text-neutral-400 font-medium">
                                 {{ t('noCategories') }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tag Management -->
+                    <div
+                        class="bg-white dark:bg-neutral-800 rounded-[3rem] p-8 shadow-lg border border-neutral-100 dark:border-neutral-700">
+                        <div class="flex items-center gap-3 mb-6">
+                            <div class="p-3 rounded-2xl bg-teal-100 dark:bg-teal-900">
+                                <Tags :size="24" class="text-teal-600 dark:text-teal-400" stroke-width="2.5" />
+                            </div>
+                            <h2 class="text-2xl font-black text-neutral-900 dark:text-white">{{ t('yourTags') || 'Your Tags' }}</h2>
+                        </div>
+
+                        <!-- Add Tag -->
+                        <div class="flex gap-3 mb-6">
+                            <input v-model="newTagName" type="text"
+                                :placeholder="t('newTagName') || 'New tag name...'"
+                                @keyup.enter="handleAddTag"
+                                class="flex-1 bg-neutral-50 dark:bg-neutral-700 border-2 border-neutral-100 dark:border-neutral-600 rounded-2xl px-6 py-4 font-bold outline-none focus:border-primary-500 transition text-neutral-900 dark:text-white" />
+                            <div class="flex items-center gap-2 bg-neutral-50 dark:bg-neutral-700 rounded-2xl px-4">
+                                <input v-model="newTagColor" type="color"
+                                    class="w-10 h-10 rounded-xl cursor-pointer border-none bg-transparent" />
+                            </div>
+                            <button @click="handleAddTag" :disabled="isSavingTag || !newTagName.trim()"
+                                class="px-6 py-4 bg-teal-600 text-white rounded-2xl font-bold hover:bg-teal-700 transition-all disabled:opacity-50 flex items-center gap-2">
+                                <RefreshCw v-if="isSavingTag" :size="20" class="animate-spin" />
+                                <Plus v-else :size="20" />
+                                {{ t('add') }}
+                            </button>
+                        </div>
+
+                        <!-- Tag List -->
+                        <div class="space-y-3">
+                            <div v-for="tag in tags" :key="tag.id"
+                                class="flex items-center gap-4 p-4 bg-neutral-50 dark:bg-neutral-700 rounded-2xl">
+                                <template v-if="editingTag === tag.id">
+                                    <div class="w-6 h-6 rounded-full shrink-0" :style="{ backgroundColor: editingTagColor }"></div>
+                                    <input v-model="editingTagName" type="text"
+                                        class="flex-1 bg-white dark:bg-neutral-600 border-2 border-primary-500 rounded-xl px-4 py-2 font-bold outline-none text-neutral-900 dark:text-white"
+                                        @keyup.enter="saveEditTag(tag.id)" />
+                                    <input v-model="editingTagColor" type="color"
+                                        class="w-10 h-10 rounded-xl cursor-pointer border-none bg-transparent" />
+                                    <button @click="saveEditTag(tag.id)"
+                                        class="p-2 rounded-xl bg-green-500 text-white hover:bg-green-600 transition-all hover:scale-120">
+                                        <Check :size="20" />
+                                    </button>
+                                    <button @click="cancelEditTag"
+                                        class="p-2 rounded-xl bg-neutral-300 dark:bg-neutral-500 text-neutral-700 dark:text-white hover:bg-neutral-400 transition-all hover:scale-120">
+                                        <X :size="20" />
+                                    </button>
+                                </template>
+                                <template v-else>
+                                    <div class="w-6 h-6 rounded-full shrink-0" :style="{ backgroundColor: tag.color }"></div>
+                                    <span class="flex-1 font-bold text-neutral-900 dark:text-white">{{ tag.name }}</span>
+                                    <button @click="startEditTag(tag)"
+                                        class="p-2 rounded-xl hover:bg-neutral-200 dark:hover:bg-neutral-600 transition-all hover:scale-120">
+                                        <Pencil :size="18" class="text-neutral-400 hover:text-primary-500" />
+                                    </button>
+                                    <button @click="handleDeleteTag(tag.id)"
+                                        :disabled="isDeletingTag === tag.id"
+                                        class="p-2 rounded-xl hover:bg-neutral-200 dark:hover:bg-neutral-600 transition-all hover:scale-120">
+                                        <RefreshCw v-if="isDeletingTag === tag.id" :size="18"
+                                            class="animate-spin text-neutral-400" />
+                                        <Trash2 v-else :size="18" class="text-neutral-400 hover:text-red-500" />
+                                    </button>
+                                </template>
+                            </div>
+
+                            <div v-if="tags.length === 0" class="text-center py-8 text-neutral-400 font-medium">
+                                {{ t('noTags') || 'No tags yet. Create your first tag above.' }}
                             </div>
                         </div>
                     </div>

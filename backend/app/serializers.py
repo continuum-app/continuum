@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Habit, Category, Completion, SiteSettings, HabitCorrelation
+from .models import Habit, Category, Completion, SiteSettings, HabitCorrelation, Tag
 from datetime import date
 
 
@@ -8,6 +8,10 @@ class CategorySerializer(serializers.ModelSerializer):
         model = Category
         fields = ["id", "name", "order"]
 
+class TagSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Tag
+        fields = ["id", "name", "color"]
 
 class HabitSerializer(serializers.ModelSerializer):
     category = CategorySerializer(read_only=True)

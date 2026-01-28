@@ -16,6 +16,20 @@ class Category(models.Model):
         return f"{self.name}"
 
 
+class Tag(models.Model):
+    name = models.CharField(max_length=50)
+    color = models.CharField(max_length=20, default="#6B7280")
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="tags")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["name"]
+        unique_together = ["name", "user"]
+
+    def __str__(self):
+        return self.name
+
+
 class Habit(models.Model):
     TYPE_CHOICES = [
         ("boolean", "Yes/No"),
@@ -47,6 +61,7 @@ class Habit(models.Model):
         help_text="Optional unit for value habit (e.g., 'km', 'miles', 'hours')",
     )
     archived = models.BooleanField(default=False)
+    tags = models.ManyToManyField(Tag, blank=True, related_name="habits")
 
     class Meta:
         ordering = ["name"]

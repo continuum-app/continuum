@@ -33,6 +33,12 @@ export const translations = {
     add: 'Add',
     confirmDeleteCategory: 'Delete this category? Habits will become uncategorized.',
 
+    // Tag
+    yourTags: 'Your Tags',
+    newTagName: 'New tag name',
+    noTags: 'No tags yet.',
+    confirmDeleteTag: 'Delete this tag? It will be removed from all habits.',
+
     // Modal
     objectiveName: 'Objective Name',
     metricType: 'Metric Type',
@@ -183,6 +189,12 @@ export const translations = {
     yourCategories: 'Vos Catégories',
     newCategoryName: 'Nom de la catégorie',
     add: 'Ajouter',
+
+    // Tag
+    yourTags: 'Vos Étiquettes',
+    newTagName: 'Nouveau nom d\'étiquette',
+    noTags: 'Aucune étiquette pour le moment.',
+    confirmDeleteTag: 'Supprimer cette étiquette ? Elle sera retirée de toutes les habitudes.',
 
     // Modal
     objectiveName: 'Nom de l\'Objectif',

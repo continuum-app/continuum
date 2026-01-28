@@ -8,9 +8,10 @@ from .serializers import (
     CategorySerializer,
     SiteSettingsSerializer,
     HabitCorrelationSerializer,
+    TagSerializer,
 )
 from datetime import date, datetime, timedelta
-from .models import Habit, Completion, Category, SiteSettings
+from .models import Habit, Completion, Category, SiteSettings, Tag
 from django.db.models import Q
 from rest_framework.decorators import api_view, permission_classes
 from .models import HabitCorrelation
@@ -41,6 +42,18 @@ class CategoryViewSet(viewsets.ModelViewSet):
                 pass
 
         return Response({"status": "layout updated"})
+
+
+class TagViewSet(viewsets.ModelViewSet):
+    serializer_class = TagSerializer
+    permission_classes = [IsAuthenticated]
+    queryset = Tag.objects.all()
+
+    def get_queryset(self):
+        return self.queryset.filter(user=self.request.user).order_by("name")
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
 
 
 class HabitViewSet(viewsets.ModelViewSet):

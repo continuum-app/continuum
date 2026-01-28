@@ -8,19 +8,21 @@ from .views import (
     HabitCorrelationViewSet,
     UserInfoView,
     SiteSettingsViewSet,
+    TagViewSet,
 )
 
 # Create router for API endpoints
 router = DefaultRouter()
 router.register(r"habits", HabitViewSet, basename="habit")
 router.register(r"categories", CategoryViewSet, basename="category")
+router.register(r"tags", TagViewSet, basename="tag")
 router.register(r"settings", SiteSettingsViewSet, basename="settings")
 router.register(r"correlations", HabitCorrelationViewSet, basename="correlation")
 
 urlpatterns = [
     # Django admin
     path("admin/", admin.site.urls),
-    # API routes (habits, categories, correlations, etc.)
+    # API routes (habits, categories, tags, correlations, etc.)
     path("api/", include(router.urls)),
     # User info endpoint
     path("api/auth/user/", UserInfoView.as_view(), name="user-info"),
