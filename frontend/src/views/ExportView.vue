@@ -130,7 +130,7 @@ onMounted(() => {
             <div class="space-y-6">
                 <!-- Date Range Selector -->
                 <div
-                    class="bg-white dark:bg-neutral-800 rounded-[3rem] p-8 shadow-lg border border-neutral-100 dark:border-neutral-700">
+                    class="bg-white dark:bg-neutral-800 rounded-4xl p-8 shadow-lg border border-neutral-100 dark:border-neutral-700">
                     <h2 class="text-2xl font-black text-neutral-900 dark:text-white mb-6">Date Range</h2>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                         <div>
@@ -164,7 +164,7 @@ onMounted(() => {
                 </div>
 
                 <!-- Export Button -->
-                <div class="bg-linear-to-r from-yellow-600 to-neutral-900 rounded-[3rem] p-8 shadow-lg">
+                <div class="bg-linear-to-r from-yellow-600 to-neutral-900 rounded-4xl p-8 shadow-lg">
                     <div class="flex flex-col md:flex-row items-center justify-between gap-4">
                         <div>
                             <h3 class="text-xl font-black text-white mb-1">Ready to Export?</h3>

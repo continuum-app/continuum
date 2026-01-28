@@ -72,7 +72,7 @@ onMounted(() => {
 <template>
     <div class="space-y-6">
         <!-- Insights Header -->
-        <div class="bg-linear-to-r from-yellow-600 to-neutral-950 rounded-[3rem] p-12 shadow-xl">
+        <div class="bg-linear-to-r from-yellow-600 to-neutral-950 rounded-4xl p-6 shadow-xl">
             <h2 class="text-3xl font-black text-white mb-2">{{ t('insights') }}</h2>
             <p class="text-yellow-100 font-medium">{{ t('discoverCorrelations') }}</p>
         </div>
@@ -176,7 +176,7 @@ onMounted(() => {
 
         <!-- No Insights State -->
         <div v-else
-            class="bg-white dark:bg-neutral-800 rounded-[3rem] p-16 shadow-lg border border-neutral-100 dark:border-neutral-700 text-center">
+            class="bg-white dark:bg-neutral-800 rounded-4xl p-16 shadow-lg border border-neutral-100 dark:border-neutral-700 text-center">
             <div class="text-6xl mb-4">🔍</div>
             <h3 class="text-2xl font-black text-neutral-900 dark:text-white mb-2">
                 {{ t('noInsightsYet') }}

@@ -368,7 +368,7 @@ onUnmounted(() => {
                 <div class="space-y-8">
                     <!-- Account Section -->
                     <div
-                        class="bg-white dark:bg-neutral-800 rounded-[3rem] p-8 shadow-lg border border-neutral-100 dark:border-neutral-700">
+                        class="bg-white dark:bg-neutral-800 rounded-4xl p-8 shadow-lg border border-neutral-100 dark:border-neutral-700">
                         <div class="flex items-center gap-3 mb-6">
                             <div class="p-3 rounded-2xl bg-primary-100 dark:bg-primary-900">
                                 <User :size="24" class="text-primary-600 dark:text-primary-400" stroke-width="2.5" />
@@ -410,7 +410,7 @@ onUnmounted(() => {
 
                     <!-- Password Section -->
                     <div
-                        class="bg-white dark:bg-neutral-800 rounded-[3rem] p-8 shadow-lg border border-neutral-100 dark:border-neutral-700">
+                        class="bg-white dark:bg-neutral-800 rounded-4xl p-8 shadow-lg border border-neutral-100 dark:border-neutral-700">
                         <div class="flex items-center gap-3 mb-6">
                             <div class="p-3 rounded-2xl bg-orange-100 dark:bg-orange-900">
                                 <Lock :size="24" class="text-orange-600 dark:text-orange-400" stroke-width="2.5" />
@@ -464,7 +464,7 @@ onUnmounted(() => {
 
                     <!-- Category Management -->
                     <div
-                        class="bg-white dark:bg-neutral-800 rounded-[3rem] p-8 shadow-lg border border-neutral-100 dark:border-neutral-700">
+                        class="bg-white dark:bg-neutral-800 rounded-4xl p-8 shadow-lg border border-neutral-100 dark:border-neutral-700">
                         <div class="flex items-center gap-3 mb-6">
                             <div class="p-3 rounded-2xl bg-purple-100 dark:bg-purple-900">
                                 <component :is="LucideIcons.FolderOpen" :size="24"
@@ -529,7 +529,7 @@ onUnmounted(() => {
 
                     <!-- Tag Management -->
                     <div
-                        class="bg-white dark:bg-neutral-800 rounded-[3rem] p-8 shadow-lg border border-neutral-100 dark:border-neutral-700">
+                        class="bg-white dark:bg-neutral-800 rounded-4xl p-8 shadow-lg border border-neutral-100 dark:border-neutral-700">
                         <div class="flex items-center gap-3 mb-6">
                             <div class="p-3 rounded-2xl bg-teal-100 dark:bg-teal-900">
                                 <Tags :size="24" class="text-teal-600 dark:text-teal-400" stroke-width="2.5" />
@@ -601,7 +601,7 @@ onUnmounted(() => {
 
                     <!-- Manage Habits -->
                     <div
-                        class="bg-white dark:bg-neutral-800 rounded-[3rem] p-8 shadow-lg border border-neutral-100 dark:border-neutral-700">
+                        class="bg-white dark:bg-neutral-800 rounded-4xl p-8 shadow-lg border border-neutral-100 dark:border-neutral-700">
                         <div class="flex items-center gap-3 mb-6">
                             <div class="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-2xl">
                                 <CheckCircle2 :size="24" class="text-blue-600 dark:text-blue-400" stroke-width="2.5" />
@@ -705,7 +705,7 @@ onUnmounted(() => {
 
                     <!-- Archived Habits -->
                     <div
-                        class="bg-white dark:bg-neutral-800 rounded-[3rem] p-8 shadow-lg border border-neutral-100 dark:border-neutral-700">
+                        class="bg-white dark:bg-neutral-800 rounded-4xl p-8 shadow-lg border border-neutral-100 dark:border-neutral-700">
                         <div class="flex items-center gap-3 mb-6">
                             <div class="p-3 rounded-2xl bg-amber-100 dark:bg-amber-900">
                                 <Archive :size="24" class="text-amber-600 dark:text-amber-400" stroke-width="2.5" />
@@ -778,7 +778,7 @@ onUnmounted(() => {
                                 <div class="absolute inset-0 bg-neutral-900/60 backdrop-blur-md"
                                     @click="cancelEditHabit"></div>
                                 <div
-                                    class="relative z-10 bg-white dark:bg-neutral-800 w-full max-w-lg rounded-[3rem] p-12 shadow-2xl overflow-hidden">
+                                    class="relative z-10 bg-white dark:bg-neutral-800 w-full max-w-lg rounded-4xl p-12 shadow-2xl overflow-hidden">
                                     <div class="absolute top-0 left-0 right-0 h-2 bg-blue-500"></div>
 
                                     <div class="flex justify-between items-center mb-10">

@@ -551,7 +551,7 @@ onUnmounted(() => {
       <div v-show="activeTab === 'summary'" class="space-y-6">
         <!-- Header -->
         <div
-          class="bg-linear-to-r from-yellow-600 to-neutral-950 rounded-[3rem] p-12 shadow-xl flex justify-between items-center">
+          class="bg-linear-to-r from-yellow-600 to-neutral-950 rounded-4xl p-6 shadow-xl flex justify-between items-center">
           <div>
             <h2 class="text-3xl font-black text-white mb-2">{{ t('summaryView') }}</h2>
             <p class="text-yellow-100 font-medium">{{ t('retrospectiveAnalysis') }}</p>
@@ -799,7 +799,7 @@ onUnmounted(() => {
           <!-- Empty State -->
           <div
             v-if="summaryData.boolean.length === 0 && summaryData.counter.length === 0 && summaryData.value.length === 0 && summaryData.rating.length === 0"
-            class="bg-white dark:bg-neutral-800 rounded-[3rem] p-16 shadow-lg border border-neutral-100 dark:border-neutral-700 text-center">
+            class="bg-white dark:bg-neutral-800 rounded-4xl p-16 shadow-lg border border-neutral-100 dark:border-neutral-700 text-center">
             <div class="text-6xl mb-4">📊</div>
             <h3 class="text-2xl font-black text-neutral-900 dark:text-white mb-2">{{ t('noHabitsYet') }}</h3>
             <p class="text-neutral-500 dark:text-neutral-400">{{ t('startTracking') }}
@@ -812,7 +812,7 @@ onUnmounted(() => {
       <div v-show="activeTab === 'graph'" class="space-y-6">
         <!-- Date Range Selector -->
         <div
-          class="bg-white dark:bg-neutral-800 rounded-[3rem] p-8 shadow-lg border border-neutral-100 dark:border-neutral-700">
+          class="bg-white dark:bg-neutral-800 rounded-4xl p-8 shadow-lg border border-neutral-100 dark:border-neutral-700">
           <h2 class="text-2xl font-black text-neutral-900 dark:text-white mb-6">{{ t('dateRange') }}</h2>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <div class="space-y-2">
@@ -847,7 +847,7 @@ onUnmounted(() => {
 
         <!-- Boolean Habits Chart -->
         <div
-          class="bg-white dark:bg-neutral-800 rounded-[3rem] p-8 shadow-lg border border-neutral-100 dark:border-neutral-700">
+          class="bg-white dark:bg-neutral-800 rounded-4xl p-8 shadow-lg border border-neutral-100 dark:border-neutral-700">
           <h3 class="text-xl font-black text-neutral-900 dark:text-white mb-6 uppercase tracking-tight">{{
             t('booleanHabits') }}
           </h3>
@@ -862,7 +862,7 @@ onUnmounted(() => {
 
         <!-- Counter Habits Chart -->
         <div
-          class="bg-white dark:bg-neutral-800 rounded-[3rem] p-8 shadow-lg border border-neutral-100 dark:border-neutral-700">
+          class="bg-white dark:bg-neutral-800 rounded-4xl p-8 shadow-lg border border-neutral-100 dark:border-neutral-700">
           <h3 class="text-xl font-black text-neutral-900 dark:text-white mb-6 uppercase tracking-tight">{{
             t('counterHabits') }}
           </h3>
@@ -877,7 +877,7 @@ onUnmounted(() => {
 
         <!-- Value Habits Chart -->
         <div
-          class="bg-white dark:bg-neutral-800 rounded-[3rem] p-8 shadow-lg border border-neutral-100 dark:border-neutral-700">
+          class="bg-white dark:bg-neutral-800 rounded-4xl p-8 shadow-lg border border-neutral-100 dark:border-neutral-700">
           <h3 class="text-xl font-black text-neutral-900 dark:text-white mb-6 uppercase tracking-tight">{{
             t('valueHabits') }}</h3>
           <div class="h-80 flex items-center justify-center" v-if="!graphData.value || graphData.value.length === 0">
@@ -890,7 +890,7 @@ onUnmounted(() => {
 
         <!-- Rating Habits Chart -->
         <div
-          class="bg-white dark:bg-neutral-800 rounded-[3rem] p-8 shadow-lg border border-neutral-100 dark:border-neutral-700">
+          class="bg-white dark:bg-neutral-800 rounded-4xl p-8 shadow-lg border border-neutral-100 dark:border-neutral-700">
           <h3 class="text-xl font-black text-neutral-900 dark:text-white mb-6 uppercase tracking-tight">{{
             t('ratingHabits') }}</h3>
           <div class="h-80 flex items-center justify-center" v-if="!graphData.rating || graphData.rating.length === 0">
@@ -913,7 +913,7 @@ onUnmounted(() => {
       <div v-if="isModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4">
         <div class="absolute inset-0 bg-neutral-900/60 backdrop-blur-md" @click="isModalOpen = false"></div>
         <div
-          class="relative z-10 bg-white dark:bg-neutral-800 w-full max-w-lg rounded-[3rem] p-12 shadow-2xl overflow-hidden">
+          class="relative z-10 bg-white dark:bg-neutral-800 w-full max-w-lg rounded-4xl p-12 shadow-2xl overflow-hidden">
           <div class="absolute top-0 left-0 right-0 h-2 bg-primary-600"></div>
 
           <div class="flex justify-between items-center mb-10">

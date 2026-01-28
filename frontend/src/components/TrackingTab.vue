@@ -372,7 +372,7 @@ const handleDrop = (e, targetCategoryId) => {
     <div class="space-y-8">
         <!-- Date Navigation -->
         <div
-            class="bg-white dark:bg-neutral-800 rounded-[3rem] py-2 px-6 shadow-lg border border-neutral-100 dark:border-neutral-700 flex items-center justify-between">
+            class="bg-white dark:bg-neutral-800 rounded-4xl py-2 px-6 shadow-lg border border-neutral-100 dark:border-neutral-700 flex items-center justify-between">
             <button @click="goToPreviousDay"
                 class="p-2 rounded-xl bg-neutral-100 dark:bg-neutral-700 hover:bg-neutral-200 dark:hover:bg-neutral-600 transition-all active:scale-95">
                 <ChevronLeft :size="24" class="text-neutral-600 dark:text-neutral-300" stroke-width="2.5" />
@@ -670,7 +670,7 @@ const handleDrop = (e, targetCategoryId) => {
 
             <!-- Empty State -->
             <div v-if="groupedHabits.length === 0"
-                class="bg-white dark:bg-neutral-800 rounded-[3rem] p-16 shadow-lg border border-neutral-100 dark:border-neutral-700 text-center">
+                class="bg-white dark:bg-neutral-800 rounded-4xl p-16 shadow-lg border border-neutral-100 dark:border-neutral-700 text-center">
                 <template v-if="hasActiveFilters">
                     <div class="text-6xl mb-4">🔍</div>
                     <h3 class="text-2xl font-black text-neutral-900 dark:text-white mb-2">

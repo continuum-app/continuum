@@ -84,7 +84,7 @@ onMounted(() => {
     <div class="min-h-screen bg-neutral-50 dark:bg-neutral-900 flex items-center justify-center p-6">
         <div class="w-full max-w-md">
             <div
-                class="bg-white dark:bg-neutral-800 rounded-[3rem] p-12 shadow-2xl border border-neutral-100 dark:border-neutral-700">
+                class="bg-white dark:bg-neutral-800 rounded-4xl p-12 shadow-2xl border border-neutral-100 dark:border-neutral-700">
                 <div class="text-center mb-8">
                     <h1
                         class="text-4xl font-black tracking-tighter text-neutral-900 dark:text-white uppercase italic mb-2">

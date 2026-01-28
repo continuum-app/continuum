@@ -1,6 +1,6 @@
 <template>
     <div class="min-h-screen bg-neutral-50 dark:bg-neutral-900 flex items-center justify-center p-6">
-        <div class="bg-white rounded-[3rem] p-12 shadow-2xl w-full max-w-md">
+        <div class="bg-white rounded-4xl p-12 shadow-2xl w-full max-w-md">
             <div class="text-center mb-10">
                 <h1 class="text-4xl font-black tracking-tighter text-neutral-900 uppercase italic mb-2">Habits Factory</h1>
                 <p class="text-neutral-400 font-medium">Sign in to continue</p>

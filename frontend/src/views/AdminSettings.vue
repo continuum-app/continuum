@@ -136,7 +136,7 @@ onMounted(() => {
 
                 <!-- Site-Wide Settings (Admin Only) -->
                 <div v-if="userInfo.is_staff || userInfo.is_superuser"
-                    class="bg-white dark:bg-neutral-800 rounded-[3rem] p-8 shadow-lg border border-neutral-100 dark:border-neutral-700">
+                    class="bg-white dark:bg-neutral-800 rounded-4xl p-8 shadow-lg border border-neutral-100 dark:border-neutral-700">
                     <div class="flex items-center gap-3 mb-6">
                         <div class="p-3 bg-emerald-100 dark:bg-emerald-900/30 rounded-2xl">
                             <Settings :size="24" class="text-emerald-600 dark:text-emerald-400" stroke-width="2.5" />
