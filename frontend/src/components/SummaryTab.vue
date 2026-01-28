@@ -1,11 +1,13 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import api from '@/services/api'
 import { useLanguage } from '@/composables/useLanguage'
+import { useCategories } from '@/composables/useCategories'
 import * as LucideIcons from 'lucide-vue-next'
-import { RefreshCw } from 'lucide-vue-next'
+import { RefreshCw, GripVertical } from 'lucide-vue-next'
 
 const { t } = useLanguage()
+const { categories, categoryOrder, fetchCategories, saveLayoutToServer } = useCategories()
 
 // Cookie helpers
 const COOKIE_NAME = 'summaryDateRange'
@@ -42,6 +44,74 @@ const summaryData = ref({
 const isFetchingSummary = ref(false)
 const summaryDays = ref(30)
 
+// Dragging for categories
+const draggedCategoryId = ref(null)
+const dragOverCategoryId = ref(null)
+
+// Combine all habits and group by category
+const groupedHabits = computed(() => {
+  const allHabits = [
+    ...summaryData.value.boolean.map(h => ({ ...h, habit_type: 'boolean' })),
+    ...summaryData.value.counter.map(h => ({ ...h, habit_type: 'counter' })),
+    ...summaryData.value.value.map(h => ({ ...h, habit_type: 'value' })),
+    ...summaryData.value.rating.map(h => ({ ...h, habit_type: 'rating' }))
+  ]
+
+  if (allHabits.length === 0) return []
+
+  const groups = []
+  const categoryMap = new Map()
+  categories.value.forEach(cat => {
+    categoryMap.set(cat.id, cat)
+  })
+
+  const uncategorized = allHabits.filter(h => !h.category_id)
+  const hasUncategorized = uncategorized.length > 0
+
+  let orderedCategoryIds
+  if (categoryOrder.value && categoryOrder.value.length > 0) {
+    orderedCategoryIds = [...categoryOrder.value]
+  } else {
+    orderedCategoryIds = hasUncategorized
+      ? ['uncategorized', ...categories.value.map(c => c.id)]
+      : categories.value.map(c => c.id)
+  }
+
+  orderedCategoryIds.forEach(id => {
+    if (id === 'uncategorized') {
+      if (hasUncategorized) {
+        groups.push({
+          id: 'uncategorized',
+          name: t('uncategorized'),
+          habits: uncategorized
+        })
+      }
+    } else {
+      const cat = categoryMap.get(id)
+      if (cat) {
+        const categoryHabits = allHabits.filter(h => h.category_id === cat.id)
+        if (categoryHabits.length > 0) {
+          groups.push({
+            id: cat.id,
+            name: cat.name,
+            habits: categoryHabits
+          })
+        }
+      }
+    }
+  })
+
+  return groups
+})
+
+// Check if there's any data
+const hasAnyData = computed(() => {
+  return summaryData.value.boolean.length > 0 ||
+    summaryData.value.counter.length > 0 ||
+    summaryData.value.value.length > 0 ||
+    summaryData.value.rating.length > 0
+})
+
 // Get icon component from name
 const getIcon = (iconName) => {
   if (!iconName) return LucideIcons.Calendar
@@ -50,6 +120,64 @@ const getIcon = (iconName) => {
     .map(word => word.charAt(0).toUpperCase() + word.slice(1))
     .join('')
   return LucideIcons[pascalCase] || LucideIcons.Calendar
+}
+
+// Drag handlers
+const handleDragStart = (e, categoryId) => {
+  draggedCategoryId.value = categoryId
+  e.dataTransfer.effectAllowed = 'move'
+  e.dataTransfer.setData('text/html', e.target.innerHTML)
+  e.target.style.opacity = '0.4'
+}
+
+const handleDragEnd = (e) => {
+  e.target.style.opacity = '1'
+  draggedCategoryId.value = null
+  dragOverCategoryId.value = null
+}
+
+const handleDragOver = (e, categoryId) => {
+  e.preventDefault()
+  e.dataTransfer.dropEffect = 'move'
+  dragOverCategoryId.value = categoryId
+  return false
+}
+
+const handleDragEnter = (e, categoryId) => {
+  e.preventDefault()
+  dragOverCategoryId.value = categoryId
+}
+
+const handleDragLeave = (e) => {
+  if (e.target.classList && e.target.classList.contains('category-group')) {
+    dragOverCategoryId.value = null
+  }
+}
+
+const handleDrop = (e, targetCategoryId) => {
+  e.stopPropagation()
+  e.preventDefault()
+
+  if (!draggedCategoryId.value || draggedCategoryId.value === targetCategoryId) {
+    dragOverCategoryId.value = null
+    return
+  }
+
+  const newOrder = [...categoryOrder.value]
+  const draggedIndex = newOrder.indexOf(draggedCategoryId.value)
+  const targetIndex = newOrder.indexOf(targetCategoryId)
+
+  if (draggedIndex !== -1 && targetIndex !== -1) {
+    newOrder.splice(draggedIndex, 1)
+    const insertIndex = draggedIndex < targetIndex ? targetIndex : targetIndex
+    newOrder.splice(insertIndex, 0, draggedCategoryId.value)
+    categoryOrder.value = newOrder
+    saveLayoutToServer()
+  }
+
+  draggedCategoryId.value = null
+  dragOverCategoryId.value = null
+  return false
 }
 
 // Calculate date range based on selected option
@@ -126,6 +254,7 @@ const onRangeChange = (rangeKey) => {
 defineExpose({ fetchSummaryData })
 
 onMounted(() => {
+  fetchCategories()
   fetchSummaryData()
 })
 </script>
@@ -165,44 +294,59 @@ onMounted(() => {
 
     <!-- Summary Content -->
     <div v-else class="space-y-6">
-      <!-- Boolean Habits -->
-      <div v-if="summaryData.boolean.length > 0">
-        <h3
-          class="text-2xl font-black text-neutral-900 dark:text-white mb-4 uppercase tracking-tight flex items-center gap-3">
-          <div class="w-2 h-8 bg-blue-500 rounded-full"></div>
-          {{ t('booleanHabits') }}
-        </h3>
+      <!-- Category Groups -->
+      <div v-for="group in groupedHabits" :key="group.id" class="space-y-4 category-group"
+        :class="{ 'opacity-50': draggedCategoryId === group.id, 'ring-2 ring-yellow-500 ring-offset-2 rounded-2xl': dragOverCategoryId === group.id && draggedCategoryId !== group.id }"
+        draggable="true" @dragstart="handleDragStart($event, group.id)" @dragend="handleDragEnd"
+        @dragover="handleDragOver($event, group.id)" @dragenter="handleDragEnter($event, group.id)"
+        @dragleave="handleDragLeave" @drop="handleDrop($event, group.id)">
+
+        <!-- Group Header -->
+        <div class="flex items-center gap-3 px-2 cursor-grab active:cursor-grabbing">
+          <GripVertical :size="20"
+            class="text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 shrink-0" />
+          <div class="w-2 h-6 bg-yellow-500 rounded-full shrink-0"></div>
+          <h3 class="text-xl font-black text-neutral-900 dark:text-white uppercase tracking-tight shrink-0">
+            {{ group.name }}
+          </h3>
+          <div class="flex-1 h-px bg-linear-to-r from-neutral-300 dark:from-neutral-600 to-transparent"></div>
+          <span class="text-sm font-medium text-neutral-400 dark:text-neutral-500 shrink-0">
+            {{ group.habits.length }} {{ group.habits.length === 1 ? t('habit') : t('habits') }}
+          </span>
+        </div>
+
+        <!-- Habits Grid -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <div v-for="habit in summaryData.boolean" :key="habit.habit_id"
+          <div v-for="habit in group.habits" :key="habit.habit_id"
             class="bg-white dark:bg-neutral-800 rounded-4xl p-6 shadow-lg border border-neutral-100 dark:border-neutral-700 hover:shadow-xl transition-all">
+
+            <!-- Habit Header -->
             <div class="flex items-center gap-3 mb-4">
               <div class="p-3 rounded-2xl" :style="{ backgroundColor: habit.color + '20' }">
                 <component :is="getIcon(habit.icon)" :size="24" :style="{ color: habit.color }" stroke-width="2.5" />
               </div>
               <div class="flex-1">
                 <h4 class="font-black text-neutral-900 dark:text-white text-lg">{{ habit.habit_name }}</h4>
-                <p v-if="habit.category_name"
-                  class="text-xs font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-wide">
-                  {{ habit.category_name }}
+                <p class="text-xs font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-wide">
+                  {{ t(habit.habit_type + 'Habits') }}
                 </p>
               </div>
             </div>
 
-            <div class="space-y-3">
+            <!-- Boolean Habit Metrics -->
+            <div v-if="habit.habit_type === 'boolean'" class="space-y-3">
               <div class="flex justify-between items-center">
                 <span class="text-neutral-500 dark:text-neutral-400 text-sm font-bold">Completion Rate</span>
                 <span class="text-2xl font-black" :style="{ color: habit.color }">
                   {{ habit.metrics.completion_rate }}%
                 </span>
               </div>
-
               <div class="h-2 bg-neutral-100 dark:bg-neutral-700 rounded-full overflow-hidden">
                 <div class="h-full rounded-full transition-all" :style="{
                   width: habit.metrics.completion_rate + '%',
                   backgroundColor: habit.color
                 }"></div>
               </div>
-
               <div class="grid grid-cols-2 gap-3 pt-2">
                 <div class="text-center p-3 bg-neutral-50 dark:bg-neutral-700 rounded-xl">
                   <div class="text-2xl font-black text-neutral-900 dark:text-white">
@@ -217,46 +361,19 @@ onMounted(() => {
                   <div class="text-xs font-bold text-neutral-400 uppercase tracking-wide">Day Streak</div>
                 </div>
               </div>
-
               <div class="text-center text-xs text-neutral-400 font-bold">
                 Last {{ habit.metrics.days_in_range }} days
               </div>
             </div>
-          </div>
-        </div>
-      </div>
 
-      <!-- Counter Habits -->
-      <div v-if="summaryData.counter.length > 0">
-        <h3
-          class="text-2xl font-black text-neutral-900 dark:text-white mb-4 uppercase tracking-tight flex items-center gap-3">
-          <div class="w-2 h-8 bg-green-500 rounded-full"></div>
-          {{ t('counterHabits') }}
-        </h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <div v-for="habit in summaryData.counter" :key="habit.habit_id"
-            class="bg-white dark:bg-neutral-800 rounded-4xl p-6 shadow-lg border border-neutral-100 dark:border-neutral-700 hover:shadow-xl transition-all">
-            <div class="flex items-center gap-3 mb-4">
-              <div class="p-3 rounded-2xl" :style="{ backgroundColor: habit.color + '20' }">
-                <component :is="getIcon(habit.icon)" :size="24" :style="{ color: habit.color }" stroke-width="2.5" />
-              </div>
-              <div class="flex-1">
-                <h4 class="font-black text-neutral-900 dark:text-white text-lg">{{ habit.habit_name }}</h4>
-                <p v-if="habit.category_name"
-                  class="text-xs font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-wide">
-                  {{ habit.category_name }}
-                </p>
-              </div>
-            </div>
-
-            <div class="space-y-3">
+            <!-- Counter Habit Metrics -->
+            <div v-else-if="habit.habit_type === 'counter'" class="space-y-3">
               <div class="text-center p-4 rounded-2xl" :style="{ backgroundColor: habit.color + '10' }">
                 <div class="text-4xl font-black" :style="{ color: habit.color }">
                   {{ habit.metrics.total }}
                 </div>
                 <div class="text-xs font-bold text-neutral-400 uppercase tracking-wide mt-1">Total Count</div>
               </div>
-
               <div class="grid grid-cols-2 gap-3">
                 <div class="text-center p-3 bg-neutral-50 dark:bg-neutral-700 rounded-xl">
                   <div class="text-xl font-black text-neutral-900 dark:text-white">
@@ -271,46 +388,19 @@ onMounted(() => {
                   <div class="text-xs font-bold text-neutral-400 uppercase tracking-wide">Best Day</div>
                 </div>
               </div>
-
               <div class="text-center text-xs text-neutral-400 font-bold">
                 Tracked {{ habit.metrics.days_tracked }}/{{ habit.metrics.days_in_range }} days
               </div>
             </div>
-          </div>
-        </div>
-      </div>
 
-      <!-- Value Habits -->
-      <div v-if="summaryData.value.length > 0">
-        <h3
-          class="text-2xl font-black text-neutral-900 dark:text-white mb-4 uppercase tracking-tight flex items-center gap-3">
-          <div class="w-2 h-8 bg-orange-500 rounded-full"></div>
-          {{ t('valueHabits') }}
-        </h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <div v-for="habit in summaryData.value" :key="habit.habit_id"
-            class="bg-white dark:bg-neutral-800 rounded-4xl p-6 shadow-lg border border-neutral-100 dark:border-neutral-700 hover:shadow-xl transition-all">
-            <div class="flex items-center gap-3 mb-4">
-              <div class="p-3 rounded-2xl" :style="{ backgroundColor: habit.color + '20' }">
-                <component :is="getIcon(habit.icon)" :size="24" :style="{ color: habit.color }" stroke-width="2.5" />
-              </div>
-              <div class="flex-1">
-                <h4 class="font-black text-neutral-900 dark:text-white text-lg">{{ habit.habit_name }}</h4>
-                <p v-if="habit.category_name"
-                  class="text-xs font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-wide">
-                  {{ habit.category_name }}
-                </p>
-              </div>
-            </div>
-
-            <div class="space-y-3">
+            <!-- Value Habit Metrics -->
+            <div v-else-if="habit.habit_type === 'value'" class="space-y-3">
               <div class="text-center p-4 rounded-2xl" :style="{ backgroundColor: habit.color + '10' }">
                 <div class="text-4xl font-black" :style="{ color: habit.color }">
                   {{ habit.metrics.total }} {{ habit.metrics.unit || '' }}
                 </div>
                 <div class="text-xs font-bold text-neutral-400 uppercase tracking-wide mt-1">Total</div>
               </div>
-
               <div class="grid grid-cols-2 gap-3">
                 <div class="text-center p-3 bg-neutral-50 dark:bg-neutral-700 rounded-xl">
                   <div class="text-xl font-black text-neutral-900 dark:text-white">
@@ -325,46 +415,19 @@ onMounted(() => {
                   <div class="text-xs font-bold text-neutral-400 uppercase tracking-wide">Longest</div>
                 </div>
               </div>
-
               <div class="text-center text-xs text-neutral-400 font-bold">
                 Tracked {{ habit.metrics.days_tracked }}/{{ habit.metrics.days_in_range }} days
               </div>
             </div>
-          </div>
-        </div>
-      </div>
 
-      <!-- Rating Habits -->
-      <div v-if="summaryData.rating.length > 0">
-        <h3
-          class="text-2xl font-black text-neutral-900 dark:text-white mb-4 uppercase tracking-tight flex items-center gap-3">
-          <div class="w-2 h-8 bg-yellow-500 rounded-full"></div>
-          {{ t('ratingHabits') }}
-        </h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <div v-for="habit in summaryData.rating" :key="habit.habit_id"
-            class="bg-white dark:bg-neutral-800 rounded-4xl p-6 shadow-lg border border-neutral-100 dark:border-neutral-700 hover:shadow-xl transition-all">
-            <div class="flex items-center gap-3 mb-4">
-              <div class="p-3 rounded-2xl" :style="{ backgroundColor: habit.color + '20' }">
-                <component :is="getIcon(habit.icon)" :size="24" :style="{ color: habit.color }" stroke-width="2.5" />
-              </div>
-              <div class="flex-1">
-                <h4 class="font-black text-neutral-900 dark:text-white text-lg">{{ habit.habit_name }}</h4>
-                <p v-if="habit.category_name"
-                  class="text-xs font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-wide">
-                  {{ habit.category_name }}
-                </p>
-              </div>
-            </div>
-
-            <div class="space-y-3">
+            <!-- Rating Habit Metrics -->
+            <div v-else-if="habit.habit_type === 'rating'" class="space-y-3">
               <div class="text-center p-4 rounded-2xl" :style="{ backgroundColor: habit.color + '10' }">
                 <div class="text-4xl font-black" :style="{ color: habit.color }">
                   {{ habit.metrics.average }}/{{ habit.metrics.max_value }}
                 </div>
                 <div class="text-xs font-bold text-neutral-400 uppercase tracking-wide mt-1">Average Rating</div>
               </div>
-
               <div class="grid grid-cols-2 gap-3">
                 <div class="text-center p-3 bg-neutral-50 dark:bg-neutral-700 rounded-xl">
                   <div class="text-xl font-black text-green-600 dark:text-green-400">
@@ -379,7 +442,6 @@ onMounted(() => {
                   <div class="text-xs font-bold text-neutral-400 uppercase tracking-wide">Lowest</div>
                 </div>
               </div>
-
               <div class="text-center text-xs text-neutral-400 font-bold">
                 Tracked {{ habit.metrics.days_tracked }}/{{ habit.metrics.days_in_range }} days
               </div>
@@ -389,14 +451,23 @@ onMounted(() => {
       </div>
 
       <!-- Empty State -->
-      <div
-        v-if="summaryData.boolean.length === 0 && summaryData.counter.length === 0 && summaryData.value.length === 0 && summaryData.rating.length === 0"
+      <div v-if="!hasAnyData"
         class="bg-white dark:bg-neutral-800 rounded-4xl p-16 shadow-lg border border-neutral-100 dark:border-neutral-700 text-center">
         <div class="text-6xl mb-4">📊</div>
         <h3 class="text-2xl font-black text-neutral-900 dark:text-white mb-2">{{ t('noHabitsYet') }}</h3>
-        <p class="text-neutral-500 dark:text-neutral-400">{{ t('startTracking') }}
-        </p>
+        <p class="text-neutral-500 dark:text-neutral-400">{{ t('startTracking') }}</p>
       </div>
     </div>
   </div>
 </template>
+
+<style scoped>
+.category-group {
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.category-group[draggable="true"] {
+  touch-action: none;
+}
+</style>
