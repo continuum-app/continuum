@@ -177,8 +177,7 @@ onMounted(() => {
             class="bg-white dark:bg-neutral-800 rounded-4xl p-6 shadow-lg border border-neutral-100 dark:border-neutral-700 hover:shadow-xl transition-all">
             <div class="flex items-center gap-3 mb-4">
               <div class="p-3 rounded-2xl" :style="{ backgroundColor: habit.color + '20' }">
-                <component :is="getIcon(habit.icon)" :size="24" :style="{ color: habit.color }"
-                  stroke-width="2.5" />
+                <component :is="getIcon(habit.icon)" :size="24" :style="{ color: habit.color }" stroke-width="2.5" />
               </div>
               <div class="flex-1">
                 <h4 class="font-black text-neutral-900 dark:text-white text-lg">{{ habit.habit_name }}</h4>
@@ -239,8 +238,7 @@ onMounted(() => {
             class="bg-white dark:bg-neutral-800 rounded-4xl p-6 shadow-lg border border-neutral-100 dark:border-neutral-700 hover:shadow-xl transition-all">
             <div class="flex items-center gap-3 mb-4">
               <div class="p-3 rounded-2xl" :style="{ backgroundColor: habit.color + '20' }">
-                <component :is="getIcon(habit.icon)" :size="24" :style="{ color: habit.color }"
-                  stroke-width="2.5" />
+                <component :is="getIcon(habit.icon)" :size="24" :style="{ color: habit.color }" stroke-width="2.5" />
               </div>
               <div class="flex-1">
                 <h4 class="font-black text-neutral-900 dark:text-white text-lg">{{ habit.habit_name }}</h4>
@@ -294,8 +292,7 @@ onMounted(() => {
             class="bg-white dark:bg-neutral-800 rounded-4xl p-6 shadow-lg border border-neutral-100 dark:border-neutral-700 hover:shadow-xl transition-all">
             <div class="flex items-center gap-3 mb-4">
               <div class="p-3 rounded-2xl" :style="{ backgroundColor: habit.color + '20' }">
-                <component :is="getIcon(habit.icon)" :size="24" :style="{ color: habit.color }"
-                  stroke-width="2.5" />
+                <component :is="getIcon(habit.icon)" :size="24" :style="{ color: habit.color }" stroke-width="2.5" />
               </div>
               <div class="flex-1">
                 <h4 class="font-black text-neutral-900 dark:text-white text-lg">{{ habit.habit_name }}</h4>
@@ -349,8 +346,7 @@ onMounted(() => {
             class="bg-white dark:bg-neutral-800 rounded-4xl p-6 shadow-lg border border-neutral-100 dark:border-neutral-700 hover:shadow-xl transition-all">
             <div class="flex items-center gap-3 mb-4">
               <div class="p-3 rounded-2xl" :style="{ backgroundColor: habit.color + '20' }">
-                <component :is="getIcon(habit.icon)" :size="24" :style="{ color: habit.color }"
-                  stroke-width="2.5" />
+                <component :is="getIcon(habit.icon)" :size="24" :style="{ color: habit.color }" stroke-width="2.5" />
               </div>
               <div class="flex-1">
                 <h4 class="font-black text-neutral-900 dark:text-white text-lg">{{ habit.habit_name }}</h4>

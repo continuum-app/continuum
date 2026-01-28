@@ -138,6 +138,7 @@ export const translations = {
     thisMonthTooltip: 'This month (1st to last day)',
     last7DaysTooltip: 'Last 7 days',
     last30DaysTooltip: 'Last 30 days',
+    allTime: 'All Time',
 
     // View Options
     cardView: 'Card View',
@@ -314,6 +315,7 @@ export const translations = {
     thisMonthTooltip: 'Ce mois-ci (1er au dernier jour)',
     last7DaysTooltip: '7 derniers jours',
     last30DaysTooltip: '30 derniers jours',
+    allTime: 'Depuis le début',
 
     // View Options
     cardView: 'Vue Carte',

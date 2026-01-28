@@ -38,6 +38,67 @@ const quickSelectYears = computed(() => {
   ]
 })
 
+// Date range quick select options
+const dateRangeOptions = [
+  { key: 'thisWeek', label: t('thisWeek'), tooltip: t('thisWeekTooltip') },
+  { key: 'thisMonth', label: t('thisMonth'), tooltip: t('thisMonthTooltip') },
+  { key: 'last7Days', label: t('last7Days'), tooltip: t('last7DaysTooltip') },
+  { key: 'last30Days', label: t('last30Days'), tooltip: t('last30DaysTooltip') },
+  { key: 'allTime', label: t('allTime'), tooltip: t('allTimeTooltip') },
+  { key: quickSelectYears.value[0], label: quickSelectYears.value[0], tooltip: quickSelectYears.value[0] },
+  { key: quickSelectYears.value[1], label: quickSelectYears.value[1], tooltip: quickSelectYears.value[1] },
+  { key: quickSelectYears.value[2], label: quickSelectYears.value[2], tooltip: quickSelectYears.value[2] },
+]
+
+// Set date range based on quick select option
+const setDateRangeOption = (optionKey) => {
+  // Handle allTime separately since it's async
+  if (optionKey === 'allTime') {
+    setAllDataRange()
+    return
+  }
+
+  let endDate = new Date()
+  let startDate = new Date()
+
+  switch (optionKey) {
+    case 'thisWeek': {
+      // Start from Monday of current week
+      const day = startDate.getDay()
+      const diff = day === 0 ? 6 : day - 1 // Adjust for Sunday
+      startDate.setDate(startDate.getDate() - diff)
+      break
+    }
+    case 'thisMonth': {
+      // Start from first day of current month
+      startDate.setDate(1)
+      break
+    }
+    case 'last7Days': {
+      startDate.setDate(startDate.getDate() - 6) // -6 to include today
+      break
+    }
+    case 'last30Days': {
+      startDate.setDate(startDate.getDate() - 29) // -29 to include today
+      break
+    }
+    default: {
+      // Handle year selection
+      const year = parseInt(optionKey)
+      if (!isNaN(year)) {
+        startDate = new Date(year, 0, 1)
+        endDate = new Date(year, 11, 31)
+      }
+      break
+    }
+  }
+
+  startDate.setHours(0, 0, 0, 0)
+
+  graphStartDate.value = startDate.toISOString().split('T')[0]
+  graphEndDate.value = endDate.toISOString().split('T')[0]
+}
+
 // Helper function to fill missing dates with 0 values
 const fillMissingDates = (data) => {
   if (!data || data.length === 0) return data
@@ -296,13 +357,13 @@ onMounted(() => {
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         <div class="space-y-2">
           <label class="text-xs font-black uppercase tracking-widest text-neutral-400 ml-2">{{ t('startDate')
-            }}</label>
+          }}</label>
           <input v-model="graphStartDate" type="date"
             class="w-full bg-neutral-50 dark:bg-neutral-700 border-2 border-neutral-50 dark:border-neutral-700 rounded-2xl px-6 py-4 focus:bg-white dark:focus:bg-neutral-600 focus:border-yellow-500 transition outline-none font-bold text-neutral-900 dark:text-white" />
         </div>
         <div class="space-y-2">
           <label class="text-xs font-black uppercase tracking-widest text-neutral-400 ml-2">{{ t('endDate')
-            }}</label>
+          }}</label>
           <input v-model="graphEndDate" type="date"
             class="w-full bg-neutral-50 dark:bg-neutral-700 border-2 border-neutral-50 dark:border-neutral-700 rounded-2xl px-6 py-4 focus:bg-white dark:focus:bg-neutral-600 focus:border-yellow-500 transition outline-none font-bold text-neutral-900 dark:text-white" />
         </div>
@@ -312,13 +373,10 @@ onMounted(() => {
       <div class="pt-4 border-t border-neutral-100 dark:border-neutral-700">
         <p class="text-xs font-black uppercase tracking-widest text-neutral-400 ml-2 mb-3">Quick Select</p>
         <div class="flex gap-3 flex-wrap">
-          <button @click="setAllDataRange"
-            class="px-6 py-2.5 bg-yellow-600 text-white rounded-xl font-bold text-sm hover:bg-yellow-700 transition-all shadow-sm active:scale-95">
-            All
-          </button>
-          <button v-for="year in quickSelectYears" :key="year" @click="setYearRange(year)"
+          <button v-for="option in dateRangeOptions" :key="option.key" @click="setDateRangeOption(option.key)"
+            :title="option.tooltip"
             class="px-6 py-2.5 bg-neutral-100 dark:bg-neutral-700 text-neutral-900 dark:text-white rounded-xl font-bold text-sm hover:bg-neutral-200 dark:hover:bg-neutral-600 transition-all shadow-sm active:scale-95">
-            {{ year }}
+            {{ option.label }}
           </button>
         </div>
       </div>
@@ -330,8 +388,7 @@ onMounted(() => {
       <h3 class="text-xl font-black text-neutral-900 dark:text-white mb-6 uppercase tracking-tight">{{
         t('booleanHabits') }}
       </h3>
-      <div class="h-80 flex items-center justify-center"
-        v-if="!graphData.boolean || graphData.boolean.length === 0">
+      <div class="h-80 flex items-center justify-center" v-if="!graphData.boolean || graphData.boolean.length === 0">
         <p class="text-neutral-400 dark:text-neutral-500 font-medium text-lg">{{ t('noData') }}</p>
       </div>
       <div class="h-80" v-else>
@@ -345,8 +402,7 @@ onMounted(() => {
       <h3 class="text-xl font-black text-neutral-900 dark:text-white mb-6 uppercase tracking-tight">{{
         t('counterHabits') }}
       </h3>
-      <div class="h-80 flex items-center justify-center"
-        v-if="!graphData.counter || graphData.counter.length === 0">
+      <div class="h-80 flex items-center justify-center" v-if="!graphData.counter || graphData.counter.length === 0">
         <p class="text-neutral-400 dark:text-neutral-500 font-medium text-lg">{{ t('noData') }}</p>
       </div>
       <div class="h-80" v-else>

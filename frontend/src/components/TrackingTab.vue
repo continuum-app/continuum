@@ -415,13 +415,12 @@ const handleDrop = (e, targetCategoryId) => {
         <!-- Filter Section -->
         <div ref="filterSectionRef" class="space-y-4">
             <!-- Filter Toggle Button -->
-            <button @click="isFilterExpanded = !isFilterExpanded"
-                :class="[
-                    'w-full flex items-center justify-between px-6 py-4 rounded-2xl font-bold transition-all',
-                    hasActiveFilters
-                        ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 border-2 border-primary-300 dark:border-primary-700'
-                        : 'bg-white dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 border border-neutral-100 dark:border-neutral-700 hover:bg-neutral-50 dark:hover:bg-neutral-700'
-                ]">
+            <button @click="isFilterExpanded = !isFilterExpanded" :class="[
+                'w-full flex items-center justify-between px-6 py-4 rounded-2xl font-bold transition-all',
+                hasActiveFilters
+                    ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 border-2 border-primary-300 dark:border-primary-700'
+                    : 'bg-white dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 border border-neutral-100 dark:border-neutral-700 hover:bg-neutral-50 dark:hover:bg-neutral-700'
+            ]">
                 <div class="flex items-center gap-3">
                     <Filter :size="20" stroke-width="2.5" />
                     <span>{{ t('filters') }}</span>
@@ -454,18 +453,16 @@ const handleDrop = (e, targetCategoryId) => {
                         </h4>
                         <div class="flex flex-wrap gap-2">
                             <!-- Uncategorized option -->
-                            <button @click="toggleCategoryFilter('uncategorized')"
-                                :class="[
-                                    'px-4 py-2 rounded-xl font-bold text-sm transition-all',
-                                    selectedCategories.includes('uncategorized')
-                                        ? 'bg-primary-600 text-white'
-                                        : 'bg-neutral-100 dark:bg-neutral-700 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-600'
-                                ]">
+                            <button @click="toggleCategoryFilter('uncategorized')" :class="[
+                                'px-4 py-2 rounded-xl font-bold text-sm transition-all',
+                                selectedCategories.includes('uncategorized')
+                                    ? 'bg-primary-600 text-white'
+                                    : 'bg-neutral-100 dark:bg-neutral-700 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-600'
+                            ]">
                                 {{ t('uncategorized') }}
                             </button>
                             <button v-for="category in categories" :key="category.id"
-                                @click="toggleCategoryFilter(category.id)"
-                                :class="[
+                                @click="toggleCategoryFilter(category.id)" :class="[
                                     'px-4 py-2 rounded-xl font-bold text-sm transition-all',
                                     selectedCategories.includes(category.id)
                                         ? 'bg-primary-600 text-white'
@@ -482,15 +479,12 @@ const handleDrop = (e, targetCategoryId) => {
                             {{ t('tags') }}
                         </h4>
                         <div class="flex flex-wrap gap-2">
-                            <button v-for="tag in tags" :key="tag.id"
-                                @click="toggleTagFilter(tag.id)"
-                                :class="[
-                                    'px-4 py-2 rounded-xl font-bold text-sm transition-all flex items-center gap-2',
-                                    selectedTags.includes(tag.id)
-                                        ? 'ring-2 ring-offset-2 ring-primary-500'
-                                        : 'hover:opacity-80'
-                                ]"
-                                :style="{
+                            <button v-for="tag in tags" :key="tag.id" @click="toggleTagFilter(tag.id)" :class="[
+                                'px-4 py-2 rounded-xl font-bold text-sm transition-all flex items-center gap-2',
+                                selectedTags.includes(tag.id)
+                                    ? 'ring-2 ring-offset-2 ring-primary-500'
+                                    : 'hover:opacity-80'
+                            ]" :style="{
                                     backgroundColor: tag.color + '20',
                                     color: tag.color
                                 }">
