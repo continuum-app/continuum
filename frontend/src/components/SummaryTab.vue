@@ -7,6 +7,31 @@ import { RefreshCw } from 'lucide-vue-next'
 
 const { t } = useLanguage()
 
+// Cookie helpers
+const COOKIE_NAME = 'summaryDateRange'
+
+const getCookie = (name) => {
+  const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'))
+  return match ? match[2] : null
+}
+
+const setCookie = (name, value, days = 365) => {
+  const expires = new Date(Date.now() + days * 864e5).toUTCString()
+  document.cookie = `${name}=${value}; expires=${expires}; path=/`
+}
+
+// Date range options
+const dateRangeOptions = [
+  { key: 'thisWeek', label: t('thisWeek'), tooltip: t('thisWeekTooltip') },
+  { key: 'thisMonth', label: t('thisMonth'), tooltip: t('thisMonthTooltip') },
+  { key: 'last7Days', label: t('last7Days'), tooltip: t('last7DaysTooltip') },
+  { key: 'last30Days', label: t('last30Days'), tooltip: t('last30DaysTooltip') }
+]
+
+const validRangeKeys = dateRangeOptions.map(o => o.key)
+const savedRange = getCookie(COOKIE_NAME)
+const selectedRange = ref(validRangeKeys.includes(savedRange) ? savedRange : 'last30Days')
+
 // Summary state
 const summaryData = ref({
   boolean: [],
@@ -27,13 +52,46 @@ const getIcon = (iconName) => {
   return LucideIcons[pascalCase] || LucideIcons.Calendar
 }
 
-// Fetch summary data from API (last 30 days)
+// Calculate date range based on selected option
+const getDateRange = () => {
+  const endDate = new Date()
+  const startDate = new Date()
+
+  switch (selectedRange.value) {
+    case 'thisWeek': {
+      // Start from Monday of current week
+      const day = startDate.getDay()
+      const diff = day === 0 ? 6 : day - 1 // Adjust for Sunday
+      startDate.setDate(startDate.getDate() - diff)
+      break
+    }
+    case 'thisMonth': {
+      // Start from first day of current month
+      startDate.setDate(1)
+      break
+    }
+    case 'last7Days': {
+      startDate.setDate(startDate.getDate() - 6) // -6 to include today
+      break
+    }
+    case 'last30Days':
+    default: {
+      startDate.setDate(startDate.getDate() - 29) // -29 to include today
+      break
+    }
+  }
+
+  // Reset time to start of day for startDate
+  startDate.setHours(0, 0, 0, 0)
+
+  return { startDate, endDate }
+}
+
+// Fetch summary data from API
 const fetchSummaryData = async () => {
   isFetchingSummary.value = true
   try {
-    const endDate = new Date()
-    const startDate = new Date()
-    startDate.setDate(startDate.getDate() - 30)
+    const { startDate, endDate } = getDateRange()
 
     // Calculate number of days in range
     summaryDays.value = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24))
@@ -57,6 +115,13 @@ const fetchSummaryData = async () => {
   }
 }
 
+// Handle date range change
+const onRangeChange = (rangeKey) => {
+  selectedRange.value = rangeKey
+  setCookie(COOKIE_NAME, rangeKey)
+  fetchSummaryData()
+}
+
 // Expose fetchSummaryData so parent can trigger it when tab becomes active
 defineExpose({ fetchSummaryData })
 
@@ -68,15 +133,28 @@ onMounted(() => {
 <template>
   <div class="space-y-6">
     <!-- Header -->
-    <div
-      class="bg-linear-to-r from-yellow-600 to-neutral-950 rounded-4xl p-6 shadow-xl flex justify-between items-center">
-      <div>
-        <h2 class="text-3xl font-black text-white mb-2">{{ t('summaryView') }}</h2>
-        <p class="text-yellow-100 font-medium">{{ t('retrospectiveAnalysis') }}</p>
+    <div class="bg-linear-to-r from-yellow-600 to-neutral-950 rounded-4xl p-6 shadow-xl">
+      <div class="flex justify-between items-center mb-4">
+        <div>
+          <h2 class="text-3xl font-black text-white mb-2">{{ t('summaryView') }}</h2>
+          <p class="text-yellow-100 font-medium">{{ t('retrospectiveAnalysis') }}</p>
+        </div>
+        <div class="text-right">
+          <p class="text-5xl font-black text-white">{{ summaryDays }}</p>
+          <p class="text-yellow-100 font-bold uppercase tracking-wide">{{ t('days') }}</p>
+        </div>
       </div>
-      <div class="text-right">
-        <p class="text-5xl font-black text-white">{{ summaryDays }}</p>
-        <p class="text-yellow-100 font-bold uppercase tracking-wide">{{ t('days') }}</p>
+      <!-- Date Range Selector -->
+      <div class="flex flex-wrap gap-2">
+        <button v-for="option in dateRangeOptions" :key="option.key" @click="onRangeChange(option.key)"
+          :title="option.tooltip" :class="[
+            'px-4 py-2 rounded-xl font-bold text-sm transition-all',
+            selectedRange === option.key
+              ? 'bg-white text-yellow-600 shadow-lg'
+              : 'bg-yellow-700/50 text-yellow-100 hover:bg-yellow-700'
+          ]">
+          {{ option.label }}
+        </button>
       </div>
     </div>
 

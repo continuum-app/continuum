@@ -130,6 +130,14 @@ export const translations = {
     previous: 'Previous',
     next: 'Next',
     days: 'Days',
+    thisWeek: 'This Week',
+    thisMonth: 'This Month',
+    last7Days: 'Last 7 Days',
+    last30Days: 'Last 30 Days',
+    thisWeekTooltip: 'This week (Monday to Sunday)',
+    thisMonthTooltip: 'This month (1st to last day)',
+    last7DaysTooltip: 'Last 7 days',
+    last30DaysTooltip: 'Last 30 days',
 
     // View Options
     cardView: 'Card View',
@@ -298,6 +306,14 @@ export const translations = {
     previous: 'Précédent',
     next: 'Suivant',
     days: 'Jours',
+    thisWeek: 'Cette semaine',
+    thisMonth: 'Ce mois-ci',
+    last7Days: '7 derniers jours',
+    last30Days: '30 derniers jours',
+    thisWeekTooltip: 'Cette semaine (lundi au dimanche)',
+    thisMonthTooltip: 'Ce mois-ci (1er au dernier jour)',
+    last7DaysTooltip: '7 derniers jours',
+    last30DaysTooltip: '30 derniers jours',
 
     // View Options
     cardView: 'Vue Carte',

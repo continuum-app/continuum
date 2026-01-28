@@ -7,7 +7,7 @@ import { useDarkMode } from '@/composables/useDarkMode'
 import { useLanguage } from '@/composables/useLanguage'
 import { useHabits } from '@/composables/useHabits'
 import { useCategories } from '@/composables/useCategories'
-import { Plus, X, ChevronDown, Moon, Sun, BarChart3, FileText, Calendar, Languages, Check, User, LogOut } from 'lucide-vue-next'
+import { Plus, X, ChevronDown, Moon, Sun, BarChart3, FileText, Calendar, Languages, Check, Brain, LogOut } from 'lucide-vue-next'
 import { Chart, registerables } from 'chart.js'
 import 'chartjs-adapter-date-fns'
 import IconPicker from '@/components/IconPicker.vue'
@@ -486,7 +486,7 @@ onUnmounted(() => {
               ? 'bg-primary-600 text-white shadow-lg'
               : 'text-neutral-600 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-neutral-700'
           ]">
-            <User :size="20" stroke-width="2.5" />
+            <Brain :size="20" stroke-width="2.5" />
             <span>{{ t('insights') }}</span>
           </button>
         </div>

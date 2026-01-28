@@ -333,7 +333,7 @@ class HabitViewSet(viewsets.ModelViewSet):
         habits = self.get_queryset()
 
         # Calculate number of days in range
-        days_in_range = (end_date - start_date).days
+        days_in_range = (end_date - start_date).days + 1
 
         # Structure: { habit_type: [{ habit_name, color, metrics }] }
         result = {"boolean": [], "counter": [], "value": [], "rating": []}
