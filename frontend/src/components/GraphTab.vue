@@ -251,7 +251,7 @@ const renderCharts = async () => {
         responsive: true,
         maintainAspectRatio: false,
         interaction: {
-          mode: 'index',
+          mode: 'x',
           intersect: false,
         },
         plugins: {
