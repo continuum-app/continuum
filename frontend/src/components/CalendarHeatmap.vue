@@ -150,10 +150,9 @@ const organizedData = computed(() => {
 
 // Get color with opacity based on value intensity
 const getSquareColor = (value) => {
-  if (value === 0) {
-    return isDark.value ? '#27272a' : '#e5e5e5' // zinc-800 / neutral-200
+  if (value <= 0) {
+    return ""; // No color for zero or negative values
   }
-
   const intensity = value / maxValue.value
   // Map intensity to opacity levels (0.2 to 1.0)
   const opacity = 0.2 + (intensity * 0.8)
@@ -266,8 +265,8 @@ const getSquareStyle = (item) => {
       <!-- Heatmap grid -->
       <div :style="gridStyle" class="heatmap-grid">
         <div v-for="(item, index) in organizedData" :key="item.date || index" :style="getSquareStyle(item)"
-          class="heatmap-square transition-all duration-150 hover:ring-2 hover:ring-offset-1 hover:ring-neutral-400 dark:hover:ring-neutral-500 cursor-default"
-          :title="showTooltips ? `${formatDate(item.date)}: ${item.value}` : undefined" />
+          class="heatmap-square transition-all duration-150 hover:ring-2 hover:ring-offset-1 hover:ring-neutral-400 dark:hover:ring-neutral-500 cursor-default bg-neutral-300 dark:bg-neutral-600"
+          :title="showTooltips ? `${formatDate(item.date)}: ${item.value}` : undefined"></div>
       </div>
     </div>
   </div>
