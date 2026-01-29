@@ -41,6 +41,14 @@ const props = defineProps({
 // Weekday names (short)
 const weekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
+// Helper to get day index (0 = Monday, 6 = Sunday)
+const getDayIndex = (dateStr) => {
+  const date = new Date(dateStr)
+  const day = date.getDay()
+  // Convert: Sunday (0) -> 6, Monday (1) -> 0, etc.
+  return day === 0 ? 6 : day - 1
+}
+
 // Calculate the max value for intensity scaling
 const maxValue = computed(() => {
   if (props.data.length === 0) return 1
@@ -55,12 +63,18 @@ const layoutMode = computed(() => {
   return 'calendar'                    // GitHub-style calendar layout
 })
 
-// Calculate number of columns based on layout
+// Get the offset for the first day (days since Monday)
+const firstDayOffset = computed(() => {
+  if (props.data.length === 0 || layoutMode.value === 'row') return 0
+  return getDayIndex(props.data[0].date)
+})
+
+// Calculate number of columns based on layout (accounting for offset)
 const columns = computed(() => {
   const length = props.data.length
   if (layoutMode.value === 'row') return length
-  // Calendar mode: 7 rows (days of week), columns = weeks
-  return Math.ceil(length / 7)
+  // Calendar mode: account for the offset of the first day
+  return Math.ceil((length + firstDayOffset.value) / 7)
 })
 
 // Generate column headers based on layout mode
@@ -69,29 +83,25 @@ const columnHeaders = computed(() => {
 
   if (layoutMode.value === 'row') {
     // For single row: show weekday names for each date
-    return props.data.map(item => {
-      const date = new Date(item.date)
-      const dayIndex = date.getDay()
-      // Convert Sunday (0) to index 6, Monday (1) to index 0, etc.
-      const adjustedIndex = dayIndex === 0 ? 6 : dayIndex - 1
-      return weekDays[adjustedIndex]
-    })
+    return props.data.map(item => weekDays[getDayIndex(item.date)])
   } else {
-    // For calendar mode: show week start dates
+    // For calendar mode: show the Monday of each week
     const headers = []
     const numCols = columns.value
+    const firstDate = new Date(props.data[0].date)
+
+    // Find the Monday of the first week
+    const firstMonday = new Date(firstDate)
+    firstMonday.setDate(firstDate.getDate() - firstDayOffset.value)
 
     for (let col = 0; col < numCols; col++) {
-      const index = col * 7
-      if (index < props.data.length) {
-        const date = new Date(props.data[index].date)
-        // Format as "Jan 1" or similar
-        const formatted = date.toLocaleDateString(undefined, {
-          month: 'short',
-          day: 'numeric'
-        })
-        headers.push(formatted)
-      }
+      const weekStart = new Date(firstMonday)
+      weekStart.setDate(firstMonday.getDate() + col * 7)
+      const formatted = weekStart.toLocaleDateString(undefined, {
+        month: 'short',
+        day: 'numeric'
+      })
+      headers.push(formatted)
     }
 
     return headers
@@ -104,31 +114,25 @@ const rowLabels = computed(() => {
   return weekDays
 })
 
-// Organize data for calendar layout (column-major order for GitHub-style)
+// Organize data for calendar layout with correct day-of-week positioning
 const organizedData = computed(() => {
   if (layoutMode.value !== 'calendar') {
     return props.data
   }
 
-  // For calendar layout, we need to arrange data in column-major order
-  // Each column represents a week, rows represent days of week
-  const result = []
-  const numCols = columns.value
+  // For calendar layout, place each item in the correct grid position
+  // based on its actual day of week
+  return props.data.map((item, index) => {
+    const dayIndex = getDayIndex(item.date)
+    // Calculate which column this date belongs to
+    const col = Math.floor((index + firstDayOffset.value) / 7)
 
-  for (let col = 0; col < numCols; col++) {
-    for (let row = 0; row < 7; row++) {
-      const index = col * 7 + row
-      if (index < props.data.length) {
-        result.push({
-          ...props.data[index],
-          gridColumn: col + 1,
-          gridRow: row + 1
-        })
-      }
+    return {
+      ...item,
+      gridColumn: col + 1,
+      gridRow: dayIndex + 1
     }
-  }
-
-  return result
+  })
 })
 
 // Get color with opacity based on value intensity
@@ -192,10 +196,9 @@ const gridStyle = computed(() => {
   }
 
   if (layoutMode.value === 'calendar') {
-    // For calendar layout, use explicit grid placement
+    // For calendar layout, use explicit grid placement (no auto-flow)
     style.gridTemplateColumns = `repeat(${columns.value}, ${props.squareSize}px)`
     style.gridTemplateRows = `repeat(7, ${props.squareSize}px)`
-    style.gridAutoFlow = 'column'
   } else {
     // Single row
     style.gridTemplateColumns = `repeat(${columns.value}, ${props.squareSize}px)`
@@ -207,12 +210,20 @@ const gridStyle = computed(() => {
 
 // Square styles
 const getSquareStyle = (item) => {
-  return {
+  const style = {
     width: `${props.squareSize}px`,
     height: `${props.squareSize}px`,
     backgroundColor: getSquareColor(item.value),
     borderRadius: `${props.borderRadius}px`
   }
+
+  // For calendar mode, use explicit grid placement
+  if (layoutMode.value === 'calendar' && item.gridColumn && item.gridRow) {
+    style.gridColumn = item.gridColumn
+    style.gridRow = item.gridRow
+  }
+
+  return style
 }
 </script>
 
