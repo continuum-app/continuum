@@ -41,9 +41,21 @@ const props = defineProps({
 // Weekday names (short)
 const weekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
+// Get user's timezone
+const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
+
+// Helper to parse YYYY-MM-DD string as local date using timezone
+const parseLocalDate = (dateStr) => {
+  // Parse the date string in the user's timezone
+  const [year, month, day] = dateStr.split('-').map(Number)
+  // Create date at noon to avoid any DST edge cases
+  const date = new Date(year, month - 1, day, 12, 0, 0)
+  return date
+}
+
 // Helper to get day index (0 = Monday, 6 = Sunday)
 const getDayIndex = (dateStr) => {
-  const date = new Date(dateStr)
+  const date = parseLocalDate(dateStr)
   const day = date.getDay()
   // Convert: Sunday (0) -> 6, Monday (1) -> 0, etc.
   return day === 0 ? 6 : day - 1
@@ -88,7 +100,7 @@ const columnHeaders = computed(() => {
     // For calendar mode: show the Monday of each week
     const headers = []
     const numCols = columns.value
-    const firstDate = new Date(props.data[0].date)
+    const firstDate = parseLocalDate(props.data[0].date)
 
     // Find the Monday of the first week
     const firstMonday = new Date(firstDate)
@@ -98,6 +110,7 @@ const columnHeaders = computed(() => {
       const weekStart = new Date(firstMonday)
       weekStart.setDate(firstMonday.getDate() + col * 7)
       const formatted = weekStart.toLocaleDateString(undefined, {
+        timeZone: userTimeZone,
         month: 'short',
         day: 'numeric'
       })
@@ -167,8 +180,9 @@ const hexToRgba = (hex, alpha) => {
 
 // Format date for tooltip
 const formatDate = (dateStr) => {
-  const date = new Date(dateStr)
+  const date = parseLocalDate(dateStr)
   return date.toLocaleDateString(undefined, {
+    timeZone: userTimeZone,
     weekday: 'short',
     year: 'numeric',
     month: 'short',
@@ -183,7 +197,7 @@ const headerStyle = computed(() => {
     display: 'grid',
     gridTemplateColumns: `repeat(${columns.value}, ${cellWidth}px)`,
     marginBottom: '4px',
-    marginLeft: layoutMode.value === 'calendar' ? '28px' : '0'
+    marginLeft: layoutMode.value === 'calendar' ? '20px' : '0'
   }
 })
 
@@ -228,9 +242,9 @@ const getSquareStyle = (item) => {
 </script>
 
 <template>
-  <div class="calendar-heatmap pl-2">
+  <div class="calendar-heatmap p-3">
     <!-- Column Headers (inclined) -->
-    <div :style="headerStyle" class="column-headers">
+    <div :style="headerStyle" :class="['column-headers', layoutMode === 'calendar' ? 'pl-6' : 'pl-2']">
       <div v-for="(header, index) in columnHeaders" :key="index" class="header-cell">
         <span class="header-text text-xs font-semibold text-neutral-500 dark:text-neutral-400">
           {{ header }}

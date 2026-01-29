@@ -338,6 +338,28 @@ const renderCharts = async () => {
   })
 }
 
+// Get user's timezone
+const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
+
+// Helper to parse YYYY-MM-DD string as local date (not UTC)
+const parseLocalDate = (dateStr) => {
+  const [year, month, day] = dateStr.split('-').map(Number)
+  // Create date at noon to avoid any DST edge cases
+  return new Date(year, month - 1, day, 12, 0, 0)
+}
+
+// Helper to format date as YYYY-MM-DD from local date
+const formatDateStr = (date) => {
+  // Use Intl.DateTimeFormat with user's timezone for consistent formatting
+  const formatter = new Intl.DateTimeFormat('en-CA', {
+    timeZone: userTimeZone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  })
+  return formatter.format(date)
+}
+
 // Computed property to prepare heatmap data for boolean habits
 // Fills all dates in the selected range (not just dates with data)
 const booleanHeatmapData = computed(() => {
@@ -358,11 +380,11 @@ const booleanHeatmapData = computed(() => {
 
     // Generate all dates in the selected range
     const filledData = []
-    const current = new Date(graphStartDate.value)
-    const end = new Date(graphEndDate.value)
+    const current = parseLocalDate(graphStartDate.value)
+    const end = parseLocalDate(graphEndDate.value)
 
     while (current <= end) {
-      const dateStr = current.toISOString().split('T')[0]
+      const dateStr = formatDateStr(current)
       filledData.push({
         date: dateStr,
         value: dataMap.get(dateStr) || 0
