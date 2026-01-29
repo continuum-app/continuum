@@ -263,27 +263,29 @@ onMounted(() => {
   <div class="space-y-6">
     <!-- Header -->
     <div class="bg-linear-to-r from-yellow-600 to-neutral-950 rounded-4xl p-6 shadow-xl">
-      <div class="flex justify-between items-center mb-4">
+      <div class="flex justify-between items-center mb-2">
         <div>
           <h2 class="text-3xl font-black text-white mb-2">{{ t('summaryView') }}</h2>
           <p class="text-yellow-100 font-medium">{{ t('retrospectiveAnalysis') }}</p>
+          <!-- Date Range Selector -->
+          <div class="pt-2 flex flex-wrap gap-2">
+            <button v-for="option in dateRangeOptions" :key="option.key" @click="onRangeChange(option.key)"
+              :title="option.tooltip" :class="[
+                'rounded-xl font-bold text-sm transition-all',
+                selectedRange === option.key
+                  ? 'bg-white text-yellow-600 shadow-lg'
+                  : 'bg-yellow-700/50 text-yellow-100 hover:bg-yellow-700'
+              ]">
+              {{ option.label }}
+            </button>
+          </div>
         </div>
+
+
         <div class="text-right">
           <p class="text-5xl font-black text-white">{{ summaryDays }}</p>
           <p class="text-yellow-100 font-bold uppercase tracking-wide">{{ t('days') }}</p>
         </div>
-      </div>
-      <!-- Date Range Selector -->
-      <div class="flex flex-wrap gap-2">
-        <button v-for="option in dateRangeOptions" :key="option.key" @click="onRangeChange(option.key)"
-          :title="option.tooltip" :class="[
-            'px-4 py-2 rounded-xl font-bold text-sm transition-all',
-            selectedRange === option.key
-              ? 'bg-white text-yellow-600 shadow-lg'
-              : 'bg-yellow-700/50 text-yellow-100 hover:bg-yellow-700'
-          ]">
-          {{ option.label }}
-        </button>
       </div>
     </div>
 
