@@ -5,6 +5,7 @@ import { useDarkMode } from '@/composables/useDarkMode'
 import { useLanguage } from '@/composables/useLanguage'
 import { Chart, registerables } from 'chart.js'
 import 'chartjs-adapter-date-fns'
+import CalendarHeatmap from '@/components/CalendarHeatmap.vue'
 
 // Register Chart.js components
 Chart.register(...registerables)
@@ -208,28 +209,32 @@ const renderCharts = async () => {
   const habitTypes = ['boolean', 'counter', 'value', 'rating']
 
   habitTypes.forEach(type => {
+    const data = graphData.value[type] || []
+
+    // Destroy existing chart first
+    if (chartInstances.value[type]) {
+      try {
+        chartInstances.value[type].destroy()
+      } catch (e) {
+        // Ignore destroy errors
+      }
+      chartInstances.value[type] = null
+    }
+
+    // Skip if no data
+    if (data.length === 0) return
+
     const canvasId = `chart-${type}`
     const canvas = document.getElementById(canvasId)
 
     if (!canvas) {
-      console.warn(`Canvas element #${canvasId} not found in DOM`)
       return
     }
 
     const ctx = canvas.getContext('2d')
     if (!ctx) {
-      console.warn(`Could not get 2D context from canvas #${canvasId}`)
       return
     }
-
-    // Destroy existing chart
-    if (chartInstances.value[type]) {
-      chartInstances.value[type].destroy()
-    }
-
-    const data = graphData.value[type] || []
-
-    if (data.length === 0) return
 
     // Prepare datasets - one per habit
     const datasets = data.map(habitData => ({
@@ -244,90 +249,134 @@ const renderCharts = async () => {
       spanGaps: false
     }))
 
-    chartInstances.value[type] = new Chart(ctx, {
-      type: 'line',
-      data: { datasets },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        interaction: {
-          mode: 'x',
-          intersect: false,
-        },
-        plugins: {
-          legend: {
-            display: true,
-            position: 'top',
-            labels: {
-              color: isDark.value ? '#a8a29e' : '#57534e',
-              font: {
-                family: 'system-ui',
-                weight: 'bold'
+    try {
+      chartInstances.value[type] = new Chart(ctx, {
+        type: 'line',
+        data: { datasets },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: {
+            mode: 'x',
+            intersect: false,
+          },
+          plugins: {
+            legend: {
+              display: true,
+              position: 'top',
+              labels: {
+                color: isDark.value ? '#a8a29e' : '#57534e',
+                font: {
+                  family: 'system-ui',
+                  weight: 'bold'
+                },
+                padding: 15,
+                usePointStyle: true,
+                pointStyle: 'circle'
+              }
+            },
+            tooltip: {
+              backgroundColor: isDark.value ? '#292524' : '#ffffff',
+              titleColor: isDark.value ? '#fafaf9' : '#1c1917',
+              bodyColor: isDark.value ? '#a8a29e' : '#57534e',
+              borderColor: isDark.value ? '#44403c' : '#d6d3d1',
+              borderWidth: 1,
+              padding: 12,
+              displayColors: true,
+              callbacks: {
+                label: function (context) {
+                  let label = context.dataset.label || '';
+                  if (label) {
+                    label += ': ';
+                  }
+                  if (context.parsed.y !== null) {
+                    label += context.parsed.y;
+                  }
+                  return label;
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              type: 'time',
+              time: {
+                unit: 'day',
+                displayFormats: {
+                  day: 'MMM d'
+                }
               },
-              padding: 15,
-              usePointStyle: true,
-              pointStyle: 'circle'
-            }
-          },
-          tooltip: {
-            backgroundColor: isDark.value ? '#292524' : '#ffffff',
-            titleColor: isDark.value ? '#fafaf9' : '#1c1917',
-            bodyColor: isDark.value ? '#a8a29e' : '#57534e',
-            borderColor: isDark.value ? '#44403c' : '#d6d3d1',
-            borderWidth: 1,
-            padding: 12,
-            displayColors: true,
-            callbacks: {
-              label: function (context) {
-                let label = context.dataset.label || '';
-                if (label) {
-                  label += ': ';
+              grid: {
+                color: isDark.value ? '#44403c' : '#d6d3d1'
+              },
+              ticks: {
+                color: isDark.value ? '#a8a29e' : '#57534e',
+                font: {
+                  weight: '600'
                 }
-                if (context.parsed.y !== null) {
-                  label += context.parsed.y;
+              }
+            },
+            y: {
+              beginAtZero: true,
+              grace: '5%',
+              grid: {
+                color: isDark.value ? '#44403c' : '#d6d3d1'
+              },
+              ticks: {
+                color: isDark.value ? '#a8a29e' : '#57534e',
+                font: {
+                  weight: '600'
                 }
-                return label;
-              }
-            }
-          }
-        },
-        scales: {
-          x: {
-            type: 'time',
-            time: {
-              unit: 'day',
-              displayFormats: {
-                day: 'MMM d'
-              }
-            },
-            grid: {
-              color: isDark.value ? '#44403c' : '#d6d3d1'
-            },
-            ticks: {
-              color: isDark.value ? '#a8a29e' : '#57534e',
-              font: {
-                weight: '600'
-              }
-            }
-          },
-          y: {
-            beginAtZero: true,
-            grace: '5%',
-            grid: {
-              color: isDark.value ? '#44403c' : '#d6d3d1'
-            },
-            ticks: {
-              color: isDark.value ? '#a8a29e' : '#57534e',
-              font: {
-                weight: '600'
               }
             }
           }
         }
-      }
-    })
+      })
+    } catch (e) {
+      console.error(`Failed to create chart for ${type}:`, e)
+    }
   })
 }
+
+// Computed property to prepare heatmap data for boolean habits
+// Fills all dates in the selected range (not just dates with data)
+const booleanHeatmapData = computed(() => {
+  if (!graphData.value.boolean || graphData.value.boolean.length === 0) {
+    return []
+  }
+
+  if (!graphStartDate.value || !graphEndDate.value) {
+    return []
+  }
+
+  return graphData.value.boolean.map(habit => {
+    // Create a map of existing data points
+    const dataMap = new Map()
+    habit.data.forEach(point => {
+      dataMap.set(point.date, point.value)
+    })
+
+    // Generate all dates in the selected range
+    const filledData = []
+    const current = new Date(graphStartDate.value)
+    const end = new Date(graphEndDate.value)
+
+    while (current <= end) {
+      const dateStr = current.toISOString().split('T')[0]
+      filledData.push({
+        date: dateStr,
+        value: dataMap.get(dateStr) || 0
+      })
+      current.setDate(current.getDate() + 1)
+    }
+
+    return {
+      habit_name: habit.habit_name,
+      color: habit.color,
+      data: filledData
+    }
+  })
+})
 
 // Watch for date changes
 watch([graphStartDate, graphEndDate], () => {
@@ -356,14 +405,12 @@ onMounted(() => {
       <h2 class="text-2xl font-black text-neutral-900 dark:text-white mb-6">{{ t('dateRange') }}</h2>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         <div class="space-y-2">
-          <label class="text-xs font-black uppercase tracking-widest text-neutral-400 ml-2">{{ t('startDate')
-          }}</label>
+          <label class="text-xs font-black uppercase tracking-widest text-neutral-400 ml-2">{{ t('startDate') }}</label>
           <input v-model="graphStartDate" type="date"
             class="w-full bg-neutral-50 dark:bg-neutral-700 border-2 border-neutral-50 dark:border-neutral-700 rounded-2xl px-6 py-4 focus:bg-white dark:focus:bg-neutral-600 focus:border-yellow-500 transition outline-none font-bold text-neutral-900 dark:text-white" />
         </div>
         <div class="space-y-2">
-          <label class="text-xs font-black uppercase tracking-widest text-neutral-400 ml-2">{{ t('endDate')
-          }}</label>
+          <label class="text-xs font-black uppercase tracking-widest text-neutral-400 ml-2">{{ t('endDate') }}</label>
           <input v-model="graphEndDate" type="date"
             class="w-full bg-neutral-50 dark:bg-neutral-700 border-2 border-neutral-50 dark:border-neutral-700 rounded-2xl px-6 py-4 focus:bg-white dark:focus:bg-neutral-600 focus:border-yellow-500 transition outline-none font-bold text-neutral-900 dark:text-white" />
         </div>
@@ -378,6 +425,23 @@ onMounted(() => {
             class="px-6 py-2.5 bg-neutral-100 dark:bg-neutral-700 text-neutral-900 dark:text-white rounded-xl font-bold text-sm hover:bg-neutral-200 dark:hover:bg-neutral-600 transition-all shadow-sm active:scale-95">
             {{ option.label }}
           </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Boolean Habits Heatmaps -->
+    <div v-if="booleanHeatmapData.length > 0" class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div v-for="habit in booleanHeatmapData" :key="habit.habit_name"
+        class="bg-white dark:bg-neutral-800 rounded-4xl p-6 shadow-lg border border-neutral-100 dark:border-neutral-700">
+        <div class="flex items-center gap-3 mb-4">
+          <div class="w-4 h-4 rounded-full" :style="{ backgroundColor: habit.color }">
+          </div>
+          <h3 class="text-lg font-black text-neutral-900 dark:text-white uppercase tracking-tight">
+            {{ habit.habit_name }}
+          </h3>
+        </div>
+        <div class="overflow-x-auto">
+          <CalendarHeatmap :data="habit.data" :color="habit.color" :square-size="14" :gap="3" :border-radius="3" />
         </div>
       </div>
     </div>
