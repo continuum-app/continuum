@@ -605,7 +605,7 @@ def habit_insights_for_habit(request, habit_id):
         HabitCorrelation.objects.filter(user=user)
         .filter(Q(habit1_id=habit_id) | Q(habit2_id=habit_id))
         .select_related("habit1", "habit1__category", "habit2", "habit2__category")
-        .order_by("-correlation_coefficient")[:limit]
+        .order_by("-max_correlation")[:limit]
     )
 
     if not correlations.exists():
@@ -654,17 +654,17 @@ def habit_insights_summary(request):
         )
 
     # Get strongest correlation
-    strongest = correlations.order_by("-correlation_coefficient").first()
+    strongest = correlations.order_by("-max_correlation").first()
 
     # Count by strength
-    very_strong = correlations.filter(correlation_coefficient__gte=0.9).count()
+    very_strong = correlations.filter(max_correlation__gte=0.9).count()
     strong = correlations.filter(
-        correlation_coefficient__gte=0.7, correlation_coefficient__lt=0.9
+        max_correlation__gte=0.7, max_correlation__lt=0.9
     ).count()
     moderate = correlations.filter(
-        correlation_coefficient__gte=0.5, correlation_coefficient__lt=0.7
+        max_correlation__gte=0.5, max_correlation__lt=0.7
     ).count()
-    weak = correlations.filter(correlation_coefficient__lt=0.5).count()
+    weak = correlations.filter(max_correlation__lt=0.5).count()
 
     return Response(
         {
@@ -674,7 +674,7 @@ def habit_insights_summary(request):
                 {
                     "habit1": strongest.habit1.name,
                     "habit2": strongest.habit2.name,
-                    "correlation": float(strongest.correlation_coefficient),
+                    "correlation": float(strongest.max_correlation),
                 }
                 if strongest
                 else None
@@ -714,7 +714,7 @@ class HabitCorrelationViewSet(viewsets.ReadOnlyModelViewSet):
         return (
             HabitCorrelation.objects.filter(user=self.request.user)
             .select_related("habit1", "habit1__category", "habit2", "habit2__category")
-            .order_by("-correlation_coefficient")
+            .order_by("-max_correlation")
         )
 
     def list(self, request, *args, **kwargs):
@@ -745,7 +745,7 @@ class HabitCorrelationViewSet(viewsets.ReadOnlyModelViewSet):
 
         # Filter and limit queryset
         queryset = self.get_queryset().filter(
-            correlation_coefficient__gte=min_correlation
+            max_correlation__gte=min_correlation
         )[:limit]
 
         # Serialize
@@ -788,14 +788,14 @@ class HabitCorrelationViewSet(viewsets.ReadOnlyModelViewSet):
         strongest = correlations.first()
 
         # Count by strength
-        very_strong = correlations.filter(correlation_coefficient__gte=0.9).count()
+        very_strong = correlations.filter(max_correlation__gte=0.9).count()
         strong = correlations.filter(
-            correlation_coefficient__gte=0.7, correlation_coefficient__lt=0.9
+            max_correlation__gte=0.7, max_correlation__lt=0.9
         ).count()
         moderate = correlations.filter(
-            correlation_coefficient__gte=0.5, correlation_coefficient__lt=0.7
+            max_correlation__gte=0.5, max_correlation__lt=0.7
         ).count()
-        weak = correlations.filter(correlation_coefficient__lt=0.5).count()
+        weak = correlations.filter(max_correlation__lt=0.5).count()
 
         return Response(
             {
@@ -805,7 +805,7 @@ class HabitCorrelationViewSet(viewsets.ReadOnlyModelViewSet):
                     {
                         "habit1": strongest.habit1.name,
                         "habit2": strongest.habit2.name,
-                        "correlation": float(strongest.correlation_coefficient),
+                        "correlation": float(strongest.max_correlation),
                     }
                     if strongest
                     else None

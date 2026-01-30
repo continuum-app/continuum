@@ -104,8 +104,8 @@ class Command(BaseCommand):
         num_dates = len(all_dates)
 
         # Raw matrix with NaN for missing data
-        raw = np.full((num_habits, num_dates), np.nan, dtype=np.float64)
-
+        raw = np.full((num_habits, num_dates), 0, dtype=np.float64)
+        
         for i, habit_id in enumerate(habit_ids):
             for j, date in enumerate(all_dates):
                 if date in habit_data[habit_id]:
@@ -164,11 +164,11 @@ class Command(BaseCommand):
 
                 # DTW (normalized)
                 dtw_value = None
-                nx = norm[i][overlap_mask]
-                ny = norm[j][overlap_mask]
-                if len(nx) > 1 and len(ny) > 1:
-                    dist = dtw.distance(nx, ny)
-                    dtw_value = dist / (len(nx) + len(ny))
+                # nx = norm[i][overlap_mask]
+                # ny = norm[j][overlap_mask]
+                # if len(nx) > 1 and len(ny) > 1:
+                #     dist = dtw.distance(nx, ny)
+                #     dtw_value = dist / (len(nx) + len(ny))
 
                 pearson_d = Decimal(str(round(float(pearson), 4)))
                 spearman_d = (
@@ -186,7 +186,7 @@ class Command(BaseCommand):
                 obj = existing_map.get(key)
 
                 if obj:
-                    obj.correlation_coefficient = pearson_d
+                    obj.pearson_coefficient = pearson_d
                     obj.spearman_coefficient = spearman_d
                     obj.dtw_distance = dtw_d
                     obj.sample_size = num_dates
@@ -199,7 +199,7 @@ class Command(BaseCommand):
                             user=user,
                             habit1=habit_map[h1_id],
                             habit2=habit_map[h2_id],
-                            correlation_coefficient=pearson_d,
+                            pearson_coefficient=pearson_d,
                             spearman_coefficient=spearman_d,
                             dtw_distance=dtw_d,
                             sample_size=overlap,
@@ -209,18 +209,23 @@ class Command(BaseCommand):
                     )
 
         if to_create:
+            for obj in to_create:
+                obj.max_correlation = obj._compute_max_correlation()
             HabitCorrelation.objects.bulk_create(to_create)
 
         if to_update:
+            for obj in to_update:
+                obj.max_correlation = obj._compute_max_correlation()
             HabitCorrelation.objects.bulk_update(
                 to_update,
                 [
-                    "correlation_coefficient",
+                    "pearson_coefficient",
                     "spearman_coefficient",
                     "dtw_distance",
                     "sample_size",
                     "start_date",
                     "end_date",
+                    "max_correlation",
                 ],
             )
 

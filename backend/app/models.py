@@ -107,9 +107,11 @@ class HabitCorrelation(models.Model):
     )
 
     # Pearson correlation coefficient (-1 to 1) - linear relationships
-    correlation_coefficient = models.DecimalField(
+    pearson_coefficient = models.DecimalField(
         max_digits=5,
         decimal_places=4,
+        null=True,
+        blank=True,
         help_text="Pearson correlation (linear relationships)",
     )
 
@@ -141,22 +143,27 @@ class HabitCorrelation(models.Model):
     # Metadata
     calculated_at = models.DateTimeField(auto_now=True)
 
+    # Cached max correlation for ordering/indexing (updated on save)
+    max_correlation = models.DecimalField(
+        max_digits=5,
+        decimal_places=4,
+        default=0,
+        help_text="Maximum correlation strength across all methods (0-1)",
+    )
+
     class Meta:
         unique_together = ["user", "habit1", "habit2"]
-        ordering = ["-correlation_coefficient"]
+        ordering = ["-max_correlation"]
         indexes = [
-            models.Index(fields=["user", "-correlation_coefficient"]),
+            models.Index(fields=["user", "-max_correlation"]),
         ]
 
     def __str__(self):
-        return (
-            f"{self.habit1.name} ↔ {self.habit2.name}: {self.correlation_coefficient}"
-        )
+        return f"{self.habit1.name} ↔ {self.habit2.name}: {self.max_correlation}"
 
-    @property
-    def max_correlation(self):
+    def _compute_max_correlation(self):
         """
-        Returns the maximum correlation strength across all three methods.
+        Computes the maximum correlation strength across all three methods.
 
         Takes the absolute value for Pearson and Spearman coefficients
         (since both -1 and +1 indicate strong correlation),
@@ -167,8 +174,8 @@ class HabitCorrelation(models.Model):
         correlations = []
 
         # Pearson correlation: -1 to 1, use absolute value
-        if self.correlation_coefficient is not None:
-            correlations.append(abs(float(self.correlation_coefficient)))
+        if self.pearson_coefficient is not None:
+            correlations.append(abs(float(self.pearson_coefficient)))
 
         # Spearman correlation: -1 to 1, use absolute value
         if self.spearman_coefficient is not None:
@@ -179,8 +186,11 @@ class HabitCorrelation(models.Model):
         if self.dtw_distance is not None:
             correlations.append(1 - float(self.dtw_distance))
 
-        # Return the maximum correlation found
         return max(correlations) if correlations else 0.0
+
+    def save(self, *args, **kwargs):
+        self.max_correlation = self._compute_max_correlation()
+        super().save(*args, **kwargs)
 
 
 class SiteSettings(models.Model):

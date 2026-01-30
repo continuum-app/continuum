@@ -93,9 +93,6 @@ class HabitCorrelationSerializer(serializers.ModelSerializer):
 
     habit1 = HabitBasicSerializer(read_only=True)
     habit2 = HabitBasicSerializer(read_only=True)
-    correlation = serializers.DecimalField(
-        source="correlation_coefficient", max_digits=5, decimal_places=4, read_only=True
-    )
     max_correlation = serializers.SerializerMethodField()
     strength = serializers.SerializerMethodField()
     description = serializers.SerializerMethodField()
@@ -105,7 +102,7 @@ class HabitCorrelationSerializer(serializers.ModelSerializer):
         fields = [
             "habit1",
             "habit2",
-            "correlation",
+            "pearson_coefficient",
             "spearman_coefficient",
             "dtw_distance",
             "max_correlation",
@@ -140,7 +137,7 @@ class HabitCorrelationSerializer(serializers.ModelSerializer):
         """Generate human-readable description of the correlation."""
         habit1_name = obj.habit1.name
         habit2_name = obj.habit2.name
-        coefficient = float(obj.correlation_coefficient)
+        coefficient = float(obj.max_correlation)
 
         if coefficient > 0:
             if coefficient >= 0.9:
