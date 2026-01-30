@@ -17,15 +17,8 @@ from collections import defaultdict
 
 import numpy as np
 from scipy.stats import spearmanr
-
 from ...models import Habit, Completion, HabitCorrelation
-
-try:
-    from dtaidistance import dtw
-
-    HAS_DTW = True
-except ImportError:
-    HAS_DTW = False
+from dtaidistance import dtw
 
 
 class Command(BaseCommand):
@@ -159,21 +152,23 @@ class Command(BaseCommand):
                 if np.isnan(pearson):
                     continue
 
-                # Spearman (raw values)
+                # Spearman (raw values, with p-value filtering)
                 with np.errstate(divide="ignore", invalid="ignore"):
-                    spearman, _ = spearmanr(
+                    spearman, p_value = spearmanr(
                         x[overlap_mask],
                         y[overlap_mask],
                     )
+                    # Discard if not statistically significant
+                    if p_value > 0.05:
+                        spearman = np.nan
 
                 # DTW (normalized, optional)
                 dtw_value = None
-                if HAS_DTW:
-                    nx = norm[i][overlap_mask]
-                    ny = norm[j][overlap_mask]
-                    if len(nx) > 1 and len(ny) > 1:
-                        dist = dtw.distance(nx, ny)
-                        dtw_value = dist / (len(nx) + len(ny))
+                nx = norm[i][overlap_mask]
+                ny = norm[j][overlap_mask]
+                if len(nx) > 1 and len(ny) > 1:
+                    dist = dtw.distance(nx, ny)
+                    dtw_value = dist / (len(nx) + len(ny))
 
                 pearson_d = Decimal(str(round(float(pearson), 4)))
                 spearman_d = (
