@@ -303,8 +303,8 @@ onMounted(() => {
         @dragleave="handleDragLeave" @drop="handleDrop($event, group.id)">
 
         <!-- Group Header -->
-        <div class="flex items-center gap-3 px-2 cursor-grab active:cursor-grabbing"
-          draggable="true" @dragstart="handleDragStart($event, group.id)" @dragend="handleDragEnd">
+        <div class="flex items-center gap-3 px-2 cursor-grab active:cursor-grabbing" draggable="true"
+          @dragstart="handleDragStart($event, group.id)" @dragend="handleDragEnd">
           <GripVertical :size="20"
             class="text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 shrink-0" />
           <div class="w-2 h-6 bg-yellow-500 rounded-full shrink-0"></div>
@@ -329,9 +329,13 @@ onMounted(() => {
               </div>
               <div class="flex-1">
                 <h4 class="font-black text-neutral-900 dark:text-white text-lg">{{ habit.habit_name }}</h4>
-                <p class="text-xs font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-wide">
-                  {{ t(habit.habit_type + 'Habits') }}
-                </p>
+                <div v-if="habit.tags && habit.tags.length > 0" class="flex flex-wrap gap-1 mt-1">
+                  <span v-for="tag in habit.tags" :key="tag.id"
+                    class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold"
+                    :style="{ backgroundColor: tag.color + '20', color: tag.color }">
+                    {{ tag.name }}
+                  </span>
+                </div>
               </div>
             </div>
 

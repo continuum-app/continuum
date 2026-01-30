@@ -152,7 +152,9 @@ class HabitViewSet(viewsets.ModelViewSet):
         try:
             habit = Habit.objects.get(id=pk, user=request.user)
         except Habit.DoesNotExist:
-            return Response({"error": "Habit not found"}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"error": "Habit not found"}, status=status.HTTP_404_NOT_FOUND
+            )
 
         habit.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
@@ -402,6 +404,10 @@ class HabitViewSet(viewsets.ModelViewSet):
                     "color": habit.color,
                     "icon": habit.icon,
                     "metrics": metrics,
+                    "tags": [
+                        {"id": tag.id, "name": tag.name, "color": tag.color}
+                        for tag in habit.tags.all()
+                    ],
                 }
             )
 
@@ -561,9 +567,7 @@ def habit_insights(request):
 
     # Fetch correlations for this user
     correlations = (
-        HabitCorrelation.objects.filter(
-            user=user, max_correlation__gte=min_correlation
-        )
+        HabitCorrelation.objects.filter(user=user, max_correlation__gte=min_correlation)
         .select_related("habit1", "habit1__category", "habit2", "habit2__category")
         .order_by("-max_correlation")[:limit]
     )
@@ -744,9 +748,9 @@ class HabitCorrelationViewSet(viewsets.ReadOnlyModelViewSet):
             min_correlation = 0.5
 
         # Filter and limit queryset
-        queryset = self.get_queryset().filter(
-            max_correlation__gte=min_correlation
-        )[:limit]
+        queryset = self.get_queryset().filter(max_correlation__gte=min_correlation)[
+            :limit
+        ]
 
         # Serialize
         serializer = self.get_serializer(queryset, many=True)
