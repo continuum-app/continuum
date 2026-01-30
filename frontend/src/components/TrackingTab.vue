@@ -509,11 +509,11 @@ const handleDrop = (e, targetCategoryId) => {
         <template v-else>
             <div v-for="group in groupedHabits" :key="group.id" class="space-y-4 category-group"
                 :class="{ 'opacity-50': draggedCategoryId === group.id, 'ring-2 ring-yellow-500 ring-offset-2 rounded-2xl': dragOverCategoryId === group.id && draggedCategoryId !== group.id }"
-                draggable="true" @dragstart="handleDragStart($event, group.id)" @dragend="handleDragEnd"
                 @dragover="handleDragOver($event, group.id)" @dragenter="handleDragEnter($event, group.id)"
                 @dragleave="handleDragLeave" @drop="handleDrop($event, group.id)">
                 <!-- Group Header -->
-                <div class="flex items-center gap-3 px-2 cursor-grab active:cursor-grabbing">
+                <div class="flex items-center gap-3 px-2 cursor-grab active:cursor-grabbing"
+                    draggable="true" @dragstart="handleDragStart($event, group.id)" @dragend="handleDragEnd">
                     <GripVertical :size="20"
                         class="text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 shrink-0" />
                     <div class="w-2 h-6 bg-yellow-500 rounded-full shrink-0"></div>
