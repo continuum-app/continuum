@@ -18,7 +18,7 @@ const router = useRouter()
 const { isDark, toggleDarkMode } = useDarkMode()
 const { currentLanguage, setLanguage, languages, currentLanguageInfo, t } = useLanguage()
 const { addHabit: addHabitApi } = useHabits()
-const { categories } = useCategories()
+const { categories, fetchCategories } = useCategories()
 
 // Language dropdown state
 const isLanguageDropdownOpen = ref(false)
@@ -89,6 +89,7 @@ const closeLanguageDropdown = (event) => {
 }
 
 onMounted(() => {
+  fetchCategories()
   document.addEventListener('click', closeLanguageDropdown)
 })
 
