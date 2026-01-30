@@ -98,7 +98,7 @@ onMounted(() => {
                             {{ getStrengthLabel(insight.strength) }}
                         </span>
                         <span class="text-3xl font-black text-yellow-600 dark:text-yellow-400">
-                            {{ (insight.correlation * 100).toFixed(0) }}%
+                            {{ (insight.max_correlation * 100).toFixed(0) }}%
                         </span>
                     </div>
 

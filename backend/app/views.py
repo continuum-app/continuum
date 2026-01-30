@@ -562,10 +562,10 @@ def habit_insights(request):
     # Fetch correlations for this user
     correlations = (
         HabitCorrelation.objects.filter(
-            user=user, correlation_coefficient__gte=min_correlation
+            user=user, max_correlation__gte=min_correlation
         )
         .select_related("habit1", "habit1__category", "habit2", "habit2__category")
-        .order_by("-correlation_coefficient")[:limit]
+        .order_by("-max_correlation")[:limit]
     )
 
     # Serialize the data

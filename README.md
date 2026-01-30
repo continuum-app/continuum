@@ -140,6 +140,7 @@ HabitsFactory uses **multiple correlation algorithms** to discover meaningful re
   - **Pearson Correlation** — Detects linear relationships between habits
   - **Spearman Rank Correlation** — Identifies monotonic relationships (handles ordinal data)
   - **Dynamic Time Warping (DTW)** — Detects time-shifted patterns and flexible alignments
+    - https://github.com/wannesm/dtaidistance
 - ⚙️ Admin configuration panel
 - 🎯 Clean, modern UX with strong visual hierarchy
 - 🔐 Token-based authentication & SSO

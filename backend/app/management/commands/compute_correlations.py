@@ -162,7 +162,7 @@ class Command(BaseCommand):
                     if p_value > 0.05:
                         spearman = np.nan
 
-                # DTW (normalized, optional)
+                # DTW (normalized)
                 dtw_value = None
                 nx = norm[i][overlap_mask]
                 ny = norm[j][overlap_mask]
@@ -189,7 +189,7 @@ class Command(BaseCommand):
                     obj.correlation_coefficient = pearson_d
                     obj.spearman_coefficient = spearman_d
                     obj.dtw_distance = dtw_d
-                    obj.sample_size = overlap
+                    obj.sample_size = num_dates
                     obj.start_date = start_date
                     obj.end_date = end_date
                     to_update.append(obj)
