@@ -1,0 +1,106 @@
+[
+  {
+    "id": 1,
+    "name": "Morning Run",
+    "icon": "footprints",
+    "color": "#22c55e",
+    "habit_type": "boolean",
+    "is_completed": true
+  },
+  {
+    "id": 2,
+    "name": "Water Intake",
+    "icon": "droplet",
+    "color": "#3b82f6",
+    "habit_type": "counter",
+    "value": 8,
+    "unit": "glasses"
+  },
+  {
+    "id": 3,
+    "name": "Reading",
+    "icon": "book-open",
+    "color": "#8b5cf6",
+    "habit_type": "value",
+    "value": 45,
+    "unit": "min"
+  },
+  {
+    "id": 4,
+    "name": "Mood",
+    "icon": "smile",
+    "color": "#f59e0b",
+    "habit_type": "rating",
+    "value": 4,
+    "max_value": 5
+  },
+  {
+    "id": 5,
+    "name": "Meditation",
+    "icon": "brain",
+    "color": "#ec4899",
+    "habit_type": "boolean",
+    "is_completed": true
+  },
+  {
+    "id": 6,
+    "name": "Steps",
+    "icon": "activity",
+    "color": "#14b8a6",
+    "habit_type": "counter",
+    "value": 12500,
+    "unit": "steps"
+  },
+  {
+    "id": 7,
+    "name": "Sleep",
+    "icon": "moon",
+    "color": "#6366f1",
+    "habit_type": "value",
+    "value": 7.5,
+    "unit": "hours"
+  },
+  {
+    "id": 8,
+    "name": "Energy",
+    "icon": "zap",
+    "color": "#eab308",
+    "habit_type": "rating",
+    "value": 5,
+    "max_value": 5
+  },
+  {
+    "id": 9,
+    "name": "Yoga",
+    "icon": "heart",
+    "color": "#ef4444",
+    "habit_type": "boolean",
+    "is_completed": false
+  },
+  {
+    "id": 10,
+    "name": "Coding",
+    "icon": "code",
+    "color": "#0ea5e9",
+    "habit_type": "value",
+    "value": 120,
+    "unit": "min"
+  },
+  {
+    "id": 11,
+    "name": "Journaling",
+    "icon": "pencil",
+    "color": "#a855f7",
+    "habit_type": "boolean",
+    "is_completed": true
+  },
+  {
+    "id": 12,
+    "name": "Focus Time",
+    "icon": "target",
+    "color": "#f97316",
+    "habit_type": "rating",
+    "value": 3,
+    "max_value": 5
+  }
+]

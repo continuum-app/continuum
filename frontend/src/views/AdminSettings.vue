@@ -126,9 +126,9 @@ onMounted(() => {
                         {{ t('returnDashboard') }}
                     </button>
                     <h1 class="text-4xl font-black tracking-tighter text-neutral-900 dark:text-white uppercase italic">
-                        Admin Settings
+                        {{ t('adminSettings') }}
                     </h1>
-                    <p class="text-neutral-400 dark:text-neutral-500 font-medium">Site-wide settings for administrators</p>
+                    <p class="text-neutral-400 dark:text-neutral-500 font-medium">{{ t('adminSettingsMessage') }}</p>
                 </div>
             </header>
 
@@ -142,29 +142,29 @@ onMounted(() => {
                             <Settings :size="24" class="text-emerald-600 dark:text-emerald-400" stroke-width="2.5" />
                         </div>
                         <div class="flex-1">
-                            <h2 class="text-2xl font-black text-neutral-900 dark:text-white">Site-Wide Settings</h2>
-                            <p class="text-sm text-neutral-500 dark:text-neutral-400 font-medium">Admin only - affects all
-                                users</p>
+                            <h2 class="text-2xl font-black text-neutral-900 dark:text-white">{{ t('siteWideSettings') }}</h2>
+                            <p class="text-sm text-neutral-500 dark:text-neutral-400 font-medium">{{ t('adminOnlyMessage') }}</p>
                         </div>
                     </div>
 
                     <div class="space-y-6">
                         <!-- Registration Toggle -->
-                        <div class="flex items-center justify-between p-6 bg-neutral-50 dark:bg-neutral-700 rounded-2xl">
+                        <div
+                            class="flex items-center justify-between p-6 bg-neutral-50 dark:bg-neutral-700 rounded-2xl">
                             <div class="flex-1">
-                                <h3 class="font-black text-neutral-900 dark:text-white text-lg mb-1">User Registration
+                                <h3 class="font-black text-neutral-900 dark:text-white text-lg mb-1">{{ t('userRegistration') }}
                                 </h3>
                                 <p class="text-sm text-neutral-500 dark:text-neutral-400">
-                                    Allow new users to register accounts on the site
+                                    {{ t('userRegistrationMessage') }}
                                 </p>
                             </div>
                             <label class="relative inline-flex items-center cursor-pointer ml-4">
                                 <input type="checkbox" v-model="siteSettings.allow_registration" class="sr-only peer">
                                 <div
-                                    class="w-14 h-7 bg-neutral-300 dark:bg-neutral-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-300 dark:peer-focus:ring-emerald-800 rounded-full peer peer-checked:after:tranneutral-x-full rtl:peer-checked:after:-tranneutral-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-1 after:bg-white after:border-neutral-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all dark:border-neutral-600 peer-checked:bg-emerald-600">
+                                    class="w-14 h-7 bg-neutral-300 dark:bg-neutral-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-300 dark:peer-focus:ring-emerald-800 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-1 after:bg-white after:border-neutral-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all dark:border-neutral-600 peer-checked:bg-emerald-600">
                                 </div>
                                 <span class="ml-3 text-sm font-bold text-neutral-900 dark:text-white">
-                                    {{ siteSettings.allow_registration ? 'Enabled' : 'Disabled' }}
+                                    {{ siteSettings.allow_registration ? t('enabled') : t('disabled') }}
                                 </span>
                             </label>
                         </div>
@@ -179,7 +179,7 @@ onMounted(() => {
                             <RefreshCw v-if="isSavingSettings" :size="20" class="animate-spin" />
                             <CheckCircle2 v-else-if="settingsSaved" :size="20" stroke-width="2.5" />
                             <Save v-else :size="20" stroke-width="2.5" />
-                            {{ isSavingSettings ? 'Saving...' : settingsSaved ? 'Site Settings Saved' : 'Save Site Settings' }}
+                            {{ isSavingSettings ? t('saving') : settingsSaved ? t('siteSettingsSaved') : t('saveSiteSettings') }}
                         </button>
                     </div>
                 </div>

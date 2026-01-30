@@ -73,8 +73,20 @@ export const translations = {
 
     // Footer
     viewOnGithub: 'View on GitHub',
-    adminSettings: 'Admin Settings',
+    adminSettings: 'Administration',
+    adminSettingsMessage: 'Manage site-wide settings and user permissions.',
     allRightsReserved: 'All rights reserved.',
+
+    // Administration Settings
+    siteWideSettings: 'Site-Wide Settings',
+    adminOnlyMessage: 'Admin-only settings that affect all users',
+    userRegistration: 'User Registration',
+    saveSiteSettings: 'Save Site Settings',
+    siteSettingsSaved: 'Site Settings Saved',
+    userRegistrationMessage: 'Allow new users to register on the site',
+    enabled: 'Enabled',
+    disabled: 'Disabled',
+    saving: 'Saving...',
 
     // Summary
     summaryView: 'Summary View',
@@ -266,8 +278,20 @@ export const translations = {
 
     // Footer
     viewOnGithub: 'Voir sur GitHub',
-    adminSettings: 'Paramètres Admin',
+    adminSettings: 'Administration',
+    adminSettingsMessage: 'Paramètres globaux du site pour les administrateurs',
     allRightsReserved: 'Tous droits réservés.',
+
+    // Administration Settings
+    siteWideSettings: 'Paramètres Globaux du Site',
+    adminOnlyMessage: 'Réservé aux administrateurs - affecte tous les utilisateurs',
+    userRegistration: 'Inscription des utilisateurs',
+    saveSiteSettings: 'Enregistrer les Paramètres du Site',
+    siteSettingsSaved: 'Paramètres du Site Enregistrés',
+    userRegistrationMessage: 'Permettre aux nouveaux utilisateurs de s\'inscrire sur le site',
+    enabled: 'Activé',
+    disabled: 'Désactivé',
+    saving: 'Enregistrement...',
 
     // Summary
     summaryView: 'Aperçu du résumé',
@@ -346,7 +370,7 @@ export const translations = {
     required: 'Requis',
     invalidEmail: 'Email invalide',
     passwordMismatch: 'Les mots de passe ne correspondent pas',
-    
+
     // Units
     unitPlaceholder: 'ex: km, heures, pages',
 
