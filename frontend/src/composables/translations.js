@@ -204,6 +204,7 @@ export const translations = {
     noAccount: "Don't have an account?",
     signUp: 'Sign up',
     invalidCredentials: 'Invalid email or password',
+    emailPlaceholder: 'you@example.com',
   },
 
   fr: {
@@ -398,5 +399,6 @@ export const translations = {
     noAccount: "Vous n'avez pas de compte?",
     signUp: "S'inscrire",
     invalidCredentials: 'Email ou mot de passe invalide',
+    emailPlaceholder: 'courriel@domaine.com',
   }
 }
