@@ -3,8 +3,10 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '@/services/api'
 import { AlertCircle } from 'lucide-vue-next'
+import { useLanguage } from '@/composables/useLanguage'
 
 const router = useRouter()
+const { t } = useLanguage()
 
 const username = ref('')
 const email = ref('')
@@ -51,7 +53,6 @@ const handleRegister = async () => {
             password1: password1.value,
             password2: password2.value
         })
-
         router.push('/login')
     } catch (err) {
         if (err.response?.data) {
@@ -88,9 +89,9 @@ onMounted(() => {
                 <div class="text-center mb-8">
                     <h1
                         class="text-4xl font-black tracking-tighter text-neutral-900 dark:text-white uppercase italic mb-2">
-                        HabitsFactory
+                        Habits Factory
                     </h1>
-                    <p class="text-neutral-500 dark:text-neutral-400 font-medium">Create your account</p>
+                    <p class="text-neutral-500 dark:text-neutral-400 font-medium">{{ t('createAccount') }}</p>
                 </div>
 
                 <!-- Loading state while checking registration status -->
@@ -98,7 +99,7 @@ onMounted(() => {
                     <div
                         class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-neutral-300 border-t-yellow-600">
                     </div>
-                    <p class="mt-4 text-neutral-500 dark:text-neutral-400">Checking registration status...</p>
+                    <p class="mt-4 text-neutral-500 dark:text-neutral-400">{{ t('checkRegistrationStatus') }}</p>
                 </div>
 
                 <!-- Registration disabled message -->
@@ -107,17 +108,17 @@ onMounted(() => {
                         class="bg-red-50 dark:bg-red-900/20 border-2 border-red-200 dark:border-red-900/50 rounded-2xl p-6">
                         <div class="flex items-center gap-3 mb-3">
                             <AlertCircle :size="24" class="text-red-600 dark:text-red-400" />
-                            <h3 class="font-black text-red-900 dark:text-red-400 text-lg">Registration Disabled</h3>
+                            <h3 class="font-black text-red-900 dark:text-red-400 text-lg">{{ t('registrationDisabled')
+                                }}</h3>
                         </div>
                         <p class="text-red-700 dark:text-red-300 font-medium">
-                            New user registration is currently disabled by the site administrator. Please contact the
-                            administrator for access.
+                            {{ t('registrationDisabledMessage') }}
                         </p>
                     </div>
 
                     <button @click="router.push('/login')"
                         class="w-full bg-neutral-600 text-white py-4 rounded-2xl font-bold hover:bg-neutral-700 transition-all shadow-lg">
-                        Back to Login
+                        {{ t('backToLogin') }}
                     </button>
                 </div>
 
@@ -129,29 +130,31 @@ onMounted(() => {
                     </div>
 
                     <div class="space-y-2">
-                        <label class="text-xs font-black uppercase tracking-widest text-neutral-400 ml-2">Username</label>
+                        <label class="text-xs font-black uppercase tracking-widest text-neutral-400 ml-2">{{
+                            t('username') }}</label>
                         <input v-model="username" type="text" required
                             class="w-full bg-neutral-50 dark:bg-neutral-700 border-2 border-neutral-50 dark:border-neutral-700 rounded-2xl px-6 py-4 focus:bg-white dark:focus:bg-neutral-600 focus:border-yellow-500 transition outline-none font-bold text-neutral-900 dark:text-white"
                             placeholder="Enter username" />
                     </div>
 
                     <div class="space-y-2">
-                        <label class="text-xs font-black uppercase tracking-widest text-neutral-400 ml-2">Email</label>
+                        <label class="text-xs font-black uppercase tracking-widest text-neutral-400 ml-2">{{ t('email')
+                            }}</label>
                         <input v-model="email" type="email" required
                             class="w-full bg-neutral-50 dark:bg-neutral-700 border-2 border-neutral-50 dark:border-neutral-700 rounded-2xl px-6 py-4 focus:bg-white dark:focus:bg-neutral-600 focus:border-yellow-500 transition outline-none font-bold text-neutral-900 dark:text-white"
                             placeholder="Enter email" />
                     </div>
 
                     <div class="space-y-2">
-                        <label class="text-xs font-black uppercase tracking-widest text-neutral-400 ml-2">Password</label>
+                        <label class="text-xs font-black uppercase tracking-widest text-neutral-400 ml-2">{{
+                            t('password') }}</label>
                         <input v-model="password1" type="password" required
                             class="w-full bg-neutral-50 dark:bg-neutral-700 border-2 border-neutral-50 dark:border-neutral-700 rounded-2xl px-6 py-4 focus:bg-white dark:focus:bg-neutral-600 focus:border-yellow-500 transition outline-none font-bold text-neutral-900 dark:text-white"
                             placeholder="Enter password" />
                     </div>
 
                     <div class="space-y-2">
-                        <label class="text-xs font-black uppercase tracking-widest text-neutral-400 ml-2">Confirm
-                            Password</label>
+                        <label class="text-xs font-black uppercase tracking-widest text-neutral-400 ml-2">{{ t('confirmPassword') }}</label>
                         <input v-model="password2" type="password" required
                             class="w-full bg-neutral-50 dark:bg-neutral-700 border-2 border-neutral-50 dark:border-neutral-700 rounded-2xl px-6 py-4 focus:bg-white dark:focus:bg-neutral-600 focus:border-yellow-500 transition outline-none font-bold text-neutral-900 dark:text-white"
                             placeholder="Confirm password" />
@@ -164,10 +167,10 @@ onMounted(() => {
 
                     <div class="text-center">
                         <p class="text-sm text-neutral-500 dark:text-neutral-400">
-                            Already have an account?
+                            {{ t('signupMessage') }}
                             <router-link to="/login"
                                 class="text-yellow-600 dark:text-yellow-400 font-bold hover:underline">
-                                Login here
+                                {{ t('loginHere') }}
                             </router-link>
                         </p>
                     </div>

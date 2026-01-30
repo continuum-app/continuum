@@ -174,6 +174,23 @@ export const translations = {
     clearFilters: 'Clear Filters',
     noMatchingHabits: 'No matching habits',
     noHabitsMatchFilters: 'No habits match your current filters.',
+
+    // Login/Register
+    createAccount: 'Create your account',
+    checkRegistrationStatus: 'Checking registration status...',
+    registrationDisabled: 'Registration Disabled',
+    registrationDisabledMessage: 'New user registration is currently disabled by the site administrator. Please contact the administrator for access.',
+    backToLogin: 'Back to Login',
+    password: 'Password',
+    confirmPassword: 'Confirm Password',
+    signupMessage: 'Already have an account?',
+    loginHere: 'Login here',
+    signInToContinue: 'Sign in to continue',
+    signIn: 'Sign In',
+    signingIn: 'Signing in...',
+    noAccount: "Don't have an account?",
+    signUp: 'Sign up',
+    invalidCredentials: 'Invalid email or password',
   },
 
   fr: {
@@ -329,7 +346,7 @@ export const translations = {
     required: 'Requis',
     invalidEmail: 'Email invalide',
     passwordMismatch: 'Les mots de passe ne correspondent pas',
-
+    
     // Units
     unitPlaceholder: 'ex: km, heures, pages',
 
@@ -338,5 +355,22 @@ export const translations = {
     clearFilters: 'Effacer les Filtres',
     noMatchingHabits: 'Aucune habitude correspondante',
     noHabitsMatchFilters: 'Aucune habitude ne correspond à vos filtres.',
+
+    // Login/Register
+    createAccount: 'Créer votre compte',
+    checkRegistrationStatus: 'Vérification du statut d\'inscription...',
+    registrationDisabled: 'Inscription Désactivée',
+    registrationDisabledMessage: 'L\'inscription de nouveaux utilisateurs est actuellement désactivée par l\'administrateur du site. Veuillez contacter l\'administrateur pour obtenir un accès.',
+    backToLogin: 'Retour à la page de connexion',
+    password: 'Mot de passe',
+    confirmPassword: 'Confirmer le mot de passe',
+    signupMessage: 'Vous avez déjà un compte?',
+    loginHere: 'Connectez-vous ici',
+    signInToContinue: 'Connectez-vous pour continuer',
+    signIn: 'Se connecter',
+    signingIn: 'Connexion en cours...',
+    noAccount: "Vous n'avez pas de compte?",
+    signUp: "S'inscrire",
+    invalidCredentials: 'Email ou mot de passe invalide',
   }
 }

@@ -374,7 +374,7 @@ onUnmounted(() => {
                                 <User :size="24" class="text-primary-600 dark:text-primary-400" stroke-width="2.5" />
                             </div>
                             <h2 class="text-2xl font-black text-neutral-900 dark:text-white">{{ t('accountInformation')
-                            }}</h2>
+                                }}</h2>
                         </div>
 
                         <div class="space-y-6">
@@ -382,7 +382,7 @@ onUnmounted(() => {
                             <div class="space-y-2">
                                 <label class="text-xs font-black uppercase tracking-widest text-neutral-400 ml-2">{{
                                     t('username')
-                                }}</label>
+                                    }}</label>
                                 <div
                                     class="bg-neutral-100 dark:bg-neutral-700 rounded-2xl px-6 py-4 font-bold text-neutral-600 dark:text-neutral-300">
                                     {{ userInfo.username }}
@@ -393,7 +393,7 @@ onUnmounted(() => {
                             <div class="space-y-2">
                                 <label class="text-xs font-black uppercase tracking-widest text-neutral-400 ml-2">{{
                                     t('email')
-                                }}</label>
+                                    }}</label>
                                 <div class="flex gap-3">
                                     <input v-model="profileEmail" type="email"
                                         class="flex-1 bg-neutral-50 dark:bg-neutral-700 border-2 border-neutral-100 dark:border-neutral-600 rounded-2xl px-6 py-4 font-bold outline-none focus:border-primary-500 transition text-neutral-900 dark:text-white" />
@@ -506,7 +506,7 @@ onUnmounted(() => {
                                 </template>
                                 <template v-else>
                                     <span class="flex-1 font-bold text-neutral-900 dark:text-white">{{ category.name
-                                    }}</span>
+                                        }}</span>
                                     <button @click="startEditCategory(category)"
                                         class="p-2 rounded-xl hover:bg-neutral-200 dark:hover:bg-neutral-600 transition-all hover:scale-120">
                                         <Pencil :size="18" class="text-neutral-400 hover:text-primary-500" />
@@ -579,7 +579,7 @@ onUnmounted(() => {
                                     <div class="w-6 h-6 rounded-full shrink-0" :style="{ backgroundColor: tag.color }">
                                     </div>
                                     <span class="flex-1 font-bold text-neutral-900 dark:text-white">{{ tag.name
-                                        }}</span>
+                                    }}</span>
                                     <button @click="startEditTag(tag)"
                                         class="p-2 rounded-xl hover:bg-neutral-200 dark:hover:bg-neutral-600 transition-all hover:scale-120">
                                         <Pencil :size="18" class="text-neutral-400 hover:text-primary-500" />
@@ -645,8 +645,7 @@ onUnmounted(() => {
                                                 :style="{
                                                     backgroundColor: tag.color + '20',
                                                     color: tag.color
-                                                }"
-                                                @click.stop="removeTagFromHabit(habit.id, tag.id)">
+                                                }" @click.stop="removeTagFromHabit(habit.id, tag.id)">
                                                 <span class="group-hover:hidden">{{ tag.name }}</span>
                                                 <X :size="12" class="hidden group-hover:block" />
                                             </span>
@@ -660,8 +659,7 @@ onUnmounted(() => {
                                                 <div v-if="addingTagToHabit === habit.id"
                                                     class="absolute top-full left-0 mt-1 w-48 bg-white dark:bg-neutral-700 rounded-xl shadow-lg border border-neutral-200 dark:border-neutral-600 z-20 overflow-hidden">
                                                     <input v-model="tagSearchQuery"
-                                                        @input="updateFilteredTags(habit.id)"
-                                                        type="text"
+                                                        @input="updateFilteredTags(habit.id)" type="text"
                                                         :placeholder="t('searchTags')"
                                                         class="w-full px-3 py-2 text-sm bg-neutral-50 dark:bg-neutral-800 border-b border-neutral-200 dark:border-neutral-600 outline-none text-neutral-900 dark:text-white"
                                                         @click.stop />
@@ -671,7 +669,8 @@ onUnmounted(() => {
                                                             class="w-full px-3 py-2 text-sm text-left hover:bg-neutral-100 dark:hover:bg-neutral-600 flex items-center gap-2 transition-colors">
                                                             <span class="w-3 h-3 rounded-full shrink-0"
                                                                 :style="{ backgroundColor: tag.color }"></span>
-                                                            <span class="text-neutral-900 dark:text-white">{{ tag.name }}</span>
+                                                            <span class="text-neutral-900 dark:text-white">{{ tag.name
+                                                                }}</span>
                                                         </button>
                                                         <div v-if="filteredTags.length === 0"
                                                             class="px-3 py-2 text-sm text-neutral-400 dark:text-neutral-500">
@@ -737,8 +736,7 @@ onUnmounted(() => {
                                         </span>
                                         <!-- Tags -->
                                         <span v-for="tag in habit.tags" :key="tag.id"
-                                            class="text-xs px-2 py-1 rounded-full font-bold"
-                                            :style="{
+                                            class="text-xs px-2 py-1 rounded-full font-bold" :style="{
                                                 backgroundColor: tag.color + '20',
                                                 color: tag.color
                                             }">

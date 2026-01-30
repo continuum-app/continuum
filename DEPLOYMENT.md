@@ -1,6 +1,6 @@
 # Deployment Guide
 
-This guide covers deploying the HabitsFactory application using Docker Compose with PostgreSQL and Gunicorn.
+This guide covers deploying the Habits Factory application using Docker Compose with PostgreSQL and Gunicorn.
 
 ## Prerequisites
 

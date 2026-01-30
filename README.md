@@ -5,7 +5,7 @@
 **Habits Factory** is a **power-user–oriented habit-tracking engine** built for precision, insight, and long-term behavioral optimization.
 It enables granular tracking of daily routines, deep visualization of trends, and data-driven habit refinement.
 
-Designed with **correctness, extensibility, and performance** in mind, HabitsFactory targets both:
+Designed with **correctness, extensibility, and performance** in mind, Habits Factory targets both:
 - 🧠 End users who want meaningful analytics
 - 🛠️ Developers who value clean, scalable architecture
 
@@ -13,7 +13,7 @@ Designed with **correctness, extensibility, and performance** in mind, HabitsFac
 
 ## 🧭 Project Philosophy
 
-HabitsFactory is built around a few core principles:
+Habits Factory is built around a few core principles:
 
 - ✅ **Correctness first** — predictable behavior and validated data
 - 🧩 **Composable architecture** — modular, extensible components
@@ -24,7 +24,7 @@ HabitsFactory is built around a few core principles:
 
 ## 🏗️ Architecture Overview
 
-HabitsFactory follows a **decoupled, API-first architecture**:
+Habits Factory follows a **decoupled, API-first architecture**:
 
 - 🔌 Frontend and backend evolve independently
 - 📜 Explicit, versionable data contracts
@@ -97,7 +97,7 @@ This ensures:
 
 ## 🔍 Habit Insights & Correlation Analysis
 
-HabitsFactory uses **multiple correlation algorithms** to discover meaningful relationships between your habits:
+Habits Factory uses **multiple correlation algorithms** to discover meaningful relationships between your habits:
 
 ### 📐 Correlation Methods
 
@@ -194,4 +194,4 @@ If you’re interested in contributing:
 
 ---
 
-> 🌱 **HabitsFactory** — *Build habits. Measure progress. Master consistency.*
+> 🌱 **Habits Factory** — *Build habits. Measure progress. Master consistency.*

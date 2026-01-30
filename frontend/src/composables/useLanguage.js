@@ -1,7 +1,26 @@
 import { ref, computed } from 'vue'
 import { translations } from '@/composables/translations'
 
-const currentLanguage = ref(localStorage.getItem('language') || 'en')
+const supportedLanguages = ['en', 'fr']
+
+const getInitialLanguage = () => {
+    const stored = localStorage.getItem('language')
+    if (stored && supportedLanguages.includes(stored)) {
+        return stored
+    }
+
+    // Detect browser/OS language
+    const browserLang = navigator.language || navigator.userLanguage
+    const langCode = browserLang?.split('-')[0] // e.g., 'en-US' -> 'en'
+
+    if (langCode && supportedLanguages.includes(langCode)) {
+        return langCode
+    }
+
+    return 'en'
+}
+
+const currentLanguage = ref(getInitialLanguage())
 
 export const useLanguage = () => {
     const setLanguage = (lang) => {
