@@ -82,6 +82,19 @@ services:
     networks:
       - habitsfactory_network
 
+  scheduler:
+    image: mcuadros/ofelia:latest
+    container_name: habitsfactory_scheduler
+    depends_on:
+      - backend
+    command: daemon --docker
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    labels:
+      ofelia.job-exec.compute-correlations.schedule: "0 0 2 * * *"
+      ofelia.job-exec.compute-correlations.container: "habitsfactory_backend"
+      ofelia.job-exec.compute-correlations.command: "python manage.py compute_correlations"
+
 volumes:
   postgres_data:
 

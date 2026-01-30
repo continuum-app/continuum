@@ -105,7 +105,9 @@ onUnmounted(() => {
     <div class="max-w-7xl mx-auto">
       <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
         <div class="flex items-center gap-4">
-          <img src="/logo.png" alt="App Logo" class="h-22 w-22" />
+          <a href="https://habitsfactory.io" target="_blank" rel="noopener noreferrer">
+            <img src="/logo.png" alt="App Logo" class="h-22 w-22" />
+          </a>
           <div>
             <h1 class="text-4xl font-black tracking-tighter text-neutral-900 dark:text-white uppercase italic">
               {{ t('appName') }}

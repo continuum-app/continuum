@@ -76,6 +76,7 @@ export const translations = {
     adminSettings: 'Administration',
     adminSettingsMessage: 'Manage site-wide settings and user permissions.',
     allRightsReserved: 'All rights reserved.',
+    license: 'Licensed under Apache 2.0',
 
     // Administration Settings
     siteWideSettings: 'Site-Wide Settings',
@@ -281,6 +282,7 @@ export const translations = {
     adminSettings: 'Administration',
     adminSettingsMessage: 'Paramètres globaux du site pour les administrateurs',
     allRightsReserved: 'Tous droits réservés.',
+    license: 'Sous licence Apache 2.0',
 
     // Administration Settings
     siteWideSettings: 'Paramètres Globaux du Site',

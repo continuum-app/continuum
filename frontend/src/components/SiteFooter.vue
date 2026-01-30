@@ -26,22 +26,28 @@ const goToExport = () => {
     <footer class="py-12 px-6">
         <div class="dark:text-white max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             <div class="flex flex-col gap-4">
-                <img src="/logo.png" alt="Habits Factory Logo" class="h-32 w-32 object-contain center" />
+                <a href="https://habitsfactory.io" target="_blank" rel="noopener noreferrer">
+                    <img src="/logo.png" alt="Habits Factory Logo" class="h-32 w-32 object-contain center" />
+                </a>
                 <span class="text-xl font-bold tracking-tight">Habits Factory</span>
                 <p class="text-sm text-gray-400">Building better routines, one day at a time.</p>
+                <a href="https://habitsfactory.io" target="_blank" rel="noopener noreferrer">
+                    <span
+                        class="text-sm text-gray-500 hover:text-primary-400 transition-colors">https://habitsfactory.io</span>
+                </a>
             </div>
             <div>
                 <h3 class="font-semibold mb-4 uppercase text-xs tracking-wider">Management</h3>
-                <ul class="space-y-0 text-sm">
+                <ul class="space-y-2 text-sm">
                     <li>
                         <button @click="goToAdminSettings"
-                            class="hover:text-primary-400 transition-colors flex items-center gap-2 pl-0">
+                            class="hover:text-primary-400 transition-colors flex items-center pl-0">
                             <span>{{ t('adminSettings') }}</span>
                         </button>
                     </li>
                     <li>
                         <button @click="goToProfile"
-                            class="hover:text-primary-400 transition-colors flex items-center gap-2 pl-0">
+                            class="hover:text-primary-400 transition-colors flex items-center pl-0">
                             <span>{{ t('profile') }}</span>
                         </button>
                     </li>
@@ -49,16 +55,16 @@ const goToExport = () => {
             </div>
             <div>
                 <h3 class="font-semibold mb-4 uppercase text-xs tracking-wider">Data</h3>
-                <ul class="space-y-0 text-sm">
+                <ul class="space-y-2 text-sm">
                     <li>
                         <button @click="goToExport"
-                            class="hover:text-primary-400 transition-colors flex items-center gap-2 pl-0">
+                            class="hover:text-primary-400 transition-colors flex items-center pl-0">
                             <span>{{ t('importData') }}</span>
                         </button>
                     </li>
                     <li>
                         <button @click="goToExport"
-                            class="hover:text-primary-400 transition-colors flex items-center gap-2 pl-0">
+                            class="hover:text-primary-400 transition-colors flex items-center pl-0">
                             <span>{{ t('exportData') }}</span>
                         </button>
                     </li>
@@ -66,7 +72,7 @@ const goToExport = () => {
             </div>
             <div>
                 <h3 class="font-semibold mb-4 uppercase text-xs tracking-wider">Support</h3>
-                <ul class="space-y-2 text-sm">
+                <ul class="space-y-4 text-sm">
                     <li>
                         <a href="https://github.com/habitsfactory/habitsfactory-app" target="_blank"
                             rel="noopener noreferrer"
@@ -84,11 +90,17 @@ const goToExport = () => {
                         <a href="https://ko-fi.com/joeydev" target="_blank"><img src="/support_me_on_kofi_dark.png"
                                 alt="Support me on Ko-Fi" style="width: 160px;"></img></a>
                     </li>
+                    <li>
+                        <a href="mailto:contact@habitsfactory.io">
+                            <span
+                                class="text-sm text-gray-500 hover:text-primary-400 transition-colors">contact@habitsfactory.io</span>
+                        </a>
+                    </li>
                 </ul>
             </div>
         </div>
         <div class="max-w-7xl mx-auto mt-12 pt-8 border-t border-gray-300 text-center text-xs text-gray-500">
-            © {{ new Date().getFullYear() }} {{ t('appName') }}. {{ t('allRightsReserved') }}
+            © {{ new Date().getFullYear() }} {{ t('appName') }}. {{ t('license') }}
         </div>
     </footer>
 </template>
